@@ -1,0 +1,73 @@
+#include "generation/experiment_generation.h"
+#include "maintain/experiment_maintain.h"
+#include "random/random_weight_generator.h"
+// #include "generation/experiment_generation_nonhop.h"
+// #include "generation/experiment_generation_hop.h"
+#include "parse/experiment_argparse.h"
+#include "entity/graph.h"
+#include "entity/graph_with_time_span.h"
+#include <iostream>
+#include <filesystem>
+#include <string>
+
+int main(int argc, char *argv[])
+{
+    try{
+        experiment::ExperimentConfig *config = new experiment::ExperimentConfig();
+        experiment::parse_arguments(config,argc, argv);
+        std::cout << "Mode: " << (config->mode == experiment::GENERATE_LABEL ? "Generate Label" : (config->mode == experiment::MAINTAIN_LABEL ? "Maintain Label" : "QueryResult")) << "\n"
+                  << "Threads: " << config->threads << "\n"
+                  << "Data Source: " << config->data_source << "\n"
+                  << "Save Path: " << config->save_path << "\n"
+                  << "Hop Limit (k): " << config->hop_limit << "\n"
+                  << "Max Value: " << config->max_value << "\n"
+                  << "Min Value: " << config->min_value << "\n";
+        if (config->mode == experiment::MAINTAIN_LABEL)
+        {
+            std::cout << "Iterations: " << config->iterations << "\n"
+                      << "Change Count: " << config->change_count << "\n";
+        }
+        if(config->mode == experiment::GENERATE_LABEL){
+            experiment::graph<int> instance_graph;
+            experiment::graph<int>::read_graph(instance_graph, config);
+            instance_graph.graph_v_of_v_update_vertexIDs_by_degrees_large_to_small();
+            experiment::graph_with_time_span<int> graph_time;
+            graph_time.add_graph_time(instance_graph, 0);
+            std::filesystem::path saveDir = std::filesystem::path(config->save_path);
+            std::filesystem::create_directory(saveDir);
+            if(config->hop_limit == 0){
+                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::NoHop, int, int>;
+                Generator generator(config);
+                experiment::nonhop::two_hop_case_info<int> hop_info;
+                hop_info.PPR.resize(instance_graph.size());
+                generator.pll(instance_graph, hop_info);
+                // hop_info.print_L();
+                export_degree_distribution_and_plot(instance_graph,saveDir.string());
+                generator.persistData(instance_graph, graph_time,hop_info);
+            }else{
+                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::WithHop, int, int>;
+                Generator generator(config);
+                experiment::hop::two_hop_case_info<int> hop_info;
+                hop_info.upper_k = config->hop_limit;
+                generator.pll(instance_graph, hop_info);
+                // hop_info.print_L();
+                export_degree_distribution_and_plot(instance_graph,saveDir.string() + "/basic");
+                generator.persistData(instance_graph, graph_time,hop_info);
+            }
+        }
+        else if(config->mode == experiment::MAINTAIN_LABEL){
+            using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::NoHop, int, int>;
+            Maintain maintain(config);
+             maintain.generateChangeEdge();
+//            maintain.readChangeEdge("changeinfo_res_2025-06-11-17-09-21.txt");
+            std::cout <<"finish generateChangeEdge\n";
+            maintain.initialize_experiment_global_values_dynamic();
+            maintain.maintain();
+            maintain.save_csv();
+        }
+    }catch(const std::exception& e){
+        std::cerr << e.what() << '\n';
+    }catch(...){
+        std::cerr << "Unknown error" << '\n';
+    }
+}
