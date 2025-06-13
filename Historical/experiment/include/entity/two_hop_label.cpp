@@ -57,6 +57,28 @@ void experiment::PPR_TYPE::PPR_insert(PPR_type *PPR, int v1, int v2, int v3)
 		PPR_binary_operations_insert((*PPR)[v1][pos].second, v3);
 	}
 }
+void experiment::PPR_TYPE::PPR_insert_with_csv(PPR_type *PPR, int v1, int v2, int v3, result::MaintainShard& shard)
+{
+    if (experiment::status::currentTimeMode == experiment::status::SLOT1)
+    {
+        ++shard.ppr_insert_slot1;
+    }
+    else
+    {
+        ++shard.ppr_insert_slot2;
+    }
+    /*add v3 into PPR(v1, v2)*/
+    int pos = graph_hash_of_mixed_weighted_binary_operations_search_position((*PPR)[v1], v2);
+    if (pos == -1)
+    {
+        std::vector<int> x = {v3};
+        graph_hash_of_mixed_weighted_binary_operations_insert((*PPR)[v1], v2, x);
+    }
+    else
+    {
+        PPR_binary_operations_insert((*PPR)[v1][pos].second, v3);
+    }
+}
 
 std::vector<int> experiment::PPR_TYPE::PPR_retrieve(PPR_type &PPR, int v1, int v2)
 {

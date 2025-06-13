@@ -20,6 +20,8 @@ namespace experiment
 
 		void PPR_insert(PPR_type *PPR, int v1, int v2, int v3);
 
+		void PPR_insert_with_csv(PPR_type *PPR, int v1, int v2, int v3,result::MaintainShard& shard);
+
 		std::vector<int> PPR_retrieve(PPR_type &PPR, int v1, int v2);
 
 		void PPR_replace(PPR_type &PPR, int v1, int v2, std::vector<int> &loads);
@@ -174,7 +176,7 @@ namespace experiment
 		}
 
 		template <typename weight_type>
-		void insert_sorted_two_hop_label(std::vector<two_hop_label<weight_type>> &input_vector, int key, int value, int time, experiment::result::MaintainShard &maintain_shard)
+		void insert_sorted_two_hop_label_with_csv(std::vector<two_hop_label<weight_type>> &input_vector, int key, int value, int time, experiment::result::MaintainShard &maintain_shard)
 		{
 			if (experiment::status::currentTimeMode == experiment::status::MaintainTimeMode::SLOT1)
 			{

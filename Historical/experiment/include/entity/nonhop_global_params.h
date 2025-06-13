@@ -90,22 +90,6 @@ namespace experiment
 
 		inline std::shared_mutex mtx_595_1, mtx_595_2;
 		inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
-
-		inline void initialize_experiment_global_values_dynamic(int N, int thread_num)
-		{
-
-			Dis.resize(thread_num);
-			Q_value.resize(thread_num);
-			Q_handles.resize(thread_num);
-			std::queue<int>().swap(Qid_595);
-			for (int i = 0; i < thread_num; i++)
-			{
-				Dis[i].resize(N, {-1, -1});
-				Q_value[i].resize(N, 1e7);
-				Q_handles[i].resize(N);
-				Qid_595.push(i);
-			}
-		}
 #pragma endregion
 	}
 }
