@@ -8,30 +8,32 @@
 #include "entity/graph.h"
 #include "entity/two_hop_label.h"
 #include "entity/nonhop_global_params.h"
+
 namespace experiment::nonhop::algorithm2021::decrease {
     template<typename weight_type, typename hop_weight_type>
     class StrategyA2021NonHopDecrease {
     public:
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
-                        std::vector<std::pair<int, int>> &v, std::vector<weight_type> &w_new,
-                        ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic, int time) const;
+                        std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_new,
+                        ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) const;
 
     private:
         void ProDecreasep_batch(graph<weight_type> &instance_graph,
-                                std::vector<std::vector<two_hop_label<hop_weight_type>>> *L, PPR_TYPE::PPR_type *PPR,
+                                std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
                                 std::vector<affected_label> &CL_curr, std::vector<affected_label> *CL_next,
-                                ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic,
+                                ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic,
                                 int time) const;
     };
 
     template<typename weight_type, typename hop_weight_type>
-    inline void
+    void
     StrategyA2021NonHopDecrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
                                                                           two_hop_case_info<hop_weight_type> &mm,
-                                                                          std::vector<std::pair<int, int>> &v,
+                                                                          std::vector<std::pair<int, int> > &v,
                                                                           std::vector<weight_type> &w_new,
                                                                           ThreadPool &pool_dynamic,
-                                                                          std::vector<std::future<int>> &results_dynamic,
+                                                                          std::vector<std::future<int> > &
+                                                                          results_dynamic,
                                                                           int time) const {
         int current_tid = Qid_595.front();
         auto &counter = experiment::result::global_csv_config.old_counter;
@@ -70,9 +72,9 @@ namespace experiment::nonhop::algorithm2021::decrease {
                     long long dis = it.distance + w_new;
                     if (v <= v2) {
                         auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(L[v],
-                                                                                                                L[v2],
-                                                                                                                v, v2,
-                                                                                                                shard); // query_result is {distance, common hub}
+                            L[v2],
+                            v, v2,
+                            shard); // query_result is {distance, common hub}
                         if (query_result.first > dis) {
                             mtx_595[v2].lock();
                             insert_sorted_two_hop_label_with_csv(L[v2], v, dis, time, shard);
@@ -120,13 +122,13 @@ namespace experiment::nonhop::algorithm2021::decrease {
     template<typename weight_type, typename hop_weight_type>
     inline void
     StrategyA2021NonHopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<weight_type> &instance_graph,
-                                                                                  std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
-                                                                                  PPR_TYPE::PPR_type *PPR,
-                                                                                  std::vector<affected_label> &CL_curr,
-                                                                                  std::vector<affected_label> *CL_next,
-                                                                                  ThreadPool &pool_dynamic,
-                                                                                  std::vector<std::future<int>> &results_dynamic,
-                                                                                  int time) const {
+        std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
+        PPR_TYPE::PPR_type *PPR,
+        std::vector<affected_label> &CL_curr,
+        std::vector<affected_label> *CL_next,
+        ThreadPool &pool_dynamic,
+        std::vector<std::future<int> > &results_dynamic,
+        int time) const {
         bool is_debug = false;
         if (CL_next->size() > 100000) {
             is_debug = true;
@@ -141,7 +143,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                 auto &counter = experiment::result::global_csv_config.old_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
                 mtx_595[u].lock();
-                std::vector<two_hop_label<hop_weight_type>> Lu = (*L)[u]; // to avoid interlocking
+                std::vector<two_hop_label<hop_weight_type> > Lu = (*L)[u]; // to avoid interlocking
                 //std::cout << "lu address is " << &Lu << std::endl;
                 //std::cout << "L[u] address is " << &((*(L))[u]) << std::endl;
                 mtx_595[u].unlock();
@@ -153,7 +155,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                     if (u < vnei) {
                         mtx_595[vnei].lock();
                         auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-                                (*L)[vnei], Lu, vnei, u, shard); // query_result is {distance, common hub}
+                            (*L)[vnei], Lu, vnei, u, shard); // query_result is {distance, common hub}
                         mtx_595[vnei].unlock();
                         if (query_result.first > dnew) {
                             mtx_595[vnei].lock();
@@ -176,7 +178,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                         } else {
                             mtx_595[vnei].lock();
                             std::pair<int, int> search_result = search_sorted_two_hop_label_in_current_with_csv(
-                                    (*L)[vnei], u, shard);
+                                (*L)[vnei], u, shard);
                             mtx_595[vnei].unlock();
                             if (search_result.first < 1e7 && search_result.first > dnew) {
                                 mtx_595[vnei].lock();
@@ -217,8 +219,6 @@ namespace experiment::nonhop::algorithm2021::decrease {
         for (auto &&result: results_dynamic) {
             result.get();
         }
-        std::vector<std::future<int>>().swap(results_dynamic);
+        std::vector<std::future<int> >().swap(results_dynamic);
     }
 }
-
-
