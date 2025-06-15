@@ -21,11 +21,11 @@ int main(int argc, char *argv[])
                   << "Save Path: " << config->save_path << "\n"
                   << "Hop Limit (k): " << config->hop_limit << "\n"
                   << "Max Value: " << config->max_value << "\n"
-                  << "Min Value: " << config->min_value << "\n";
+                  << "Min Value: " << config->min_value << std::endl;
         if (config->mode == experiment::MAINTAIN_LABEL)
         {
             std::cout << "Iterations: " << config->iterations << "\n"
-                      << "Change Count: " << config->change_count << "\n";
+                      << "Change Count: " << config->change_count << std::endl;
         }
         if(config->mode == experiment::GENERATE_LABEL){
             experiment::graph<int> instance_graph;
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
             Maintain maintain(config);
              maintain.generateChangeEdge();
 //            maintain.readChangeEdge("changeinfo_res_2025-06-11-17-09-21.txt");
-            std::cout <<"finish generateChangeEdge\n";
+            std::cout <<"finish generateChangeEdge" << std::endl;
             maintain.initialize_experiment_global_values_dynamic();
             maintain.maintain();
             maintain.save_csv();

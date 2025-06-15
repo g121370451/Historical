@@ -290,7 +290,6 @@ namespace experiment::nonhop::ruc::increase {
                 al3_edge_map[{it.first, it.second}] = it.dis;
             }
         }
-
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<std::pair<int, weight_type>>> al3_map; // al3_map[v]=(u1,dis1),(u2,dis2)...
         for (auto &it: al3_edge_map) {
@@ -307,7 +306,6 @@ namespace experiment::nonhop::ruc::increase {
                 al3_map[v] = vec_with_hub_v;
             }
         }
-
         std::vector<std::pair<int, std::vector<std::pair<int, weight_type>>>> al3_map_vec(al3_map.begin(),
                                                                                           al3_map.end());
         sort(al3_map_vec.begin(), al3_map_vec.end(),
@@ -315,7 +313,6 @@ namespace experiment::nonhop::ruc::increase {
                 const std::pair<int, std::vector<std::pair<int, weight_type>>> &b) {
                  return a.first < b.first;
              });
-
         // std::cout<<"SPREAD3_batch"<<std::endl;
         for (auto &it: al3_map_vec) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, &instance_graph, PPR, time] {
@@ -346,7 +343,6 @@ namespace experiment::nonhop::ruc::increase {
                 for (auto &diffuseLabel: vec_with_hub_v) {
                     int u = diffuseLabel.first;
                     weight_type du = diffuseLabel.second;
-                    // std::cout<<"u: "<<u<<" v: "<<v<<" du: "<<du<<"\n";
                     mtx_595[u].lock();
                     auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                             (*L)[u], Lv, u, v, shard);
@@ -448,7 +444,8 @@ namespace experiment::nonhop::ruc::increase {
                     DIS[i] = {-1, -1};
                 }
                 Q_VALUE.resize(Q_VALUE.size(), 1e7);
-                Q_HANDLES.clear();
+                // Q_HANDLES.clear();
+                // Q_HANDLES.resize(Q_HANDLES.size());
                 mtx_595_1.lock();
                 Qid_595.push(current_tid);
                 mtx_595_1.unlock();

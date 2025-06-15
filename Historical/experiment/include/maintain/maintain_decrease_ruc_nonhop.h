@@ -55,9 +55,7 @@ namespace experiment::nonhop::ruc::decrease {
             }
         }
         std::vector<affected_label> CL;
-
         decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic);
-
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, time);
     };
 
@@ -176,7 +174,6 @@ namespace experiment::nonhop::ruc::decrease {
         sort(CL_map_vec.begin(), CL_map_vec.end(),
              [](const std::pair<int, std::vector<std::pair<int, int>>> &a,
                 const std::pair<int, std::vector<std::pair<int, int>>> &b) { return a.first < b.first; });
-
         // each thread processes one unique hub
         for (auto &it: CL_map_vec) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([t, it, L, &instance_graph, PPR] {
@@ -288,15 +285,15 @@ namespace experiment::nonhop::ruc::decrease {
                         }
                     }
                 }
-
                 for (int i: Dis_changed) {
                     DIS[i] = {-1, -1};
                 }
+                // Q_HANDLES.clear();
+                // Q_HANDLES.resize(Q_HANDLES.size());
                 Q_VALUE.resize(Q_VALUE.size(), 1e7);
                 mtx_595_1.lock();
                 Qid_595.push(current_tid);
                 mtx_595_1.unlock();
-
                 return 1;
             }));
         }

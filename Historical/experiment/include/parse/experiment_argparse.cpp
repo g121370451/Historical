@@ -52,11 +52,10 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
     }
     catch (const std::runtime_error &err)
     {
-        std::cerr << "Error: " << err.what() << "\n";
+        std::cerr << "Error: " << err.what() << std::endl;
         std::cerr << program;
         return; 
     }
-    std::cout <<"1" << std::endl;
     if (program.is_subcommand_used("generate-label"))
     {
         config->mode = GENERATE_LABEL;
@@ -98,7 +97,7 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
     }
     else
     {
-        std::cerr << "Error: Unknown subcommand.\n";
+        std::cerr << "Error: Unknown subcommand." <<std::endl;
         std::cerr << program;
     }
 }

@@ -150,7 +150,7 @@ namespace experiment
                             {
                                 if (this->ADJs[i][j].second[k].startTimeLabel == index)
                                 {
-                                    outputFile << "Edge " << i << " " << ADJs[i][j].first << " " << this->ADJs[i][j].second[k].weight << "\n";
+                                    outputFile << "Edge " << i << " " << ADJs[i][j].first << " " << this->ADJs[i][j].second[k].weight << std::endl;
                                     break;
                                 }
                             }

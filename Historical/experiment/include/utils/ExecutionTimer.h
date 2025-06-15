@@ -96,7 +96,7 @@ namespace experiment
 			}
 			else
 			{
-				std::cerr << "Error: No subtask is currently running.\n";
+				std::cerr << "Error: No subtask is currently running." <<std::endl;
 				return 0;
 			}
 		}
@@ -113,7 +113,7 @@ namespace experiment
 
 		inline void printStats()
 		{
-			std::cout << "Task Timing Statistics: " << getTaskDuration() << " seconds\n";
+			std::cout << "Task Timing Statistics: " << getTaskDuration() << " seconds" << std::endl;
 			printTaskStats(allTasks, 0);
 		}
 

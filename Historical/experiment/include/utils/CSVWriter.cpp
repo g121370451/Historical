@@ -45,7 +45,7 @@ namespace experiment::csv {
             if (i < fields.size() - 1)
                 (*out_stream) << ",";
         }
-        (*out_stream) << "\n";
+        (*out_stream) << std::endl;
     }
 
     void CSVWriter::write_csv_header() {
@@ -69,7 +69,7 @@ namespace experiment::csv {
                     << "old_diffuse_count_slot1,old_diffuse_count_slot2,old_total_diffuse_count,"
                     // 加速比列
                     << "time_speedup,label_count_speedup,label_inc_insert_speedup,"
-                    << "label_dec_insert_speedup,cover_speedup,ppr_speedup,diffuse_speedup\n";
+                    << "label_dec_insert_speedup,cover_speedup,ppr_speedup,diffuse_speedup" <<std::endl;
 
         header_written_ = true;
     }
@@ -86,7 +86,6 @@ namespace experiment::csv {
         }
 
         std::ostringstream oss;
-        oss << std::fixed << std::setprecision(2);
 
         oss << get_current_time() << "," << version_ << ",";
 
@@ -136,6 +135,6 @@ namespace experiment::csv {
             << (double) old.total_ppr_insert_count() / ruc.total_ppr_insert_count() << ","
             << (double) old.total_diffuse_count() / ruc.total_diffuse_count();
 
-        (*out_stream) << oss.str() << "\n";
+        (*out_stream) << oss.str() << std::endl;
     }
 }

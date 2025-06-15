@@ -72,7 +72,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Decrease" + this->maintainTimes);
+            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Decrease");
             std::vector<std::future<int>> results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -82,7 +82,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Increase" + this->maintainTimes);
+            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Increase");
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -115,7 +115,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Decrease" + this->maintainTimes);
+            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Decrease");
             std::vector<std::future<int>> results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -125,7 +125,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Increase" + this->maintainTimes);
+            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Increase");
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -166,7 +166,7 @@ namespace experiment {
                     std::to_string(config->threads) + "_threads_result.txt";
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
-            std::cout << "finish readData\n";
+            std::cout << "finish readData" << std::endl;
             this->instance_graph_list.push_back(this->instance_graph);
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
@@ -201,7 +201,7 @@ namespace experiment {
             mid_ids = extract_ids(mid);
             high_ids = extract_ids(high);
             this->iterationChangeWeightInfo.build_change_by_strategy(high_ids, low_ids,
-                                                                     EdgeChangeStrategy::LOW_LOW_MIXED);
+                                                                     EdgeChangeStrategy::HIGH_LOW_MIXED);
             // 持久化保存这个结果 结果可以用时间戳表示
             std::ofstream outfile(this->change_info_res_filename);
             experiment::result::global_csv_config.basic_data.changeName = this->change_info_res_filename;
@@ -290,7 +290,7 @@ namespace experiment {
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
                         GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
-                        std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
+                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
                         // base1TimeCostAll += timer_baseline1.endSubtask();
@@ -298,6 +298,7 @@ namespace experiment {
                         graph_time.add_edge(v1, v2, w, time);
                         // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
+                    this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.decrease(instance_graph_temp, hop_info, path_decrease, weight_decrease,
                                                this->pool_dynamic, time);
                     this->a2021_process.decrease(instance_graph_temp, hop_info_2021, path_decrease, weight_decrease,
@@ -314,7 +315,7 @@ namespace experiment {
                         GraphType w = weight_increase[index];
                         GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         weight_old_increase.push_back(old_w);
-                        std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
+                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
                         // base1TimeCostAll += timer_baseline1.endSubtask();
@@ -326,6 +327,7 @@ namespace experiment {
                                                  hop_info_2021, path_increase,
                                                  weight_old_increase,
                                                  pool_dynamic, time);
+                    this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.increase(instance_graph_temp,
                                                hop_info, path_increase,
                                                weight_old_increase,

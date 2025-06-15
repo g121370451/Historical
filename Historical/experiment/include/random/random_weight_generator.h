@@ -100,10 +100,10 @@ namespace experiment
         auto write_group = [&](const std::vector<std::pair<int, int>> &group, const std::string &name)
         {
             std::ofstream out(saveDirectory + name + ".csv");
-            out << "Vertex,Degree\n";
+            out << "Vertex,Degree" <<std::endl;
             for (const auto &[vid, deg] : group)
             {
-                out << vid << "," << deg << "\n";
+                out << vid << "," << deg << std::endl;
             }
         };
 
@@ -117,7 +117,7 @@ namespace experiment
         int status = std::system(command.c_str());
         if (status != 0)
         {
-            std::cerr << "Failed to execute plot_degree.py\n";
+            std::cerr << "Failed to execute plot_degree.py" <<std::endl;
         }
     };
 
@@ -330,15 +330,15 @@ namespace experiment
             out << "Graph Information:\n";
             out << "------------------\n";
             // You might want to add graph's toString() method if you need detailed graph info
-            out << "Graph with " << instance_graph.size() << " vertices\n\n";
+            out << "Graph with " << instance_graph.size() << " vertices\n" << std::endl;
 
-            out << "Change Queues:\n";
-            out << "--------------\n";
+            out << "Change Queues:" << std::endl;
+            out << "--------------" << std::endl;
             for (size_t i = 0; i < q_list.size(); ++i)
             {
                 if (!q_list[i].empty())
                 {
-                    out << "Queue for iteration " << i << " (" << q_list[i].size() << " changes):\n";
+                    out << "Queue for iteration " << i << " (" << q_list[i].size() << " changes):" <<std::endl;
 
                     // Make a copy of the queue to preserve the original
                     std::queue<change_edge_info<weight_type>> temp = q_list[i];
@@ -347,7 +347,7 @@ namespace experiment
                         const auto &change = temp.front();
                         out << "  Edge (" << change.v1 << ", " << change.v2
                             << ") weight: " << change.weight
-                            << " at time: " << change.time << "\n";
+                            << " at time: " << change.time << std::endl;
                         temp.pop();
                     }
                 }

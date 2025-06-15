@@ -88,7 +88,7 @@ namespace experiment
 		inline std::vector<std::vector<int>> Q_value;
 		inline std::vector<std::vector<handle_t_for_DIFFUSE>> Q_handles;
 
-		inline std::shared_mutex mtx_595_1, mtx_595_2;
+		inline std::mutex mtx_595_1, mtx_595_2;
 		inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
 #pragma endregion
 	}
