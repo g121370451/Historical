@@ -48,9 +48,7 @@ namespace experiment::nonhop::ruc::decrease {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
             }
-            if (w_new_map.count(v[i]) == 0) {
-                w_new_map[v[i]] = w_new[i];
-            } else if (w_new_map[v[i]] > w_new[i]) {
+            if (w_new_map.count(v[i]) == 0 || w_new_map[v[i]] > w_new[i]) {
                 w_new_map[v[i]] = w_new[i];
             }
         }
@@ -89,22 +87,22 @@ namespace experiment::nonhop::ruc::decrease {
                                 mtx_595_1.lock();
                                 CL->push_back(affected_label{v2, it.vertex, it.distance + w_new});
                                 mtx_595_1.unlock();
-                                if(status::currentTimeMode == status::MaintainTimeMode::SLOT1){
+                                if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                     shard.diffuse_count_slot1++;
-                                }else{
+                                } else {
                                     shard.diffuse_count_slot2++;
                                 }
                             } else {
-                                auto search_result = search_sorted_two_hop_label_in_current_with_csv(
+                                hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_csv(
                                         (*L)[v2], it.vertex, shard);
-                                if (search_result.first > it.distance + w_new &&
-                                    search_result.first < std::numeric_limits<int>::max()) {
+                                if (search_result > it.distance + w_new &&
+                                    search_result < std::numeric_limits<hop_weight_type>::max()) {
                                     mtx_595_1.lock();
                                     CL->push_back(affected_label{v2, it.vertex, it.distance + w_new});
                                     mtx_595_1.unlock();
-                                    if(status::currentTimeMode == status::MaintainTimeMode::SLOT1){
+                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                         shard.diffuse_count_slot1++;
-                                    }else{
+                                    } else {
                                         shard.diffuse_count_slot2++;
                                     }
                                 }
@@ -143,21 +141,19 @@ namespace experiment::nonhop::ruc::decrease {
             PPR_TYPE::PPR_type *PPR, std::vector<affected_label> &CL, ThreadPool &pool_dynamic,
             std::vector<std::future<int>> &results_dynamic, int t) const {
         // Deduplication
-        std::map<std::pair<int, int>, size_t> CL_edge_map;
+        std::map<std::pair<int, int>, hop_weight_type> CL_edge_map;
         for (auto &it: CL) {
-            if (CL_edge_map.count({it.first, it.second}) == 0) {
-                CL_edge_map[{it.first, it.second}] = it.dis;
-            } else if (CL_edge_map[{it.first, it.second}] > it.dis) {
+            if (CL_edge_map.count({it.first, it.second}) == 0 || CL_edge_map[{it.first, it.second}] > it.dis) {
                 CL_edge_map[{it.first, it.second}] = it.dis;
             }
         }
 
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<std::pair<int, int>>> CL_map; // CL_map[v]=(u1,dis1),(u2,dis2)...
-        for (auto &it: CL_edge_map) {
-            int u = it.first.first;
-            int v = it.first.second;
-            int dis = it.second;
+        for (auto &CL_edgeItem: CL_edge_map) {
+            int u = CL_edgeItem.first.first;
+            int v = CL_edgeItem.first.second;
+            hop_weight_type dis = CL_edgeItem.second;
             if (CL_map.count(v) == 0) {
                 std::vector<std::pair<int, int>> vec_with_hub_v;
                 vec_with_hub_v.emplace_back(u, dis);
@@ -197,9 +193,9 @@ namespace experiment::nonhop::ruc::decrease {
 
                 boost::heap::fibonacci_heap<node_for_DIFFUSE> Q;
 
-                for (auto &it: vec_with_hub_v) {
-                    int u = it.first;
-                    int du = it.second;
+                for (auto &vec_with_hub_v_item: vec_with_hub_v) {
+                    int u = vec_with_hub_v_item.first;
+                    int du = vec_with_hub_v_item.second;
                     DIS[u] = {du, v}; // <distance, hub responsible for this distance>
                     Dis_changed.push_back(u);
                     Q_HANDLES[u] = Q.push(node_for_DIFFUSE(u, du));
@@ -215,8 +211,8 @@ namespace experiment::nonhop::ruc::decrease {
                     Q_VALUE[x] = 1e7;
 
                     mtx_595[x].lock();
-                    long long int d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
-                                                                                          shard).first;
+                    hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
+                                                                                            shard);
                     mtx_595[x].unlock();
                     if (d_old > dx) {
                         mtx_595[x].lock();
@@ -243,9 +239,9 @@ namespace experiment::nonhop::ruc::decrease {
                                 DIS[xnei] = {d_new, v};
                                 if (Q_VALUE[xnei] >= 1e7) {
                                     Q_HANDLES[xnei] = Q.push(node_for_DIFFUSE(xnei, d_new));
-                                    if(status::currentTimeMode == status::MaintainTimeMode::SLOT1){
+                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                         shard.diffuse_count_slot1++;
-                                    }else{
+                                    } else {
                                         shard.diffuse_count_slot2++;
                                     }
                                 } else {
@@ -254,16 +250,16 @@ namespace experiment::nonhop::ruc::decrease {
                                 Q_VALUE[xnei] = d_new;
                             } else {
                                 mtx_595[xnei].lock();
-                                auto search_result = search_sorted_two_hop_label_in_current_with_csv(
+                                hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_csv(
                                         (*L)[xnei], v, shard);
                                 mtx_595[xnei].unlock();
-                                if (search_result.second != -1 &&
-                                    std::min(search_result.first, Q_VALUE[xnei]) > d_new) {
+                                if (search_result < std::numeric_limits<hop_weight_type>::max() &&
+                                    std::min(search_result, Q_VALUE[xnei]) > d_new) {
                                     if (Q_VALUE[xnei] >= 1e7) {
                                         Q_HANDLES[xnei] = Q.push(node_for_DIFFUSE(xnei, d_new));
-                                        if(status::currentTimeMode == status::MaintainTimeMode::SLOT1){
+                                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                             shard.diffuse_count_slot1++;
-                                        }else{
+                                        } else {
                                             shard.diffuse_count_slot2++;
                                         }
                                     } else {

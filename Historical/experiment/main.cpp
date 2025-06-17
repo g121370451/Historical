@@ -56,14 +56,25 @@ int main(int argc, char *argv[])
             }
         }
         else if(config->mode == experiment::MAINTAIN_LABEL){
-            using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::NoHop, int, int>;
-            Maintain maintain(config);
-             maintain.generateChangeEdge();
+            if(config->hop_limit >0){
+                using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::WithHop, int, int>;
+                Maintain maintain(config);
+                maintain.generateChangeEdge();
 //            maintain.readChangeEdge("changeinfo_res_2025-06-11-17-09-21.txt");
-            std::cout <<"finish generateChangeEdge" << std::endl;
-            maintain.initialize_experiment_global_values_dynamic();
-            maintain.maintain();
-            maintain.save_csv();
+                std::cout <<"finish generateChangeEdge" << std::endl;
+                maintain.initialize_experiment_global_values_dynamic();
+                maintain.maintain();
+                maintain.save_csv();
+            }else{
+                using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::NoHop, int, int>;
+                Maintain maintain(config);
+                maintain.generateChangeEdge();
+//            maintain.readChangeEdge("changeinfo_res_2025-06-11-17-09-21.txt");
+                std::cout <<"finish generateChangeEdge" << std::endl;
+                maintain.initialize_experiment_global_values_dynamic();
+                maintain.maintain();
+                maintain.save_csv();
+            }
         }
     }catch(const std::exception& e){
         std::cerr << e.what() << '\n';

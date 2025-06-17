@@ -8,6 +8,7 @@
 #include "entity/graph.h"
 #include "entity/two_hop_label.h"
 #include "entity/nonhop_global_params.h"
+
 namespace experiment::nonhop::algorithm2021::increase {
     template<typename weight_type, typename hop_weight_type>
     class StrategyA2021NonHopIncrease {
@@ -64,21 +65,21 @@ namespace experiment::nonhop::algorithm2021::increase {
 
             for (auto it: mm.L[v1]) {
                 mtx_595[v2].lock();
-                auto search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v2], it.vertex,
-                                                                                     shard);
+                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v2], it.vertex,
+                                                                                                shard);
                 mtx_595[v2].unlock();
-                if (it.vertex <= v2 && search_weight.first >= it.distance + w_old &&
-                    search_weight.first < std::numeric_limits<int>::max()) {
+                if (it.vertex <= v2 && search_weight >= it.distance + w_old &&
+                    search_weight < std::numeric_limits<int>::max()) {
                     al1_curr.push_back(affected_label(v2, it.vertex, it.distance + w_old));
                 }
             }
             for (auto it: mm.L[v2]) {
                 mtx_595[v1].lock();
-                auto search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v1], it.vertex,
-                                                                                     shard);
+                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v1], it.vertex,
+                                                                                                shard);
                 mtx_595[v1].unlock();
-                if (it.vertex <= v1 && search_weight.first >= it.distance + w_old &&
-                    search_weight.first < std::numeric_limits<int>::max()) {
+                if (it.vertex <= v1 && search_weight >= it.distance + w_old &&
+                    search_weight < std::numeric_limits<int>::max()) {
                     al1_curr.push_back(affected_label(v1, it.vertex, it.distance + w_old));
                 }
             }
@@ -111,13 +112,9 @@ namespace experiment::nonhop::algorithm2021::increase {
                                                                     ThreadPool &pool_dynamic,
                                                                     std::vector<std::future<int>> &results_dynamic,
                                                                     int time) {
-        bool is_debug = false;
-        if (al1_curr.size() >= 100000) {
-            is_debug = true;
-        }
         for (auto it: al1_curr) {
             results_dynamic.emplace_back(
-                    pool_dynamic.enqueue([it, L, al1_next, &instance_graph, &w_old_map, time, is_debug] {
+                    pool_dynamic.enqueue([it, L, al1_next, &instance_graph, &w_old_map, time] {
                         mtx_595_1.lock();
                         int current_tid = Qid_595.front();
                         Qid_595.pop();
@@ -127,7 +124,7 @@ namespace experiment::nonhop::algorithm2021::increase {
 
                         for (auto nei: instance_graph[it.first]) {
                             mtx_595[nei.first].lock();
-                            std::pair<int, int> search_weight = search_sorted_two_hop_label_in_current_with_csv(
+                            hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], it.second, shard);
                             mtx_595[nei.first].unlock();
                             weight_type w_old;
@@ -138,10 +135,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                             } else {
                                 w_old = nei.second;
                             }
-                            if (it.dis + w_old == search_weight.first) {
+                            if (it.dis + w_old == search_weight) {
                                 mtx_595_1.lock();
                                 al1_next->push_back(
-                                        affected_label(nei.first, it.second, search_weight.first));
+                                        affected_label(nei.first, it.second, search_weight));
                                 mtx_595_1.unlock();
                             }
                         }
@@ -196,11 +193,11 @@ namespace experiment::nonhop::algorithm2021::increase {
 
                         for (auto t: temp) {
                             if (v < t) {
-                                long long d1 = MAX_VALUE;
+                                hop_weight_type d1 = MAX_VALUE;
                                 for (auto nei: instance_graph[t]) {
                                     mtx_595[nei.first].lock();
                                     d1 = std::min(d1, search_sorted_two_hop_label_in_current_with_csv(
-                                            (*L)[nei.first], v, shard).first + (long long) nei.second);
+                                            (*L)[nei.first], v, shard) + nei.second);
                                     mtx_595[nei.first].unlock();
                                 }
                                 mtx_595[t].lock();
@@ -235,11 +232,11 @@ namespace experiment::nonhop::algorithm2021::increase {
                                 }
                             }
                             if (t < v) {
-                                long long d1 = MAX_VALUE;
+                                hop_weight_type d1 = MAX_VALUE;
                                 for (auto nei: instance_graph[v]) {
                                     mtx_595[nei.first].lock();
                                     d1 = std::min(d1, search_sorted_two_hop_label_in_current_with_csv(
-                                            (*L)[nei.first], t, shard).first + (long long) nei.second);
+                                            (*L)[nei.first], t, shard) + nei.second);
                                     mtx_595[nei.first].unlock();
                                 }
                                 mtx_595[t].lock();
@@ -315,11 +312,11 @@ namespace experiment::nonhop::algorithm2021::increase {
                         for (auto nei: instance_graph[it.first]) {
                             if (nei.first > it.second) {
                                 mtx_595[it.first].lock();
-                                long long search_result =
+                                hop_weight_type search_result =
                                         search_sorted_two_hop_label_in_current_with_csv((*L)[it.first],
                                                                                         it.second,
-                                                                                        shard).first +
-                                        (long long) nei.second;
+                                                                                        shard) +
+                                        nei.second;
                                 mtx_595[it.first].unlock();
                                 mtx_595[nei.first].lock();
                                 auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(

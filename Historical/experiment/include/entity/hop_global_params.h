@@ -14,7 +14,7 @@ namespace experiment::hop {
 
     template<typename T>
     using hop_constrained_node_handle = typename boost::heap::fibonacci_heap<experiment::hop::two_hop_label<
-        T> >::handle_type;
+        T>>::handle_type;
 
     inline PPR_TYPE::PPR_type PPR_599;
     inline std::vector<std::vector<std::vector<std::pair<int, int> > > > Temp_L_vk_599;
@@ -31,14 +31,11 @@ namespace experiment::hop {
 
     inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_599);
 
-    inline std::vector<std::shared_mutex> ppr_lock(max_N_ID_for_mtx_599);
+    inline std::vector<std::mutex> ppr_lock(max_N_ID_for_mtx_599);
+    inline std::queue<int> Qid_599_v2, Qid_599_v3;
+    inline std::vector<std::vector<std::pair<int, int> > > dist_hop_599_v2, dist_hop_599_v3;
     template<typename hop_weight_type>
-    inline std::queue<hop_weight_type> Qid_599_v2, Qid_599_v3;
-    template<typename hop_weight_type>
-    inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599_v2, dist_hop_599_v3;
-    template<typename hop_weight_type>
-
-    inline std::vector<std::vector<std::vector<hop_weight_type> > > Q_value;
+    inline std::vector<std::vector<std::vector<hop_weight_type>>> Q_value;
 
     template<typename hop_weight_type>
     class hop_constrained_affected_label {
@@ -124,8 +121,7 @@ namespace experiment::hop {
         }
     }; // define the node in the queue
     template<typename hop_weight_type>
-    typedef typename boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type> >::handle_type
-    hop_constrained_handle_t_for_DIFFUSE;
+    using hop_constrained_handle_t_for_DIFFUSE = boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type>>::handle_type;
 
     template<typename hop_weight_type>
     bool operator<(hop_constrained_node_for_DIFFUSE<hop_weight_type> const &x,
