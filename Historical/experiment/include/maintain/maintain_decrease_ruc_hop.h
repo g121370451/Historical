@@ -37,6 +37,14 @@ namespace experiment::hop::ruc::decrease {
             std::vector<std::future<int> > &results_dynamic, int upper_k) const {
         for (const auto &v_map_item: v_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([v_map_item, L, PPR, CL, upper_k] {
+                mtx_599_1.lock();
+                int current_tid = Qid_599_v2.front();
+                Qid_599_v2.pop();
+                mtx_599_1.unlock();
+
+                auto &counter = experiment::result::global_csv_config.ruc_counter;
+                auto &shard = counter.get_thread_maintain_shard(current_tid);
+
                 int v1 = v_map_item.first.first, v2 = v_map_item.first.second;
                 hop_weight_type w_new = v_map_item.second;
                 for (int sl = 0; sl < 2; sl++) {
@@ -44,14 +52,13 @@ namespace experiment::hop::ruc::decrease {
                         std::swap(v1, v2);
                     }
                     for (auto &it: (*L)[v1]) {
-                        if (it.hub_vertex <= v2 && it.hop + 1 < upper_k && static_cast<long long int>(it.distance) +
-                                                                           w_new <
-                                                                           TwoM_value &&
-                            it.t_e == std::numeric_limits<int>::max()) {
-                            auto query_result = hop_constrained_extract_distance_and_hub(
-                                    *L, it.hub_vertex, v2, it.hop + 1); // query_result is {distance, common hub}
-                            if (static_cast<long long int>(query_result.first) > static_cast<long long int>(it.distance)
-                                                                                 + w_new) {
+                        if (it.hub_vertex <= v2 && it.hop + 1 < upper_k
+                            && it.distance + w_new < TwoM_value
+                            && it.t_e == std::numeric_limits<int>::max()) {
+                            auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                    (*L)[it.hub_vertex], (*L)[v2], it.hub_vertex, v2, it.hop + 1,
+                                    shard); // query_result is {distance, common hub}
+                            if (query_dis > it.distance + w_new) {
                                 mtx_599_1.lock();
                                 CL->push_back(hop_constrained_affected_label{
                                         v2, it.hub_vertex, it.hop + 1, it.distance + w_new
@@ -67,14 +74,14 @@ namespace experiment::hop::ruc::decrease {
                                     });
                                     mtx_599_1.unlock();
                                 }
-                                if (query_result.second != -1 && query_result.second != it.hub_vertex) {
+                                if (query_hub != -1 && query_hub != it.hub_vertex) {
                                     ppr_lock[v2].lock();
-                                    PPR_TYPE::PPR_insert(*PPR, v2, query_result.second, it.hub_vertex);
+                                    PPR_TYPE::PPR_insert(*PPR, v2, query_hub, it.hub_vertex);
                                     ppr_lock[v2].unlock();
                                 }
-                                if (query_result.second != -1 && query_result.second != v2) {
+                                if (query_hub != -1 && query_hub != v2) {
                                     ppr_lock[it.hub_vertex].lock();
-                                    PPR_TYPE::PPR_insert(*PPR, it.hub_vertex, query_result.second, v2);
+                                    PPR_TYPE::PPR_insert(*PPR, it.hub_vertex, query_hub, v2);
                                     ppr_lock[it.hub_vertex].unlock();
                                 }
                             }
@@ -131,6 +138,9 @@ namespace experiment::hop::ruc::decrease {
                 int current_tid = Qid_599_v2.front();
                 Qid_599_v2.pop();
                 mtx_599_1.unlock();
+
+                auto &counter = experiment::result::global_csv_config.ruc_counter;
+                auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                 int v = cl_item.first;
                 std::vector<hop_constrained_label_v2<hop_weight_type>> vec_with_hub_v = cl_item.second;
@@ -193,15 +203,15 @@ namespace experiment::hop::ruc::decrease {
                                 // Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                 // Q_VALUE[xnei][hop_nei] = d_new;
                                 L_lock[xnei].lock();
-                                std::tuple<int, int, int> temp_dis =
-                                        graph_weighted_two_hop_extract_distance_and_hop_and_hub_by_backup_label(
-                                                (*L)[xnei], Lv, xhv + 1);
+                                auto [query_dis,query_hop,query_hub] =
+                                        graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                                (*L)[xnei], Lv, xnei, v, xhv + 1, shard);
                                 //std::pair<int, int> temp_dis = hop_constrained_extract_distance_and_hop(*L, xnei, v, xhv + 1);
                                 L_lock[xnei].unlock();
-                                hubs[xnei] = std::get<2>(temp_dis);
+                                hubs[xnei] = query_hub;
 
-                                dist_hop[xnei].first = std::get<0>(temp_dis);
-                                dist_hop[xnei].second = std::get<1>(temp_dis);
+                                dist_hop[xnei].first = query_dis;
+                                dist_hop[xnei].second = query_hop;
                                 dist_hop_changes.push_back(xnei);
                             }
 
