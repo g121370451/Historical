@@ -83,7 +83,8 @@ namespace experiment::nonhop {
     };
 
     typedef boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE;
-    inline std::vector<std::vector<std::pair<int, int> > > Dis;
+    template <typename hop_weight_type>
+    inline std::vector<std::vector<std::pair<hop_weight_type, int>>> Dis;
     inline std::vector<std::vector<int> > Q_value;
     inline std::vector<std::vector<handle_t_for_DIFFUSE> > Q_handles;
 

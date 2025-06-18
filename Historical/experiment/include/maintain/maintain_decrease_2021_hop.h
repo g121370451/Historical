@@ -11,31 +11,40 @@ namespace experiment::hop::algorithm2021::decrease {
     class StrategyA2021HopDecrease {
     public:
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
-                        std::vector<std::pair<int, int>> v, std::vector<hop_weight_type> w_new,
-                        ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic, int time) const;
+                        std::vector<std::pair<int, int> > v, std::vector<hop_weight_type> w_new,
+                        ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) const;
 
     private:
-        void ProDecreasep_batch(graph<int> &instance_graph, std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
+        void ProDecreasep_batch(graph<int> &instance_graph,
+                                std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                 PPR_TYPE::PPR_type *PPR,
-                                std::vector<hop_constrained_affected_label<hop_weight_type>> &CL_curr,
-                                std::vector<hop_constrained_affected_label<hop_weight_type>> *CL_next,
-                                ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic, int upper_k,
+                                std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
+                                std::vector<hop_constrained_affected_label<hop_weight_type> > *CL_next,
+                                ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int upper_k,
                                 int t) const;
     };
 
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<int> &instance_graph,
-                                                                                    std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
-                                                                                    PPR_TYPE::PPR_type *PPR,
-                                                                                    std::vector<hop_constrained_affected_label<hop_weight_type>> &CL_curr,
-                                                                                    std::vector<hop_constrained_affected_label<hop_weight_type>> *CL_next,
-                                                                                    ThreadPool &pool_dynamic,
-                                                                                    std::vector<std::future<int>> &results_dynamic,
-                                                                                    int upper_k, int time) const {
+        std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
+        PPR_TYPE::PPR_type *PPR,
+        std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
+        std::vector<hop_constrained_affected_label<hop_weight_type> > *CL_next,
+        ThreadPool &pool_dynamic,
+        std::vector<std::future<int> > &results_dynamic,
+        int upper_k, int time) const {
         for (const auto &it: CL_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, CL_next, &instance_graph, upper_k] {
+                mtx_599_1.lock();
+                int current_tid = Qid_599_v2.front();
+                Qid_599_v2.pop();
+                mtx_599_1.unlock();
 
-                int v = it.first, u = it.second;
+                auto &counter = experiment::result::global_csv_config.old_counter;
+                auto &shard = counter.get_thread_maintain_shard(current_tid);
+
+                const int v = it.first;
+                int u = it.second;
 
                 L_lock[u].lock();
                 auto Lu = (*L)[u]; // to avoid interlocking
@@ -47,49 +56,53 @@ namespace experiment::hop::algorithm2021::decrease {
                 for (auto nei: instance_graph[v]) {
                     int vnei = nei.first;
                     int hop_u = it.hop;
-                    long long dnew = it.dis + nei.second;
+                    hop_weight_type dnew = it.dis + nei.second;
                     if (u < vnei) {
                         L_lock[vnei].lock();
-                        auto query_result = graph_weighted_two_hop_extract_distance_and_hub_by_backup_label((*L)[vnei],
-                                                                                                            Lu, hop_u +
-                                                                                                                1); // query_result is {distance, common hub}
+                        auto [query_dis,query_hop,query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                            (*L)[vnei],Lu,
+                            vnei, u,
+                            hop_u + 1, shard); // query_result is {distance, common hub}
                         L_lock[vnei].unlock();
-                        if ((long long) query_result.first > dnew) {
+                        if (query_dis > dnew) {
                             L_lock[vnei].lock();
                             insert_sorted_hop_constrained_two_hop_label((*L)[vnei], u, hop_u + 1, dnew, time);
                             L_lock[vnei].unlock();
                             mtx_599_1.lock();
                             CL_next->push_back(
-                                    hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
+                                hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                             mtx_599_1.unlock();
                         } else {
                             L_lock[vnei].lock();
-                            auto search_result = search_sorted_hop_constrained_weight_two_hop_label((*L)[vnei], u,
-                                                                                                    hop_u + 1);
+                            auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                (*L)[vnei], u,
+                                hop_u + 1, shard);
                             L_lock[vnei].unlock();
-                            if (search_result < MAX_VALUE && search_result > dnew) {
+                            if (label_dis < MAX_VALUE && label_dis > dnew) {
                                 L_lock[vnei].lock();
                                 insert_sorted_hop_constrained_two_hop_label((*L)[vnei], u, hop_u + 1, dnew, time);
                                 L_lock[vnei].unlock();
                                 mtx_599_1.lock();
                                 CL_next->push_back(
-                                        hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
+                                    hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                                 mtx_599_1.unlock();
                             }
-                            if (query_result.second != u) {
+                            if (query_hub != u) {
                                 ppr_lock[vnei].lock();
-                                PPR_TYPE::PPR_insert(*PPR, vnei, query_result.second, u);
+                                PPR_TYPE::PPR_insert(PPR, vnei, query_hub, u);
                                 ppr_lock[vnei].unlock();
                             }
-                            if (query_result.second != vnei) {
+                            if (query_hub != vnei) {
                                 ppr_lock[u].lock();
-                                PPR_TYPE::PPR_insert(*PPR, u, query_result.second, vnei);
+                                PPR_TYPE::PPR_insert(PPR, u, query_hub, vnei);
                                 ppr_lock[u].unlock();
                             }
                         }
                     }
                 }
-
+                mtx_599_1.lock();
+                Qid_599_v2.push(current_tid);
+                mtx_599_1.unlock();
                 return 1;
             }));
         }
@@ -97,17 +110,17 @@ namespace experiment::hop::algorithm2021::decrease {
         for (auto &&result: results_dynamic) {
             result.get();
         }
-        std::vector<std::future<int>>().swap(results_dynamic);
-
+        std::vector<std::future<int> >().swap(results_dynamic);
     }
 
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopDecrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
                                                                             two_hop_case_info<hop_weight_type> &mm,
-                                                                            std::vector<std::pair<int, int>> v,
+                                                                            std::vector<std::pair<int, int> > v,
                                                                             std::vector<hop_weight_type> w_new,
                                                                             ThreadPool &pool_dynamic,
-                                                                            std::vector<std::future<int>> &results_dynamic,
+                                                                            std::vector<std::future<int> > &
+                                                                            results_dynamic,
                                                                             int time) const {
         int current_tid = Qid_599.front();
         auto &counter = experiment::result::global_csv_config.old_counter;
@@ -124,7 +137,7 @@ namespace experiment::hop::algorithm2021::decrease {
             }
         }
 
-        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_curr, CL_next;
+        std::vector<hop_constrained_affected_label<hop_weight_type> > CL_curr, CL_next;
 
         auto &L = mm.L;
         /*
@@ -144,22 +157,24 @@ namespace experiment::hop::algorithm2021::decrease {
                     int hop_v = it.hop;
                     hop_weight_type dis = it.distance + _w_new;
                     if (_v <= v2 && hop_v + 1 < mm.upper_k && it.t_e == std::numeric_limits<int>::max()) {
-                        auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                L[_v], L[v2], _v,
-                                v2, hop_v + 1,
-                                shard);
-//                        auto query_result = hop_constrained_extract_distance_and_hub(L, _v, v2, hop_v + 1); // query_result is {distance, common hub}
+                        auto [query_dis, query_hop, query_hub] =
+                                graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                    L[_v], L[v2], _v,
+                                    v2, hop_v + 1,
+                                    shard);
+                        //                        auto query_result = hop_constrained_extract_distance_and_hub(L, _v, v2, hop_v + 1); // query_result is {distance, common hub}
 
                         if (query_dis > dis) {
                             insert_sorted_hop_constrained_two_hop_label(L[v2], _v, hop_v + 1, dis, time);
                             CL_curr.push_back(hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                         } else {
-                            auto search_result = search_sorted_hop_constrained_weight_two_hop_label(L[v2], _v,
-                                                                                                    hop_v + 1);
-                            if (search_result < MAX_VALUE && search_result > dis) {
+                            auto [label_dis,label_hop] =
+                                    search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(L[v2], _v,
+                                        hop_v + 1, shard);
+                            if (label_dis < MAX_VALUE && label_dis > dis) {
                                 insert_sorted_hop_constrained_two_hop_label((L)[v2], _v, hop_v + 1, dis, time);
                                 CL_curr.push_back(
-                                        hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
+                                    hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                             }
                             if (query_hub != _v) {
                                 PPR_TYPE::PPR_insert(&(mm.PPR), v2, query_hub, _v);
@@ -176,9 +191,7 @@ namespace experiment::hop::algorithm2021::decrease {
             ProDecreasep_batch(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic,
                                mm.upper_k, time);
             CL_curr = CL_next;
-            std::vector<hop_constrained_affected_label<hop_weight_type>>().swap(CL_next);
+            std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(CL_next);
         }
-
     }
 }
-

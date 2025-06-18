@@ -201,10 +201,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                                     mtx_595[nei.first].unlock();
                                 }
                                 mtx_595[t].lock();
-                                auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                         (*L)[t], Lv, t, v, shard);
                                 mtx_595[t].unlock();
-                                if (query_result.first > d1) {
+                                if (query_dis > d1) {
                                     mtx_595[t].lock();
                                     insert_sorted_two_hop_label_with_csv((*L)[t], v, d1, time, shard);
                                     mtx_595[t].unlock();
@@ -217,15 +217,15 @@ namespace experiment::nonhop::algorithm2021::increase {
                                         shard.diffuse_count_slot2++;
                                     }
                                 } else {
-                                    if (query_result.second != v) {
+                                    if (query_hub != v) {
                                         mtx_5952[t].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, t, query_result.second, v,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, t, query_hub, v,
                                                                       shard);
                                         mtx_5952[t].unlock();
                                     }
-                                    if (query_result.second != t) {
+                                    if (query_hub != t) {
                                         mtx_5952[v].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, v, query_result.second, t,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, t,
                                                                       shard);
                                         mtx_5952[v].unlock();
                                     }
@@ -240,10 +240,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                                     mtx_595[nei.first].unlock();
                                 }
                                 mtx_595[t].lock();
-                                auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                         (*L)[t], Lv, t, v, shard);
                                 mtx_595[t].unlock();
-                                if (query_result.first > d1) {
+                                if (query_dis > d1) {
                                     mtx_595[v].lock();
                                     insert_sorted_two_hop_label_with_csv((*L)[v], t, d1, time, shard);
                                     mtx_595[v].unlock();
@@ -256,15 +256,15 @@ namespace experiment::nonhop::algorithm2021::increase {
                                         shard.diffuse_count_slot2++;
                                     }
                                 } else {
-                                    if (query_result.second != v) {
+                                    if (query_hub != v) {
                                         mtx_5952[t].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, t, query_result.second, v,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, t, query_hub, v,
                                                                       shard);
                                         mtx_5952[t].unlock();
                                     }
-                                    if (query_result.second != t) {
+                                    if (query_hub != t) {
                                         mtx_5952[v].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, v, query_result.second, t,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, t,
                                                                       shard);
                                         mtx_5952[v].unlock();
                                     }
@@ -319,10 +319,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                                         nei.second;
                                 mtx_595[it.first].unlock();
                                 mtx_595[nei.first].lock();
-                                auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                         (*L)[nei.first], Lxx, nei.first, it.second, shard);
                                 mtx_595[nei.first].unlock();
-                                if (query_result.first > search_result) {
+                                if (query_dis > search_result) {
                                     mtx_595[nei.first].lock();
                                     insert_sorted_two_hop_label_with_csv((*L)[nei.first], it.second,
                                                                          search_result, time, shard);
@@ -336,15 +336,15 @@ namespace experiment::nonhop::algorithm2021::increase {
                                         shard.diffuse_count_slot2++;
                                     }
                                 } else {
-                                    if (query_result.second != it.second) {
+                                    if (query_hub != it.second) {
                                         mtx_5952[nei.first].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, nei.first, query_result.second,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, nei.first, query_hub,
                                                                       it.second, shard);
                                         mtx_5952[nei.first].unlock();
                                     }
-                                    if (query_result.second != nei.first) {
+                                    if (query_hub != nei.first) {
                                         mtx_5952[it.second].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, it.second, query_result.second,
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, it.second, query_hub,
                                                                       nei.first, shard);
                                         mtx_5952[it.second].unlock();
                                     }

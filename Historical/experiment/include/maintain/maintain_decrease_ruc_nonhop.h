@@ -80,10 +80,10 @@ namespace experiment::nonhop::ruc::decrease {
                     for (auto &it: (*L)[v1]) {
                         if (it.vertex <= v2 && it.distance + w_new < 2e6 &&
                             it.t_e == std::numeric_limits<int>::max()) {
-                            auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-                                    (*L)[it.vertex], (*L)[v2], it.vertex, v2,
-                                    shard); // query_result is {distance, common hub}
-                            if (query_result.first > it.distance + w_new) {
+                            auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                (*L)[it.vertex], (*L)[v2], it.vertex, v2,
+                                shard); // query_result is {distance, common hub}
+                            if (query_dis > it.distance + w_new) {
                                 mtx_595_1.lock();
                                 CL->push_back(affected_label{v2, it.vertex, it.distance + w_new});
                                 mtx_595_1.unlock();
@@ -106,15 +106,15 @@ namespace experiment::nonhop::ruc::decrease {
                                         shard.diffuse_count_slot2++;
                                     }
                                 }
-                                if (query_result.second != it.vertex) {
+                                if (query_hub != it.vertex) {
                                     mtx_5952[v2].lock();
-                                    PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_result.second, it.vertex,
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_hub, it.vertex,
                                                                   shard);
                                     mtx_5952[v2].unlock();
                                 }
-                                if (query_result.second != v2) {
+                                if (query_hub != v2) {
                                     mtx_5952[it.vertex].lock();
-                                    PPR_TYPE::PPR_insert_with_csv(PPR, it.vertex, query_result.second, v2,
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, it.vertex, query_hub, v2,
                                                                   shard);
                                     mtx_5952[it.vertex].unlock();
                                 }
@@ -187,7 +187,7 @@ namespace experiment::nonhop::ruc::decrease {
                 mtx_595[v].unlock();
 
                 std::vector<int> Dis_changed;
-                auto &DIS = Dis[current_tid];
+                auto &DIS = Dis<hop_weight_type>[current_tid];
                 auto &Q_HANDLES = Q_handles[current_tid];
                 auto &Q_VALUE = Q_value[current_tid];
 

@@ -215,21 +215,21 @@ namespace experiment::nonhop::ruc::increase {
                             mtx_595[nei.first].unlock();
                         }
                         if (d1 >= 2e6) continue;
-                        auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                        auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[t], (*L)[v], t, v, shard);
-                        if (query_result.first > d1) { // only add new label when it's absolutely necessary
+                        if (query_dis > d1) { // only add new label when it's absolutely necessary
                             mtx_595_1.lock();
                             al3->emplace_back(t, v, d1);
                             mtx_595_1.unlock();
                         } else {
-                            if (query_result.second != v) {
+                            if (query_hub != v) {
                                 mtx_5952[t].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, t, query_result.second, v, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, t, query_hub, v, shard);
                                 mtx_5952[t].unlock();
                             }
-                            if (query_result.second != t) {
+                            if (query_hub != t) {
                                 mtx_5952[v].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, v, query_result.second, t, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, t, shard);
                                 mtx_5952[v].unlock();
                             }
                         }
@@ -244,21 +244,21 @@ namespace experiment::nonhop::ruc::increase {
                             mtx_595[nei.first].unlock();
                         }
                         if (d1 >= 2e6) continue;
-                        auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                        auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[v], (*L)[t], v, t, shard);
-                        if (query_result.first > d1) {
+                        if (query_dis > d1) {
                             mtx_595_1.lock();
                             al3->emplace_back(v, t, d1);
                             mtx_595_1.unlock();
                         } else {
-                            if (query_result.second != v) {
+                            if (query_hub != v) {
                                 mtx_5952[t].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, t, query_result.second, v, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, t, query_hub, v, shard);
                                 mtx_5952[t].unlock();
                             }
-                            if (query_result.second != t) {
+                            if (query_hub != t) {
                                 mtx_5952[v].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, v, query_result.second, t, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, t, shard);
                                 mtx_5952[v].unlock();
                             }
                         }
@@ -335,7 +335,7 @@ namespace experiment::nonhop::ruc::increase {
                 mtx_595[v].unlock();
 
                 std::vector<int> Dis_changed;
-                auto &DIS = Dis[current_tid];
+                auto &DIS = Dis<hop_weight_type>[current_tid];
                 auto &Q_HANDLES = Q_handles[current_tid];
                 auto &Q_VALUE = Q_value[current_tid];
 
@@ -345,20 +345,20 @@ namespace experiment::nonhop::ruc::increase {
                     int u = diffuseLabel.first;
                     weight_type du = diffuseLabel.second;
                     mtx_595[u].lock();
-                    auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                    auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                             (*L)[u], Lv, u, v, shard);
                     mtx_595[u].unlock();
                     bool flag = false;
-                    if (query_result.first < du) {
-                        if (query_result.second != v) {
+                    if (query_dis < du) {
+                        if (query_hub != v) {
                             mtx_5952[u].lock();
-                            PPR_TYPE::PPR_insert_with_csv(PPR, u, query_result.second, v, shard);
+                            PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, v, shard);
                             mtx_5952[u].unlock();
                             flag = true;
                         }
-                        if (query_result.second != u) {
+                        if (query_hub != u) {
                             mtx_5952[v].lock();
-                            PPR_TYPE::PPR_insert_with_csv(PPR, v, query_result.second, u, shard);
+                            PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, u, shard);
                             mtx_5952[v].unlock();
                             flag = true;
                         }

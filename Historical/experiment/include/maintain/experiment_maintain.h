@@ -265,12 +265,12 @@ namespace experiment {
         // 初始化环境参数
         void initialize_experiment_global_values_dynamic() {
             int N = this->instance_graph.size();
-            experiment::nonhop::Dis.resize(this->thread_num);
+            experiment::nonhop::Dis<HopType>.resize(this->thread_num);
             experiment::nonhop::Q_value.resize(this->thread_num);
             experiment::nonhop::Q_handles.resize(this->thread_num);
             std::queue<int>().swap(experiment::nonhop::Qid_595);
             for (int i = 0; i < this->thread_num; i++) {
-                experiment::nonhop::Dis[i].resize(N, {-1, -1});
+                experiment::nonhop::Dis<HopType>[i].resize(N, {-1, -1});
                 experiment::nonhop::Q_value[i].resize(N, 1e7);
                 experiment::nonhop::Q_handles[i].resize(N);
                 experiment::nonhop::Qid_595.push(i);
@@ -508,12 +508,12 @@ namespace experiment {
         // 初始化环境参数
         void initialize_experiment_global_values_dynamic() {
             int N = this->instance_graph.size();
-            experiment::nonhop::Dis.resize(this->thread_num);
+            experiment::nonhop::Dis<HopType>.resize(this->thread_num);
             experiment::nonhop::Q_value.resize(this->thread_num);
             experiment::nonhop::Q_handles.resize(this->thread_num);
             std::queue<int>().swap(experiment::nonhop::Qid_595);
             for (int i = 0; i < this->thread_num; i++) {
-                experiment::nonhop::Dis[i].resize(N, {-1, -1});
+                experiment::nonhop::Dis<HopType>[i].resize(N, {-1, -1});
                 experiment::nonhop::Q_value[i].resize(N, 1e7);
                 experiment::nonhop::Q_handles[i].resize(N);
                 experiment::nonhop::Qid_595.push(i);

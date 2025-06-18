@@ -51,7 +51,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
 
         std::vector<affected_label> CL_curr, CL_next;
 
-        std::vector<std::vector<two_hop_label<hop_weight_type>>> &L = mm.L;
+        std::vector<std::vector<two_hop_label<hop_weight_type> > > &L = mm.L;
         /*
         the following part does not suit parallel computation:
         the reason is that L is changed below, and as a result, in each following loop, L[v2] or L[v1] is locked at each step,
@@ -69,12 +69,12 @@ namespace experiment::nonhop::algorithm2021::decrease {
                     int _v_item = it.vertex;
                     long long dis = it.distance + w_item_dis;
                     if (_v_item <= v2) {
-                        auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-                                L[_v_item],
-                                L[v2],
-                                _v_item, v2,
-                                shard); // query_result is {distance, common hub}
-                        if (query_result.first > dis) {
+                        auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                    L[_v_item],
+                                    L[v2],
+                                    _v_item, v2,
+                                    shard); // query_result is {distance, common hub}
+                        if (query_dis > dis) {
                             mtx_595[v2].lock();
                             insert_sorted_two_hop_label_with_csv(L[v2], _v_item, dis, time, shard);
                             mtx_595[v2].unlock();
@@ -99,11 +99,11 @@ namespace experiment::nonhop::algorithm2021::decrease {
                                     shard.diffuse_count_slot2++;
                                 }
                             }
-                            if (query_result.second != _v_item) {
-                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), v2, query_result.second, _v_item, shard);
+                            if (query_hub != _v_item) {
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), v2, query_hub, _v_item, shard);
                             }
-                            if (query_result.second != v2) {
-                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), _v_item, query_result.second, v2, shard);
+                            if (query_hub != v2) {
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), _v_item, query_hub, v2, shard);
                             }
                         }
                     }
@@ -121,13 +121,13 @@ namespace experiment::nonhop::algorithm2021::decrease {
     template<typename weight_type, typename hop_weight_type>
     inline void
     StrategyA2021NonHopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<weight_type> &instance_graph,
-                                                                                  std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
-                                                                                  PPR_TYPE::PPR_type *PPR,
-                                                                                  std::vector<affected_label> &CL_curr,
-                                                                                  std::vector<affected_label> *CL_next,
-                                                                                  ThreadPool &pool_dynamic,
-                                                                                  std::vector<std::future<int> > &results_dynamic,
-                                                                                  int time) const {
+        std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
+        PPR_TYPE::PPR_type *PPR,
+        std::vector<affected_label> &CL_curr,
+        std::vector<affected_label> *CL_next,
+        ThreadPool &pool_dynamic,
+        std::vector<std::future<int> > &results_dynamic,
+        int time) const {
         for (const affected_label &it: CL_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, CL_next, &instance_graph] {
                 int v = it.first, u = it.second;
@@ -150,7 +150,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                     if (u < vnei) {
                         mtx_595[vnei].lock();
                         auto query_result = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-                                (*L)[vnei], Lu, vnei, u, shard); // query_result is {distance, common hub}
+                            (*L)[vnei], Lu, vnei, u, shard); // query_result is {distance, common hub}
                         mtx_595[vnei].unlock();
                         if (query_result.first > dnew) {
                             mtx_595[vnei].lock();
@@ -173,7 +173,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                         } else {
                             mtx_595[vnei].lock();
                             hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_csv(
-                                    (*L)[vnei], u, shard);
+                                (*L)[vnei], u, shard);
                             mtx_595[vnei].unlock();
                             if (search_result < std::numeric_limits<hop_weight_type>::max() && search_result > dnew) {
                                 mtx_595[vnei].lock();

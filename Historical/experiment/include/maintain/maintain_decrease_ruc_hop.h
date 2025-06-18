@@ -60,28 +60,29 @@ namespace experiment::hop::ruc::decrease {
                                     shard); // query_result is {distance, common hub}
                             if (query_dis > it.distance + w_new) {
                                 mtx_599_1.lock();
-                                CL->push_back(hop_constrained_affected_label{
+                                CL->push_back(hop_constrained_affected_label<hop_weight_type>{
                                         v2, it.hub_vertex, it.hop + 1, it.distance + w_new
                                 });
                                 mtx_599_1.unlock();
                             } else {
-                                auto search_result = search_sorted_hop_constrained_weight_two_hop_label(
-                                        (*L)[v2], it.hub_vertex, it.hop + 1);
-                                if (search_result < MAX_VALUE && search_result > it.distance + w_new) {
+                                auto [label_dis,label_hop] =
+                                        search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                            (*L)[v2], it.hub_vertex, it.hop + 1, shard);
+                                if (label_dis < MAX_VALUE && label_dis > it.distance + w_new) {
                                     mtx_599_1.lock();
-                                    CL->push_back(hop_constrained_affected_label{
+                                    CL->push_back(hop_constrained_affected_label<hop_weight_type>{
                                             v2, it.hub_vertex, it.hop + 1, it.distance + w_new
                                     });
                                     mtx_599_1.unlock();
                                 }
                                 if (query_hub != -1 && query_hub != it.hub_vertex) {
                                     ppr_lock[v2].lock();
-                                    PPR_TYPE::PPR_insert(*PPR, v2, query_hub, it.hub_vertex);
+                                    PPR_TYPE::PPR_insert(PPR, v2, query_hub, it.hub_vertex);
                                     ppr_lock[v2].unlock();
                                 }
                                 if (query_hub != -1 && query_hub != v2) {
                                     ppr_lock[it.hub_vertex].lock();
-                                    PPR_TYPE::PPR_insert(*PPR, it.hub_vertex, query_hub, v2);
+                                    PPR_TYPE::PPR_insert(PPR, it.hub_vertex, query_hub, v2);
                                     ppr_lock[it.hub_vertex].unlock();
                                 }
                             }
@@ -181,9 +182,9 @@ namespace experiment::hop::ruc::decrease {
                         Q_VALUE[x][xhv] = MAX_VALUE;
 
                     L_lock[x].lock();
-                    hop_weight_type d_old = search_sorted_hop_constrained_weight_two_hop_label((*L)[x], v, xhv);
+                    auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[x], v, xhv,shard);
                     L_lock[x].unlock();
-                    if (dx >= 0 && dx < d_old) {
+                    if (dx >= 0 && dx < label_dis) {
                         L_lock[x].lock();
                         insert_sorted_hop_constrained_two_hop_label((*L)[x], v, xhv, dx, time);
                         L_lock[x].unlock();
@@ -284,11 +285,11 @@ namespace experiment::hop::ruc::decrease {
                                                                            results_dynamic, int time) const {
         std::map<std::pair<int, int>, hop_weight_type> w_new_map;
         const size_t batch_size = v.size();
-        for (int i = 0; i < batch_size; i++) {
+        for (size_t i = 0; i < batch_size; i++) {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
             }
-            if (w_new_map.count(v[i]) == 0 || w_new_map[v[i]] > w_new[i]) {
+            if (!w_new_map.contains(v[i]) || w_new_map[v[i]] > w_new[i]) {
                 w_new_map[v[i]] = w_new[i];
             }
         }
