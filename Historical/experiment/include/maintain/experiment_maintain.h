@@ -335,7 +335,7 @@ namespace experiment {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
+//                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
@@ -442,16 +442,17 @@ namespace experiment {
                   a2021_process(),
                   thread_num(config->threads),
                   iteration_count(config->iterations),
+                  upper_k(config->hop_limit),
                   pool_dynamic(config->threads),
                   csvWriter(config->save_path.string() + "/" + "maintain_result_withhop.csv", "1.0", true) {
-            this->graph_res_filename = config->data_source.string() + "/" + "binary_nonhop_constrained_0_graph";
+            this->graph_res_filename = config->data_source.string() + "/" + "binary_hop_constrained_"+std::to_string(config->hop_limit)+"_graph";
             this->change_info_res_filename =
                     config->save_path.string() + "/" + "changeinfo_res_" + get_current_time_string() + ".txt";
             this->savePath = config->save_path.string();
             this->hop_label_res_filename =
-                    config->save_path.string() + "/" + "binary_hop_constrained_0_2_hop_label_info";
+                    config->save_path.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +"_2_hop_label_info";
             this->experiment_MAINTAIN_LABEL_res_filename =
-                    config->save_path.string() + "/" + "MAINTAIN_LABEL_nonhop_constrained_0_" +
+                    config->save_path.string() + "/" + "MAINTAIN_LABEL_hop_constrained_"+std::to_string(config->hop_limit)+"_" +
                     std::to_string(config->threads) + "_threads_result.txt";
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
@@ -508,15 +509,13 @@ namespace experiment {
         // 初始化环境参数
         void initialize_experiment_global_values_dynamic() {
             int N = this->instance_graph.size();
-            experiment::nonhop::Dis<HopType>.resize(this->thread_num);
-            experiment::nonhop::Q_value.resize(this->thread_num);
-            experiment::nonhop::Q_handles.resize(this->thread_num);
-            std::queue<int>().swap(experiment::nonhop::Qid_595);
+            hop::dist_hop_599_v2.resize(thread_num);
+            hop::Q_value<HopType>.resize(this->thread_num);
+            std::queue<int>().swap(hop::Qid_599);
             for (int i = 0; i < this->thread_num; i++) {
-                experiment::nonhop::Dis<HopType>[i].resize(N, {-1, -1});
-                experiment::nonhop::Q_value[i].resize(N, 1e7);
-                experiment::nonhop::Q_handles[i].resize(N);
-                experiment::nonhop::Qid_595.push(i);
+                hop::dist_hop_599_v2[i].resize(N, {-1, 0});
+                hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, MAX_VALUE));
+                hop::Qid_599.push(i);
             }
         };
 
@@ -578,7 +577,7 @@ namespace experiment {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
+//                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
@@ -650,6 +649,7 @@ namespace experiment {
         ruc ruc_process;
         a2021 a2021_process;
         int thread_num;
+        int upper_k;
         int iteration_count;
         ThreadPool pool_dynamic;
         IterationChangeWeightInfo<GraphType> iterationChangeWeightInfo;

@@ -77,8 +77,8 @@ namespace experiment::hop::ruc::increase {
         for (auto &al3_item: al3_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -224,7 +224,7 @@ namespace experiment::hop::ruc::increase {
                 }
                 Q_VALUE.resize(Q_VALUE.size(), std::vector<hop_weight_type>(upper_k + 1, MAX_VALUE));
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
 
                 return 1;
@@ -246,8 +246,8 @@ namespace experiment::hop::ruc::increase {
         for (const auto &it: al2) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([&it, L, PPR, al3, &instance_graph, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -286,7 +286,7 @@ namespace experiment::hop::ruc::increase {
                             for (const auto &nei: instance_graph[t]) {
                                 //mtx_599[nei.first].lock();
                                 di = std::min(
-                                    di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                    di, search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                             (*L)[nei.first], v,
                                             hop_i - 1, shard).first + nei.second);
                                 //mtx_599[nei.first].unlock();
@@ -341,7 +341,7 @@ namespace experiment::hop::ruc::increase {
                                 break;
                             hop_weight_type di = MAX_VALUE;
                             for (auto nei: instance_graph[v]) {
-                                di = std::min(di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[nei.first], t,
+                                di = std::min(di, search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv((*L)[nei.first], t,
                                                       hop_i - 1,shard).first + nei.second);
                             }
 
@@ -373,7 +373,7 @@ namespace experiment::hop::ruc::increase {
                     }
                 }
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -392,8 +392,8 @@ namespace experiment::hop::ruc::increase {
             results_dynamic.emplace_back(
                 pool_dynamic.enqueue([time, upper_k, &it, L, al2, &instance_graph, &w_old_map] {
                     mtx_599_1.lock();
-                    int current_tid = Qid_599_v2.front();
-                    Qid_599_v2.pop();
+                    int current_tid = Qid_599.front();
+                    Qid_599.pop();
                     mtx_599_1.unlock();
 
                     auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -406,7 +406,7 @@ namespace experiment::hop::ruc::increase {
                     while (!q.empty()) {
                         int x = q.front().index;
                         int h_x = q.front().hop;
-                        int dx = q.front().disx;
+                        hop_weight_type dx = q.front().disx;
                         q.pop();
                         L_lock[x].lock();
                         insert_sorted_hop_constrained_two_hop_label<hop_weight_type>((*L)[x], v, h_x, MAX_VALUE,
@@ -442,7 +442,7 @@ namespace experiment::hop::ruc::increase {
                         }
                     }
                     mtx_599_1.lock();
-                    Qid_599_v2.push(current_tid);
+                    Qid_599.push(current_tid);
                     mtx_599_1.unlock();
                     return 1;
                 }));
@@ -481,8 +481,8 @@ namespace experiment::hop::ruc::increase {
         for (auto iter: w_old_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([iter, &al1, &instance_graph, &mm, &w_old_map] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -518,7 +518,7 @@ namespace experiment::hop::ruc::increase {
                     }
                 }
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));

@@ -618,6 +618,41 @@ namespace experiment {
             }
             return {mindis, hop_val};
         }
+        /**result is <dis,hop> .if dont find effective result, method will return the <max,max>*/
+        template<typename hop_weight_type>
+        std::pair<hop_weight_type, int>
+        search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
+                int hop_k, result::MaintainShard &maintain_shard) {
+            if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                ++maintain_shard.label_count_slot1;
+            } else {
+                ++maintain_shard.label_count_slot2;
+            }
+            int left = 0, right = input_vector.size() - 1;
+
+            while (left <= right) {
+                int mid = (right - left) / 2 + left;
+                if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
+                    right = mid - 1;
+                } else {
+                    if (input_vector[mid].hub_vertex < key) {
+                        left = mid + 1;
+                    } else if(input_vector[mid].hub_vertex > key){
+                        right = mid - 1;
+                    }else{
+                        if(input_vector[mid].hop < hop_k){
+                            left = mid+1;
+                        }else if(input_vector[mid].hop > hop_k){
+                            right = mid-1;
+                        }else{
+                            return std::make_pair(input_vector[mid].distance,input_vector[mid].hop);
+                        }
+                    }
+                }
+            }
+            return {std::numeric_limits<hop_weight_type>::max(), std::numeric_limits<int>::max()};
+        }
 
         template<typename hop_weight_type>
         void insert_sorted_hop_constrained_two_hop_label(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,

@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
         }
         else if(config->mode == experiment::MAINTAIN_LABEL){
             if(config->hop_limit >0){
-                using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::WithHop, int, int>;
+                using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::WithHop, int, unsigned int>;
                 Maintain maintain(config);
                 maintain.generateChangeEdge();
 //            maintain.readChangeEdge("changeinfo_res_2025-06-11-17-09-21.txt");

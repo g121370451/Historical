@@ -41,11 +41,11 @@ namespace experiment::hop::algorithm2021::increase {
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopIncrease<weight_type, hop_weight_type>::PI11(graph<int> &instance_graph,
                                                                       std::vector<std::vector<two_hop_label<
-                                                                          hop_weight_type> > > *L,
+                                                                              hop_weight_type> > > *L,
                                                                       std::vector<hop_constrained_affected_label<
-                                                                          hop_weight_type> > &al1_curr,
+                                                                              hop_weight_type> > &al1_curr,
                                                                       std::vector<hop_constrained_affected_label<
-                                                                          hop_weight_type> > *al1_next,
+                                                                              hop_weight_type> > *al1_next,
                                                                       std::map<std::pair<int, int>, weight_type> &
                                                                       w_old_map,
                                                                       ThreadPool &pool_dynamic,
@@ -54,8 +54,8 @@ namespace experiment::hop::algorithm2021::increase {
         for (auto it: al1_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, al1_next, &instance_graph, &w_old_map] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.old_counter;
@@ -63,9 +63,10 @@ namespace experiment::hop::algorithm2021::increase {
 
                 for (auto nei: instance_graph[it.first]) {
                     L_lock[nei.first].lock();
-                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[nei.first],
-                        it.second,
-                        it.hop + 1,shard).first;
+                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                            (*L)[nei.first],
+                            it.second,
+                            it.hop + 1, shard).first;
                     L_lock[nei.first].unlock();
                     weight_type w_old = nei.second;
                     if (w_old_map.count(std::pair<int, int>(it.first, nei.first)) > 0) {
@@ -79,17 +80,19 @@ namespace experiment::hop::algorithm2021::increase {
                     if (it.dis + w_old <= search_weight && search_weight < MAX_VALUE) {
                         mtx_599_1.lock();
                         al1_next->push_back(
-                            hop_constrained_affected_label<hop_weight_type>{nei.first, it.second, it.hop + 1, it.dis + w_old});
+                                hop_constrained_affected_label<hop_weight_type>{nei.first, it.second, it.hop + 1,
+                                                                                it.dis + w_old});
                         mtx_599_1.unlock();
                     }
                 }
                 L_lock[it.first].lock();
-                insert_sorted_hop_constrained_two_hop_label<hop_weight_type>((*L)[it.first], it.second, it.hop, MAX_VALUE,
-                                                            time);
+                insert_sorted_hop_constrained_two_hop_label<hop_weight_type>((*L)[it.first], it.second, it.hop,
+                                                                             MAX_VALUE,
+                                                                             time);
                 // this does not change the size of L[it->first] here, so does not need to lock here
                 L_lock[it.first].unlock();
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -104,10 +107,10 @@ namespace experiment::hop::algorithm2021::increase {
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopIncrease<weight_type, hop_weight_type>::PI12(graph<int> &instance_graph,
                                                                       std::vector<std::vector<two_hop_label<
-                                                                          hop_weight_type> > > *L,
+                                                                              hop_weight_type> > > *L,
                                                                       PPR_TYPE::PPR_type *PPR,
                                                                       std::vector<hop_constrained_affected_label<
-                                                                          hop_weight_type> > &al1_curr,
+                                                                              hop_weight_type> > &al1_curr,
                                                                       std::vector<hop_constrained_pair_label> *al2_next,
                                                                       ThreadPool &pool_dynamic,
                                                                       std::vector<std::future<int> > &results_dynamic,
@@ -115,15 +118,15 @@ namespace experiment::hop::algorithm2021::increase {
         for (auto it: al1_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, al2_next, &instance_graph, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.old_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
+                // v is diffuse origin vertex. u is hub.
                 int v = it.first, u = it.second;
-                int hop_u = it.hop;
                 ppr_lock[v].lock();
                 std::vector<int> temp = PPR_TYPE::PPR_retrieve(*PPR, v, u);
                 ppr_lock[v].unlock();
@@ -140,7 +143,7 @@ namespace experiment::hop::algorithm2021::increase {
                         for (auto nei: instance_graph[t]) {
                             L_lock[nei.first].lock();
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                                (*L)[nei.first], v,shard);
+                                    (*L)[nei.first], v, shard);
                             L_lock[nei.first].unlock();
                             if (d1 > dis_hop.first + nei.second) {
                                 d1 = dis_hop.first + nei.second;
@@ -154,18 +157,18 @@ namespace experiment::hop::algorithm2021::increase {
                             for (auto nei: instance_graph[t]) {
                                 L_lock[nei.first].lock();
                                 di = std::min(
-                                    di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
-                                            (*L)[nei.first], v,
-                                            hop_i - 1, shard).first + nei.second);
+                                        di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                                (*L)[nei.first], v,
+                                                hop_i - 1, shard).first + nei.second);
                                 L_lock[nei.first].unlock();
                             }
 
                             L_lock[t].lock();
-                            auto [query_dis,query_hop,query_hub] =
+                            auto [query_dis, query_hop, query_hub] =
                                     graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                        (*L)[t], Lv,
-                                        t, v,
-                                        hop_i, shard);
+                                            (*L)[t], Lv,
+                                            t, v,
+                                            hop_i, shard);
                             L_lock[t].unlock();
 
                             if (query_dis > di) {
@@ -195,7 +198,7 @@ namespace experiment::hop::algorithm2021::increase {
                         for (auto nei: instance_graph[v]) {
                             L_lock[nei.first].lock();
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                                (*L)[nei.first], t,shard);
+                                    (*L)[nei.first], t, shard);
                             L_lock[nei.first].unlock();
                             if (d1 > dis_hop.first + nei.second) {
                                 d1 = dis_hop.first + nei.second;
@@ -210,17 +213,17 @@ namespace experiment::hop::algorithm2021::increase {
                             for (auto nei: instance_graph[v]) {
                                 L_lock[nei.first].lock();
                                 di = std::min(
-                                    di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
-                                            (*L)[nei.first], t,
-                                            hop_i - 1, shard).first + nei.second);
+                                        di, search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                                (*L)[nei.first], t,
+                                                hop_i - 1, shard).first + nei.second);
                                 L_lock[nei.first].unlock();
                             }
                             L_lock[t].lock();
-                            auto [query_dis,query_hop,query_hub] =
+                            auto [query_dis, query_hop, query_hub] =
                                     graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                        (*L)[t], Lv,
-                                        t, v,
-                                        hop_i, shard);
+                                            (*L)[t], Lv,
+                                            t, v,
+                                            hop_i, shard);
                             L_lock[t].unlock();
 
                             if (query_dis > di) {
@@ -246,7 +249,7 @@ namespace experiment::hop::algorithm2021::increase {
                     }
                 }
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -261,7 +264,7 @@ namespace experiment::hop::algorithm2021::increase {
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopIncrease<weight_type, hop_weight_type>::PI22(graph<int> &instance_graph,
                                                                       std::vector<std::vector<two_hop_label<
-                                                                          hop_weight_type> > > *L,
+                                                                              hop_weight_type> > > *L,
                                                                       PPR_TYPE::PPR_type *PPR,
                                                                       std::vector<hop_constrained_pair_label> &al2_curr,
                                                                       std::vector<hop_constrained_pair_label> *al2_next,
@@ -271,8 +274,8 @@ namespace experiment::hop::algorithm2021::increase {
         for (auto &it: al2_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, &it, L, PPR, al2_next, &instance_graph, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.old_counter;
@@ -281,20 +284,27 @@ namespace experiment::hop::algorithm2021::increase {
                 auto Lxx = (*L)[it.second]; // to avoid interlocking
                 L_lock[it.second].unlock();
 
-                if (it.hop + 1 > upper_k)
+                if (it.hop + 1 > upper_k) {
+                    mtx_599_1.lock();
+                    Qid_599.push(current_tid);
+                    mtx_599_1.unlock();
                     return 0;
+                }
 
                 for (auto nei: instance_graph[it.first]) {
                     if (nei.first > it.second) {
                         L_lock[it.first].lock();
                         hop_weight_type search_result =
-                                search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[it.first], it.second,
-                                    it.hop,shard).first + nei.second;
+                                search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[it.first],
+                                                                                                       it.second,
+                                                                                                       it.hop,
+                                                                                                       shard).first +
+                                nei.second;
                         L_lock[it.first].unlock();
                         L_lock[nei.first].lock();
-                        auto [query_dis,query_hop,query_hub] =
+                        auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                    (*L)[nei.first], Lxx, nei.first, it.second, it.hop + 1, shard);
+                                        (*L)[nei.first], Lxx, nei.first, it.second, it.hop + 1, shard);
                         L_lock[nei.first].unlock();
                         if (query_dis > search_result) {
                             L_lock[nei.first].lock();
@@ -319,7 +329,7 @@ namespace experiment::hop::algorithm2021::increase {
                     }
                 }
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -333,9 +343,9 @@ namespace experiment::hop::algorithm2021::increase {
 
     template<typename weight_type, typename hop_weight_type>
     inline void StrategyA2021HopIncrease<weight_type, hop_weight_type>::operator()(
-        graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
-        std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_old_vec,
-        ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) {
+            graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
+            std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_old_vec,
+            ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) {
         std::map<std::pair<int, int>, weight_type> w_old_map;
         size_t batch_size = v.size();
         for (size_t i = 0; i < batch_size; i++) {
@@ -347,7 +357,7 @@ namespace experiment::hop::algorithm2021::increase {
             }
         }
 
-        int current_tid = Qid_599_v2.front();
+        int current_tid = Qid_599.front();
 
         auto &counter = experiment::result::global_csv_config.old_counter;
         auto &shard = counter.get_thread_maintain_shard(current_tid);
@@ -358,24 +368,36 @@ namespace experiment::hop::algorithm2021::increase {
             int v1 = iter.first.first;
             int v2 = iter.first.second;
             weight_type w_old = iter.second;
-            for (auto it: mm.L[v1]) {
-                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(mm.L[v2], it.hub_vertex,
-                    it.hop + 1,shard).first;
-                if (it.hub_vertex <= v2 && search_weight >= it.distance + w_old &&
-                    search_weight < MAX_VALUE && it.t_e == std::numeric_limits<int>::max()) {
-                    al1_curr.push_back(
-                        hop_constrained_affected_label<hop_weight_type>(v2, it.hub_vertex, it.hop + 1,
-                                                                        it.distance + w_old));
+            for (const auto &it: mm.L[v1]) {
+                if (it.hub_vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
+                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                            mm.L[v2], it.hub_vertex,
+                            it.hop + 1, shard).first;
+                    if (search_weight >= it.distance + w_old &&
+                        search_weight < MAX_VALUE) {
+                        if(search_weight > it.distance + w_old){
+                            std::cout << "judge the affected label :search_weight is "<<search_weight<<" old_length is " << it.distance + w_old << std::endl;
+                        }
+                        al1_curr.push_back(
+                                hop_constrained_affected_label<hop_weight_type>(v2, it.hub_vertex, it.hop + 1,
+                                                                                it.distance + w_old));
+                    }
                 }
             }
             for (auto it: mm.L[v2]) {
-                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(mm.L[v1], it.hub_vertex,
-                    it.hop + 1,shard).first;
-                if (it.hub_vertex <= v1 && search_weight >= it.distance + w_old &&
-                    search_weight < MAX_VALUE && it.t_e == std::numeric_limits<int>::max()) {
-                    al1_curr.push_back(
-                        hop_constrained_affected_label<hop_weight_type>(v1, it.hub_vertex, it.hop + 1,
-                                                                        it.distance + w_old));
+                if(it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()){
+                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                            mm.L[v1], it.hub_vertex,
+                            it.hop + 1, shard).first;
+                    if (search_weight >= it.distance + w_old &&
+                        search_weight < MAX_VALUE) {
+                        if(search_weight > it.distance + w_old){
+                            std::cout << "judge the affected label :search_weight is "<<search_weight<<" old_length is " << it.distance + w_old << std::endl;
+                        }
+                        al1_curr.push_back(
+                                hop_constrained_affected_label<hop_weight_type>(v1, it.hub_vertex, it.hop + 1,
+                                                                                it.distance + w_old));
+                    }
                 }
             }
         }

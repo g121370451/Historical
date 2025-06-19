@@ -11,7 +11,7 @@ namespace experiment::hop::algorithm2021::decrease {
     class StrategyA2021HopDecrease {
     public:
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
-                        std::vector<std::pair<int, int> > v, std::vector<hop_weight_type> w_new,
+                        std::vector<std::pair<int, int> > v, std::vector<weight_type> w_new,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) const;
 
     private:
@@ -36,8 +36,8 @@ namespace experiment::hop::algorithm2021::decrease {
         for (const auto &it: CL_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, CL_next, &instance_graph, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.old_counter;
@@ -50,9 +50,12 @@ namespace experiment::hop::algorithm2021::decrease {
                 auto Lu = (*L)[u]; // to avoid interlocking
                 L_lock[u].unlock();
 
-                if (it.hop + 1 > upper_k)
+                if (it.hop + 1 > upper_k){
+                    mtx_599_1.lock();
+                    Qid_599.push(current_tid);
+                    mtx_599_1.unlock();
                     return 0;
-
+                }
                 for (auto nei: instance_graph[v]) {
                     int vnei = nei.first;
                     int hop_u = it.hop;
@@ -101,7 +104,7 @@ namespace experiment::hop::algorithm2021::decrease {
                     }
                 }
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -117,7 +120,7 @@ namespace experiment::hop::algorithm2021::decrease {
     void StrategyA2021HopDecrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
                                                                             two_hop_case_info<hop_weight_type> &mm,
                                                                             std::vector<std::pair<int, int> > v,
-                                                                            std::vector<hop_weight_type> w_new,
+                                                                            std::vector<weight_type> w_new,
                                                                             ThreadPool &pool_dynamic,
                                                                             std::vector<std::future<int> > &
                                                                             results_dynamic,

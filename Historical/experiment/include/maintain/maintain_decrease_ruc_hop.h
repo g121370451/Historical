@@ -36,10 +36,10 @@ namespace experiment::hop::ruc::decrease {
             std::vector<hop_constrained_affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
             std::vector<std::future<int> > &results_dynamic, int upper_k) const {
         for (const auto &v_map_item: v_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([v_map_item, L, PPR, CL, upper_k] {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([&v_map_item, L, PPR, CL, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -89,6 +89,9 @@ namespace experiment::hop::ruc::decrease {
                         }
                     }
                 }
+                mtx_599_1.lock();
+                Qid_599.push(current_tid);
+                mtx_599_1.unlock();
                 return 1;
             }));
         }
@@ -136,8 +139,8 @@ namespace experiment::hop::ruc::decrease {
         for (auto &cl_item: CL_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k] {
                 mtx_599_1.lock();
-                int current_tid = Qid_599_v2.front();
-                Qid_599_v2.pop();
+                int current_tid = Qid_599.front();
+                Qid_599.pop();
                 mtx_599_1.unlock();
 
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -148,7 +151,7 @@ namespace experiment::hop::ruc::decrease {
 
                 L_lock[v].lock();
                 auto Lv = (*L)[v]; // to avoid interlocking
-                L_lock[v].lock();
+                L_lock[v].unlock();
 
                 std::vector<int> dist_hop_changes;
                 auto &dist_hop = dist_hop_599_v2[current_tid];
@@ -264,7 +267,7 @@ namespace experiment::hop::ruc::decrease {
                 }
                 Q_VALUE.resize(Q_VALUE.size(), std::vector<hop_weight_type>(upper_k + 1, MAX_VALUE));
                 mtx_599_1.lock();
-                Qid_599_v2.push(current_tid);
+                Qid_599.push(current_tid);
                 mtx_599_1.unlock();
                 return 1;
             }));
@@ -294,6 +297,7 @@ namespace experiment::hop::ruc::decrease {
             }
         }
         std::vector<hop_constrained_affected_label<hop_weight_type> > CL;
+        // 每次传入的要是和线程数大小相等
         decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
         // std::cout << "ruc L insert size is " << lInsertSize << std::endl;

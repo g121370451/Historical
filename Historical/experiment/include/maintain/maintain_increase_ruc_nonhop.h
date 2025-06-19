@@ -49,10 +49,6 @@ namespace experiment::nonhop::ruc::increase {
                                                                          ThreadPool &pool_dynamic,
                                                                          std::vector<std::future<int>> &results_dynamic,
                                                                          int time) {
-        int current_tid = Qid_595.front();
-        auto &counter = experiment::result::global_csv_config.ruc_counter;
-        auto &shard = counter.get_thread_maintain_shard(current_tid);
-
         std::vector<affected_label> al1, al3;
         std::vector<pair_label> al2;
         std::map<std::pair<int, int>, weight_type> w_old_map;

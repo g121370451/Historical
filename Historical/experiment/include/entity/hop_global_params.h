@@ -27,13 +27,12 @@ namespace experiment::hop {
 #pragma region hop maintain global variables
     inline int TwoM_value = 2 * 1e6;
 
-    inline std::mutex mtx_599_1, mtx_599_2;
+    inline std::mutex mtx_599_1;
 
     inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_599);
 
     inline std::vector<std::mutex> ppr_lock(max_N_ID_for_mtx_599);
-    inline std::queue<int> Qid_599_v2, Qid_599_v3;
-    inline std::vector<std::vector<std::pair<int, int> > > dist_hop_599_v2, dist_hop_599_v3;
+    inline std::vector<std::vector<std::pair<int, int>>> dist_hop_599_v2;
     template<typename hop_weight_type>
     inline std::vector<std::vector<std::vector<hop_weight_type>>> Q_value;
 
