@@ -422,7 +422,7 @@ namespace experiment::hop::ruc::increase {
                         for (const auto &nei: instance_graph[x]) {
                             if (v < nei.first) {
                                 L_lock[nei.first].lock();
-                                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                     (*L)[nei.first], v, h_x + 1,shard).first;
                                 L_lock[nei.first].unlock();
                                 int w_old = nei.second;
@@ -492,29 +492,33 @@ namespace experiment::hop::ruc::increase {
                 int v2 = iter.first.second;
                 int w_old = iter.second;
                 for (const auto &it: mm.L[v1]) {
-                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(mm.L[v2], it.hub_vertex,
-                        it.hop + 1,shard).first;
-                    if (it.hub_vertex <= v2 && search_weight >= it.distance + w_old &&
-                        search_weight < MAX_VALUE && it.t_e == std::numeric_limits<int>::max()) {
-                        mtx_599_1.lock();
-                        al1.push_back(
-                            hop_constrained_affected_label<hop_weight_type>{
-                                v2, it.hub_vertex, it.hop + 1, it.distance + w_old
-                            });
-                        mtx_599_1.unlock();
+                    if(it.hub_vertex <=v2 && it.t_e == std::numeric_limits<int>::max()){
+                        hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(mm.L[v2], it.hub_vertex,
+                                                                                                                           it.hop + 1,shard).first;
+                        if (it.hub_vertex <= v2 && search_weight >= it.distance + w_old &&
+                            search_weight < MAX_VALUE ) {
+                            mtx_599_1.lock();
+                            al1.push_back(
+                                    hop_constrained_affected_label<hop_weight_type>{
+                                            v2, it.hub_vertex, it.hop + 1, it.distance + w_old
+                                    });
+                            mtx_599_1.unlock();
+                        }
                     }
                 }
                 for (const auto &it: mm.L[v2]) {
-                    hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(mm.L[v1], it.hub_vertex,
-                        it.hop + 1,shard).first;
-                    if (it.hub_vertex <= v1 && search_weight >= it.distance + w_old &&
-                        search_weight < MAX_VALUE && it.t_e == std::numeric_limits<int>::max()) {
-                        mtx_599_1.lock();
-                        al1.push_back(
-                            hop_constrained_affected_label<hop_weight_type>{
-                                v1, it.hub_vertex, it.hop + 1, it.distance + w_old
-                            });
-                        mtx_599_1.unlock();
+                    if(it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()){
+                        hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(mm.L[v1], it.hub_vertex,
+                                                                                                                               it.hop + 1,shard).first;
+                        if ( search_weight >= it.distance + w_old &&
+                             search_weight < MAX_VALUE) {
+                            mtx_599_1.lock();
+                            al1.push_back(
+                                    hop_constrained_affected_label<hop_weight_type>{
+                                            v1, it.hub_vertex, it.hop + 1, it.distance + w_old
+                                    });
+                            mtx_599_1.unlock();
+                        }
                     }
                 }
                 mtx_599_1.lock();
