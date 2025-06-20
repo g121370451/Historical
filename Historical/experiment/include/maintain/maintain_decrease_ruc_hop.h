@@ -189,7 +189,7 @@ namespace experiment::hop::ruc::decrease {
                     L_lock[x].unlock();
                     if (dx >= 0 && dx < label_dis) {
                         L_lock[x].lock();
-                        insert_sorted_hop_constrained_two_hop_label((*L)[x], v, xhv, dx, time);
+                        insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time,shard);
                         L_lock[x].unlock();
                     }
 

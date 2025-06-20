@@ -119,6 +119,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                         int current_tid = Qid_595.front();
                         Qid_595.pop();
                         mtx_595_1.unlock();
+                        int tempMarkInsertToALNext1 = 0;
                         auto &counter = experiment::result::global_csv_config.old_counter;
                         auto &shard = counter.get_thread_maintain_shard(current_tid);
 
@@ -139,6 +140,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                                 mtx_595_1.lock();
                                 al1_next->push_back(
                                         affected_label(nei.first, it.second, search_weight));
+                                tempMarkInsertToALNext1++;
+                                if(tempMarkInsertToALNext1 > al1_next->size() / 5 && tempMarkInsertToALNext1 > 1000){
+                                    std::cout << it.first <<": "<< it.second <<"- "<< it.dis << std::endl;
+                                }
                                 mtx_595_1.unlock();
                             }
                         }

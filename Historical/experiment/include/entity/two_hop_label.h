@@ -173,7 +173,10 @@ namespace experiment {
                     if (input_vector[mid].vertex == key) {
                         two_hop_label<hop_weight_type> old_label = input_vector[mid];
                         old_label.t_e = time - 1;
-
+                        if(input_vector[mid].distance == value){
+                            std::cout <<"nihop has same label,so dont insert new label to it" << std::endl;
+                            return;
+                        }
                         input_vector[mid].distance = value;
                         input_vector[mid].t_s = time;
                         if (old_label.distance != MAX_VALUE) {
@@ -655,8 +658,21 @@ namespace experiment {
         }
 
         template<typename hop_weight_type>
-        void insert_sorted_hop_constrained_two_hop_label(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
-                                                         int hop, hop_weight_type new_distance, int t) {
+        void insert_sorted_hop_constrained_two_hop_label_with_csv(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
+                                                         int hop, hop_weight_type new_distance, int t,result::MaintainShard &maintain_shard) {
+            if (experiment::status::currentTimeMode == experiment::status::MaintainTimeMode::SLOT1) {
+                if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::DECREASE) {
+                    ++maintain_shard.label_decrease_insert_slot1;
+                } else if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::INCREASE) {
+                    ++maintain_shard.label_increase_insert_slot1;
+                }
+            } else {
+                if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::DECREASE) {
+                    ++maintain_shard.label_decrease_insert_slot2;
+                } else if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::INCREASE) {
+                    ++maintain_shard.label_increase_insert_slot2;
+                }
+            }
             int left = 0, right = input_vector.size() - 1;
 
             while (left <= right) {
@@ -722,7 +738,6 @@ namespace experiment {
                 input_vector.insert(input_vector.begin() + left, new_label);
             }
         }
-
         template<typename weight_type>
         class two_hop_case_info {
         public:

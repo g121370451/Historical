@@ -26,13 +26,13 @@ namespace experiment::hop::algorithm2021::decrease {
 
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<int> &instance_graph,
-        std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
-        PPR_TYPE::PPR_type *PPR,
-        std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
-        std::vector<hop_constrained_affected_label<hop_weight_type> > *CL_next,
-        ThreadPool &pool_dynamic,
-        std::vector<std::future<int> > &results_dynamic,
-        int upper_k, int time) const {
+                                                                                    std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
+                                                                                    PPR_TYPE::PPR_type *PPR,
+                                                                                    std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
+                                                                                    std::vector<hop_constrained_affected_label<hop_weight_type> > *CL_next,
+                                                                                    ThreadPool &pool_dynamic,
+                                                                                    std::vector<std::future<int> > &results_dynamic,
+                                                                                    int upper_k, int time) const {
         for (const auto &it: CL_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, CL_next, &instance_graph, upper_k] {
                 mtx_599_1.lock();
@@ -50,7 +50,7 @@ namespace experiment::hop::algorithm2021::decrease {
                 auto Lu = (*L)[u]; // to avoid interlocking
                 L_lock[u].unlock();
 
-                if (it.hop + 1 > upper_k){
+                if (it.hop + 1 > upper_k) {
                     mtx_599_1.lock();
                     Qid_599.push(current_tid);
                     mtx_599_1.unlock();
@@ -62,32 +62,34 @@ namespace experiment::hop::algorithm2021::decrease {
                     hop_weight_type dnew = it.dis + nei.second;
                     if (u < vnei) {
                         L_lock[vnei].lock();
-                        auto [query_dis,query_hop,query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                            (*L)[vnei],Lu,
-                            vnei, u,
-                            hop_u + 1, shard); // query_result is {distance, common hub}
+                        auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                (*L)[vnei], Lu,
+                                vnei, u,
+                                hop_u + 1, shard); // query_result is {distance, common hub}
                         L_lock[vnei].unlock();
                         if (query_dis > dnew) {
                             L_lock[vnei].lock();
-                            insert_sorted_hop_constrained_two_hop_label((*L)[vnei], u, hop_u + 1, dnew, time);
+                            insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[vnei], u, hop_u + 1, dnew, time,
+                                                                                 shard);
                             L_lock[vnei].unlock();
                             mtx_599_1.lock();
                             CL_next->push_back(
-                                hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
+                                    hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                             mtx_599_1.unlock();
                         } else {
                             L_lock[vnei].lock();
-                            auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
-                                (*L)[vnei], u,
-                                hop_u + 1, shard);
+                            auto [label_dis, label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                    (*L)[vnei], u,
+                                    hop_u + 1, shard);
                             L_lock[vnei].unlock();
                             if (label_dis < MAX_VALUE && label_dis > dnew) {
                                 L_lock[vnei].lock();
-                                insert_sorted_hop_constrained_two_hop_label((*L)[vnei], u, hop_u + 1, dnew, time);
+                                insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[vnei], u, hop_u + 1, dnew, time,
+                                                                            shard);
                                 L_lock[vnei].unlock();
                                 mtx_599_1.lock();
                                 CL_next->push_back(
-                                    hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
+                                        hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                                 mtx_599_1.unlock();
                             }
                             if (query_hub != u) {
@@ -162,22 +164,25 @@ namespace experiment::hop::algorithm2021::decrease {
                     if (_v <= v2 && hop_v + 1 < mm.upper_k && it.t_e == std::numeric_limits<int>::max()) {
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                    L[_v], L[v2], _v,
-                                    v2, hop_v + 1,
-                                    shard);
+                                        L[_v], L[v2], _v,
+                                        v2, hop_v + 1,
+                                        shard);
                         //                        auto query_result = hop_constrained_extract_distance_and_hub(L, _v, v2, hop_v + 1); // query_result is {distance, common hub}
 
                         if (query_dis > dis) {
-                            insert_sorted_hop_constrained_two_hop_label(L[v2], _v, hop_v + 1, dis, time);
+                            insert_sorted_hop_constrained_two_hop_label_with_csv(L[v2], _v, hop_v + 1, dis, time,
+                                                                                 shard);
                             CL_curr.push_back(hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                         } else {
-                            auto [label_dis,label_hop] =
+                            auto [label_dis, label_hop] =
                                     search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(L[v2], _v,
-                                        hop_v + 1, shard);
+                                                                                                           hop_v + 1,
+                                                                                                           shard);
                             if (label_dis < MAX_VALUE && label_dis > dis) {
-                                insert_sorted_hop_constrained_two_hop_label((L)[v2], _v, hop_v + 1, dis, time);
+                                insert_sorted_hop_constrained_two_hop_label_with_csv((L)[v2], _v, hop_v + 1, dis, time,
+                                                                                     shard);
                                 CL_curr.push_back(
-                                    hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
+                                        hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                             }
                             if (query_hub != _v) {
                                 PPR_TYPE::PPR_insert(&(mm.PPR), v2, query_hub, _v);
