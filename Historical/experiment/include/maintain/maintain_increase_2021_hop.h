@@ -38,24 +38,24 @@ namespace experiment::hop::algorithm2021::increase {
     };
 
     template<typename weight_type, typename hop_weight_type>
-    inline void StrategyA2021HopIncrease<weight_type, hop_weight_type>::operator()(
+    void StrategyA2021HopIncrease<weight_type, hop_weight_type>::operator()(
             graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
             std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_old_vec,
             ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) {
         std::map<std::pair<int, int>, weight_type> w_old_map;
-        size_t batch_size = v.size();
+        const size_t batch_size = v.size();
         for (size_t i = 0; i < batch_size; i++) {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
             }
-            if (w_old_map.count(v[i]) == 0) {
+            if (!w_old_map.contains(v[i])) {
                 w_old_map[v[i]] = w_old_vec[i];
             }
         }
 
-        int current_tid = Qid_599.front();
+        const int current_tid = Qid_599.front();
 
-        auto &counter = experiment::result::global_csv_config.old_counter;
+        auto &counter = result::global_csv_config.old_counter;
         auto &shard = counter.get_thread_maintain_shard(current_tid);
 
         std::vector<hop_constrained_affected_label<hop_weight_type> > al1_curr, al1_next;

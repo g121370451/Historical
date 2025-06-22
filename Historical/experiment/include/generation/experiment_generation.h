@@ -15,27 +15,27 @@
 namespace experiment
 {
 #pragma region GenerateStrategySelector
-    template <experiment::status::HopMode H, typename GraphType, typename HopType>
+    template <status::HopMode H, typename GraphType, typename HopType>
     class GenerateStrategySelector;
 
     template <typename GraphType, typename HopType>
-    class GenerateStrategySelector<experiment::status::HopMode::NoHop, GraphType, HopType>
+    class GenerateStrategySelector<status::HopMode::NoHop, GraphType, HopType>
     {
     public:
-        using type = experiment::nonhop::GeneratorNonHop<GraphType, HopType>;
-        explicit GenerateStrategySelector(const experiment::ExperimentConfig *config)
+        using type = nonhop::GeneratorNonHop<GraphType, HopType>;
+        explicit GenerateStrategySelector(const ExperimentConfig *config)
         {
             this->graph_res_filename = config->save_path.string() + "//" + "binary_nonhop_constrained_" + std::to_string(config->hop_limit) + "_graph";
             this->experiment_res_filename = config->save_path.string() + "//" + "GENERATE_LABEL_nonhop_constrained_" + std::to_string(config->hop_limit) + "_" + std::to_string(config->threads) + "_threads_result.txt";
             this->thread_num = config->threads;
         };
-        inline void pll(experiment::graph<GraphType> &graph, experiment::nonhop::two_hop_case_info<HopType> &case_info)
+        void pll(graph<GraphType> &graph, nonhop::two_hop_case_info<HopType> &case_info)
         {
             type{}(graph, case_info);
         };
         // 使用可变参数模板和完美转发实现灵活的持久化方法
         template<typename... Args>
-        inline void persistData(Args&&... args) const
+        void persistData(Args&&... args) const
         {
             std::filesystem::path graphPath(this->graph_res_filename);
             saveAll(graphPath, std::forward<Args>(args)...);
@@ -51,19 +51,19 @@ namespace experiment
     {
 
     public:
-        using type = experiment::hop::GeneratorHop<GraphType, HopType>;
-        explicit GenerateStrategySelector(const experiment::ExperimentConfig *config)
+        using type = hop::GeneratorHop<GraphType, HopType>;
+        explicit GenerateStrategySelector(const ExperimentConfig *config)
         {
             this->graph_res_filename = config->save_path.string() + "//" + "binary_hop_constrained_" + std::to_string(config->hop_limit) + "_graph";
             this->experiment_res_filename = config->save_path.string() + "//" + "GENERATE_LABEL_hop_constrained_" + std::to_string(config->hop_limit) + "_" + std::to_string(config->threads) + "_threads_result.txt";
             this->thread_num = config->threads;
         };
-        inline void pll(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info)
+        void pll(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info)
         {
             type{}(graph, case_info);
         };
         template<typename... Args>
-        inline void persistData(Args&&... args) const
+        void persistData(Args&&... args) const
         {
             std::filesystem::path graphPath(this->graph_res_filename);
             saveAll(graphPath, std::forward<Args>(args)...);

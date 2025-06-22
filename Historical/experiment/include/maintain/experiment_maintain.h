@@ -396,13 +396,13 @@ namespace experiment {
 
         // 保存csv的值
         void save_csv() {
-            experiment::result::global_csv_config.ruc_counter.merge_to(
-                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
-            experiment::result::global_csv_config.old_counter.merge_to(
-                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.old_data));
-            csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
-                                    experiment::result::global_csv_config.ruc_data,
-                                    experiment::result::global_csv_config.old_data);
+            result::global_csv_config.ruc_counter.merge_to(
+                    static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
+            result::global_csv_config.old_counter.merge_to(
+                    static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
+            csvWriter.write_csv_row(result::global_csv_config.basic_data,
+                                    result::global_csv_config.ruc_data,
+                                    result::global_csv_config.old_data);
         }
 
     private:
@@ -493,7 +493,7 @@ namespace experiment {
             mid_ids = extract_ids(mid);
             high_ids = extract_ids(high);
             this->iterationChangeWeightInfo.build_change_by_strategy(high_ids, low_ids,
-                                                                     EdgeChangeStrategy::HIGH_LOW_MIXED);
+                                                                     EdgeChangeStrategy::HIGH_HIGH_MIXED);
             // 持久化保存这个结果 结果可以用时间戳表示
             std::ofstream outfile(this->change_info_res_filename);
             experiment::result::global_csv_config.basic_data.changeName = this->change_info_res_filename;

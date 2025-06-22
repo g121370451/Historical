@@ -1,19 +1,16 @@
 #include "generation/experiment_generation.h"
 #include "maintain/experiment_maintain.h"
 #include "random/random_weight_generator.h"
-// #include "generation/experiment_generation_nonhop.h"
-// #include "generation/experiment_generation_hop.h"
 #include "parse/experiment_argparse.h"
 #include "entity/graph.h"
 #include "entity/graph_with_time_span.h"
 #include <iostream>
 #include <filesystem>
-#include <string>
 
-int main(int argc, char *argv[])
+int main(const int argc, char *argv[])
 {
     try{
-        experiment::ExperimentConfig *config = new experiment::ExperimentConfig();
+        auto *config = new experiment::ExperimentConfig();
         experiment::parse_arguments(config,argc, argv);
         std::cout << "Mode: " << (config->mode == experiment::GENERATE_LABEL ? "Generate Label" : (config->mode == experiment::MAINTAIN_LABEL ? "Maintain Label" : "QueryResult")) << "\n"
                   << "Threads: " << config->threads << "\n"
@@ -51,7 +48,7 @@ int main(int argc, char *argv[])
                 hop_info.upper_k = config->hop_limit;
                 generator.pll(instance_graph, hop_info);
                 // hop_info.print_L();
-                export_degree_distribution_and_plot(instance_graph,saveDir.string() + "/basic");
+                export_degree_distribution_and_plot(instance_graph,saveDir.string());
                 generator.persistData(instance_graph, graph_time,hop_info);
             }
         }

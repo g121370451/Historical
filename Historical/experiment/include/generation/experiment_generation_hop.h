@@ -1,29 +1,26 @@
 #pragma once
 #include <boost/heap/fibonacci_heap.hpp>
 #include <algorithm>
-#include "utils/BinaryPersistence.h"
 #include "utils/ExecutionTimer.h"
 #include "entity/graph.h"
 #include "entity/two_hop_label.h"
 #include "utils/ThreadPool.h"
 #include "entity/hop_global_params.h"
-#include "utils/global.h"
-#include "parse/experiment_argparse.h"
 namespace experiment
 {
     namespace hop
     {
-        inline experiment::ExecutionTimer generator_timer;
+        inline ExecutionTimer generator_timer;
         template <typename weight_type, typename hop_weight_type>
         class GeneratorHop
         {
         public:
-            void operator()(graph<weight_type> &input_graph, hop::two_hop_case_info<hop_weight_type> &case_info);
+            void operator()(graph<weight_type> &input_graph, two_hop_case_info<hop_weight_type> &case_info);
 
         private:
             int global_upper_k = 0;
-            std::vector<std::vector<experiment::hop::two_hop_label<hop_weight_type>>> L_temp_599;
-            std::vector<std::vector<experiment::hop::two_hop_label<hop_weight_type>>> Lv_final_599;
+            std::vector<std::vector<two_hop_label<hop_weight_type>>> L_temp_599;
+            std::vector<std::vector<two_hop_label<hop_weight_type>>> Lv_final_599;
             void HSDL_thread_function(int v_k, graph<weight_type> &graph);
 
             std::vector<std::vector<two_hop_label<hop_weight_type>>> hop_constrained_sortL(int num_of_threads);
@@ -34,7 +31,7 @@ namespace experiment
             void hop_constrained_clear_global_values();
         };
         template <typename weight_type, typename hop_weight_type>
-        inline void GeneratorHop<weight_type, hop_weight_type>::operator()(graph<weight_type> &graph, hop::two_hop_case_info<hop_weight_type> &case_info)
+        inline void GeneratorHop<weight_type, hop_weight_type>::operator()(graph<weight_type> &graph, two_hop_case_info<hop_weight_type> &case_info)
         {
             //----------------------------------- step 1: initialization -----------------------------------
             generator_timer.startSubtask("step 1: initialization");
@@ -117,6 +114,7 @@ namespace experiment
                 results.emplace_back(
                     pool.enqueue([this, v, &L] { // pass const type value j to thread; [] can be empty
                         mtx_599[max_N_ID_for_mtx_599 - 1].lock();
+                        std::cout << "clean pll v is " << v << std::endl;
                         int used_id = Qid_599.front();
                         Qid_599.pop();
                         mtx_599[max_N_ID_for_mtx_599 - 1].unlock();
@@ -194,7 +192,7 @@ namespace experiment
             results.clear();
         };
         template <typename weight_type, typename hop_weight_type>
-        inline void GeneratorHop<weight_type, hop_weight_type>::hop_constrained_clear_global_values()
+        void GeneratorHop<weight_type, hop_weight_type>::hop_constrained_clear_global_values()
         {
             std::vector<std::vector<two_hop_label<hop_weight_type>>>().swap(L_temp_599);
             std::vector<std::vector<two_hop_label<hop_weight_type>>>().swap(Lv_final_599);
@@ -206,11 +204,12 @@ namespace experiment
             PPR_TYPE::PPR_type().swap(PPR_599);
         }
         template <typename weight_type, typename hop_weight_type>
-        inline void GeneratorHop<weight_type, hop_weight_type>::HSDL_thread_function(int v_k, graph<weight_type> &graph)
+        void GeneratorHop<weight_type, hop_weight_type>::HSDL_thread_function(int v_k, graph<weight_type> &graph)
         {
             /* get unique thread id */
             /* critical section obtain array index  */
             mtx_599[experiment::hop::max_N_ID_for_mtx_599 - 1].lock();
+            std::cout << "calculate pll vk is " << v_k << std::endl;
             int used_id = Qid_599.front();
             Qid_599.pop();
             mtx_599[experiment::hop::max_N_ID_for_mtx_599 - 1].unlock();
@@ -249,7 +248,7 @@ namespace experiment
                 note that the hop_cst is determined by the shortest distance */
             dist_hop[v_k] = {0, 0};
             dist_hop_changes.push_back(v_k);
-            while (Q.size() > 0)
+            while (!Q.empty())
             {
                 // size = std::max(size, Q.size());
                 /* poll the vertex from heap.In other words, poll the vertex with the minimal cost */
@@ -377,18 +376,17 @@ namespace experiment
                     }
                 }
             }
-            for (auto &xx : Temp_L_vk_changes)
+            for (const auto &xx : Temp_L_vk_changes)
             {
                 std::vector<std::pair<int, int>>().swap(Temp_L_vk[xx]);
             }
-            for (auto &xx : dist_hop_changes)
+            for (const auto &xx : dist_hop_changes)
             {
                 dist_hop[xx] = {std::numeric_limits<int>::max(), 0};
             }
-            hop_constrained_node_handle<hop_weight_type> handle_x;
-            for (auto &xx : Q_handle_priorities_changes)
-            {
-                Q_handle_priorities[xx.first][xx.second] = {handle_x, std::numeric_limits<int>::max()};
+            for (auto &[fst, snd] : Q_handle_priorities_changes) {
+                hop_constrained_node_handle<hop_weight_type> handle_x;
+                Q_handle_priorities[fst][snd] = {handle_x, std::numeric_limits<int>::max()};
             }
 
             // mtx_599[v_k].lock();
@@ -400,7 +398,7 @@ namespace experiment
             mtx_599[max_N_ID_for_mtx_599 - 1].unlock();
         }
         template <typename weight_type, typename hop_weight_type>
-        inline std::vector<std::vector<two_hop_label<hop_weight_type>>> GeneratorHop<weight_type, hop_weight_type>::hop_constrained_sortL(int num_of_threads)
+        std::vector<std::vector<two_hop_label<hop_weight_type>>> GeneratorHop<weight_type, hop_weight_type>::hop_constrained_sortL(int num_of_threads)
         {
 
             /*time complexity: O(V*L*logL), where L is average number of labels per vertex*/

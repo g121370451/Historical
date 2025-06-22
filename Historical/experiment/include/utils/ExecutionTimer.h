@@ -61,14 +61,14 @@ namespace experiment
 	class ExecutionTimer
 	{
 	public:
-		inline void startTask(const std::string &taskName)
+		void startTask(const std::string &taskName)
 		{
 			currentMainTaskName = taskName;
 			currentSubtask = nullptr;
 			allTasks.clear();
 		}
 
-		inline void startSubtask(const std::string &subtaskName)
+		void startSubtask(const std::string &subtaskName)
 		{
 			std::cout << subtaskName << std::endl;
 			auto newSubtask = std::make_shared<Subtask>(subtaskName, currentSubtask);
@@ -84,7 +84,7 @@ namespace experiment
 			currentSubtask = newSubtask;
 		}
 
-		inline double endSubtask()
+		double endSubtask()
 		{
 			if (currentSubtask)
 			{
@@ -101,7 +101,7 @@ namespace experiment
 			}
 		}
 
-		inline double getTaskDuration() const
+		double getTaskDuration() const
 		{
 			double totalDuration = 0;
 			for (const auto &task : allTasks)
@@ -111,13 +111,13 @@ namespace experiment
 			return totalDuration;
 		}
 
-		inline void printStats()
+		void printStats()
 		{
 			std::cout << "Task Timing Statistics: " << getTaskDuration() << " seconds" << std::endl;
 			printTaskStats(allTasks, 0);
 		}
 
-		inline void writeStatsToFile(std::ofstream &outFile)
+		void writeStatsToFile(std::ofstream &outFile)
 		{
 			if (!outFile.is_open())
 			{
@@ -136,7 +136,7 @@ namespace experiment
 		void writeStatsToFileRecursively(std::ofstream &outFile, const std::vector<std::pair<std::string, std::shared_ptr<Subtask>>> &tasks, int level);
 
 		void printTaskStats( const std::vector<std::pair<std::string, std::shared_ptr<Subtask>>> &tasks, int level);
-	private:
+
 		std::string currentMainTaskName;
 		std::shared_ptr<Subtask> currentSubtask;
 		std::vector<std::pair<std::string, std::shared_ptr<Subtask>>> allTasks;
