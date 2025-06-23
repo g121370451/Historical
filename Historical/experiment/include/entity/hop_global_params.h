@@ -9,8 +9,8 @@ namespace experiment::hop {
 #pragma region hop generation global variables
     inline int max_N_ID_for_mtx_599 = 1e7;
     inline std::queue<int> Qid_599;
-    inline std::vector<std::shared_mutex> mtx_599(max_N_ID_for_mtx_599);
-    inline std::vector<std::shared_mutex> ppr_599(max_N_ID_for_mtx_599);
+    inline std::vector<std::mutex> mtx_599(max_N_ID_for_mtx_599);
+    inline std::vector<std::mutex> ppr_599(max_N_ID_for_mtx_599);
 
     template<typename T>
     using hop_constrained_node_handle = typename boost::heap::fibonacci_heap<experiment::hop::two_hop_label<
@@ -51,6 +51,11 @@ namespace experiment::hop {
             hop = _hop;
             dis = _dis;
         }
+
+        friend std::ostream& operator<<(std::ostream& out, const hop_constrained_affected_label<hop_weight_type>& obj) {
+            out << "hop_constrained_affected_label object: first = " << obj.first << ", second = " << obj.second << ", hop = " << obj.hop << ", dis = " << obj.dis << std::endl;
+            return out;
+        };
     };
 
     class hop_constrained_pair_label {

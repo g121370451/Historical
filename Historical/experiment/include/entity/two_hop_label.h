@@ -627,6 +627,7 @@ namespace experiment {
         search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                 std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
                 int hop_k, result::MaintainShard &maintain_shard) {
+            hop_weight_type max = std::numeric_limits<hop_weight_type>::max();
             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.label_count_slot1;
             } else {

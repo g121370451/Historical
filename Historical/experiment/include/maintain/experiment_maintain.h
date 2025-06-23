@@ -493,7 +493,7 @@ namespace experiment {
             mid_ids = extract_ids(mid);
             high_ids = extract_ids(high);
             this->iterationChangeWeightInfo.build_change_by_strategy(high_ids, low_ids,
-                                                                     EdgeChangeStrategy::HIGH_HIGH_MIXED);
+                                                                     EdgeChangeStrategy::HIGH_HIGH_INCREASE);
             // 持久化保存这个结果 结果可以用时间戳表示
             std::ofstream outfile(this->change_info_res_filename);
             experiment::result::global_csv_config.basic_data.changeName = this->change_info_res_filename;

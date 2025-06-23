@@ -235,7 +235,7 @@ namespace experiment
             Q_handle_priorities_changes.push_back({v_k, 0});
             // size_t size = 0;
             /* Temp_L_vk_599 stores the label (dist and hop) of vertex v_k */
-            mtx_599[v_k].lock_shared();
+            mtx_599[v_k].lock();
             /* root is vk-> vk->obj info -> vector<obj> -> index-> vertexId obj-><distance,hop> */
             for (auto &xx : L_temp_599[v_k])
             {
@@ -243,7 +243,7 @@ namespace experiment
                 Temp_L_vk[L_vk_vertex].push_back({xx.distance, xx.hop});
                 Temp_L_vk_changes.push_back(L_vk_vertex);
             }
-            mtx_599[v_k].unlock_shared();
+            mtx_599[v_k].unlock();
             /*  dist_hop_599 stores the shortest distance from vk to any other vertices with its hop_cst,
                 note that the hop_cst is determined by the shortest distance */
             dist_hop[v_k] = {0, 0};
@@ -267,7 +267,7 @@ namespace experiment
                 int P_u = node.distance;
                 int common_hub_for_query_v_k_u = -1;
                 int query_v_k_u = std::numeric_limits<int>::max();
-                mtx_599[u].lock_shared();
+                mtx_599[u].lock();
                 for (auto &xx : L_temp_599[u])
                 {
                     int common_v = xx.hub_vertex;
@@ -284,7 +284,7 @@ namespace experiment
                         }
                     }
                 }
-                mtx_599[u].unlock_shared();
+                mtx_599[u].unlock();
                 if (P_u < query_v_k_u)
                 {
                     node.hub_vertex = v_k;

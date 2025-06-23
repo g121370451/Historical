@@ -47,7 +47,7 @@ namespace experiment::hop::ruc::increase {
                                                                            std::vector<std::future<int> > &
                                                                            results_dynamic,
                                                                            int time) const {
-        std::vector<hop_constrained_affected_label<hop_weight_type> >
+        std::vector<hop_constrained_affected_label<hop_weight_type>>
                 al1, al3;
         std::vector<hop_constrained_pair_label> al2;
 
@@ -133,6 +133,8 @@ namespace experiment::hop::ruc::increase {
         HOP_maintain_SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic,
                                    mm.upper_k);
         std::cout << "ruc increase al3 size is " << al3.size() << std::endl;
+        std::cout << "al3 address 0 is " << &al3 << std::endl;
+        std::cout << "al3 address 0.1 is " << &al3[0] << std::endl;
         HOP_maintain_SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, mm.upper_k,
                                    time);
     }
@@ -224,7 +226,7 @@ namespace experiment::hop::ruc::increase {
                 Qid_599.pop();
                 mtx_599_1.unlock();
 
-                auto &counter = experiment::result::global_csv_config.ruc_counter;
+                auto &counter = result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                 int v = it.first, h_u = it.hop;
@@ -243,7 +245,7 @@ namespace experiment::hop::ruc::increase {
                         for (const auto &nei: instance_graph[t]) {
                             //mtx_599[nei.first].lock();
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                                    (*L)[nei.first], v, shard);
+                                (*L)[nei.first], v, shard);
                             //mtx_599[nei.first].unlock();
                             if (d1 > dis_hop.first + nei.second) {
                                 d1 = dis_hop.first + nei.second;
@@ -260,10 +262,14 @@ namespace experiment::hop::ruc::increase {
                             hop_weight_type di = MAX_VALUE;
                             for (const auto &nei: instance_graph[t]) {
                                 //mtx_599[nei.first].lock();
-                                di = std::min(
-                                        di, search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                                hop_weight_type dnew = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                                 (*L)[nei.first], v,
-                                                hop_i - 1, shard).first + nei.second);
+                                                hop_i - 1, shard).first + nei.second;
+                                if (dnew < 0) {
+                                    std::cout << "dnew = " << dnew << std::endl;
+                                }
+                                di = std::min(
+                                        di, dnew);
                                 //mtx_599[nei.first].unlock();
                             }
 //                            if (di >= TwoM_value)
@@ -282,7 +288,9 @@ namespace experiment::hop::ruc::increase {
                                 // only add new label when it's absolutely necessary
                                 mtx_599_1.lock();
                                 //cout<<"query_result.first > d1 + 1e-5: "<<t_first<<' '<<v << ' ' << hop_vn+1 << ' ' << d1 << endl;
-                                al3->push_back(hop_constrained_affected_label<hop_weight_type>{t, v, hop_i, di});
+                                hop_constrained_affected_label<hop_weight_type> res{t, v, hop_i, di};
+                                // std::cout << res << std::endl;
+                                al3->push_back(res);
                                 mtx_599_1.unlock();
                             } else if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
@@ -320,9 +328,13 @@ namespace experiment::hop::ruc::increase {
                                 break;
                             hop_weight_type di = MAX_VALUE;
                             for (auto nei: instance_graph[v]) {
-                                di = std::min(di, search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
+                                hop_weight_type d_new = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                         (*L)[nei.first], t,
-                                        hop_i - 1, shard).first + nei.second);
+                                        hop_i - 1, shard).first + nei.second;
+                                if (d_new < 0) {
+                                    std::cout << "d_new = " << d_new << std::endl;
+                                }
+                                di = std::min(di, d_new);
                             }
 
 //                            if (di >= TwoM_value)
@@ -336,7 +348,9 @@ namespace experiment::hop::ruc::increase {
 
                             if (query_dis > di) {
                                 mtx_599_1.lock();
-                                al3->push_back(hop_constrained_affected_label<hop_weight_type>{v, t, hop_i, di});
+                                hop_constrained_affected_label<hop_weight_type> res{v, t, hop_i, di};
+                                // std::cout << res << std::endl;
+                                al3->push_back(res);
                                 mtx_599_1.unlock();
                             } else if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
@@ -361,6 +375,7 @@ namespace experiment::hop::ruc::increase {
                 return 1;
             }));
         }
+        std::cout << "al3 address 1 is " << al3 << std::endl;
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -372,12 +387,26 @@ namespace experiment::hop::ruc::increase {
                                                                                            std::vector<std::future<int> > &results_dynamic,
                                                                                            int upper_k,
                                                                                            int time) const {
+        // std::cout << "al3 address 2 is " << &al3 << std::endl;
+        // std::cout << "al3 address 2.1 is " << &al3[0] << std::endl;
         std::map<hop_constrained_pair_label, hop_weight_type> al3_edge_map;
-        for (auto &it: al3) {
-            if (al3_edge_map.count({it.first, it.second, it.hop}) == 0 ||
-                al3_edge_map[{it.first, it.second, it.hop}] > it.dis) {
-                al3_edge_map[{it.first, it.second, it.hop}] = it.dis;
+        try {
+            std::cout << "3.1" << std::endl;
+            std::cout << al3.size() << std::endl;
+            for (auto &it :al3) {
+                std::cout << it << std::endl;
             }
+            for (auto &it : al3) {
+                hop_constrained_pair_label label{it.first, it.second, it.hop};
+                if (!al3_edge_map.contains(label) || al3_edge_map[label] > it.dis) {
+                    al3_edge_map[label] = it.dis;
+                }
+            }
+            std::cout << "3.2" << std::endl;
+        } catch (const std::exception &e) {
+            std::cerr << "Exception caught in al3 processing: " << e.what() << std::endl;
+        } catch (...) {
+            std::cerr << "Unknown exception caught in al3 processing." << std::endl;
         }
 
         // extract each unique hub v and its (u,dis) list
@@ -399,6 +428,7 @@ namespace experiment::hop::ruc::increase {
                 vec_with_hub_v.emplace_back(tmp);
             }
         }
+        std::cout <<"3.3"<<std::endl;
         for (auto &al3_item: al3_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
                 mtx_599_1.lock();
@@ -550,9 +580,11 @@ namespace experiment::hop::ruc::increase {
             }));
         }
 
+        std::cout <<"3.4"<<std::endl;
         for (auto &&result: results_dynamic) {
             result.get();
         }
+        std::cout <<"3.5"<<std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
     }
 }
