@@ -168,8 +168,9 @@ namespace experiment::hop::ruc::increase {
                             hop_weight_type dx = q.front().disx;
                             q.pop();
                             L_lock[x].lock();
-                            insert_sorted_hop_constrained_two_hop_label_with_csv<hop_weight_type>((*L)[x], v, h_x, MAX_VALUE,
-                                                                                 time, shard);
+                            insert_sorted_hop_constrained_two_hop_label_with_csv<hop_weight_type>((*L)[x], v, h_x,
+                                                                                                  MAX_VALUE,
+                                                                                                  time, shard);
                             // this does not change the size of L[x] here, so does not need to lock here
                             L_lock[x].unlock();
                             mtx_599_1.lock();
@@ -245,7 +246,7 @@ namespace experiment::hop::ruc::increase {
                         for (const auto &nei: instance_graph[t]) {
                             //mtx_599[nei.first].lock();
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                                (*L)[nei.first], v, shard);
+                                    (*L)[nei.first], v, shard);
                             //mtx_599[nei.first].unlock();
                             if (d1 > dis_hop.first + nei.second) {
                                 d1 = dis_hop.first + nei.second;
@@ -263,13 +264,14 @@ namespace experiment::hop::ruc::increase {
                             for (const auto &nei: instance_graph[t]) {
                                 //mtx_599[nei.first].lock();
                                 hop_weight_type dnew = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
-                                                (*L)[nei.first], v,
-                                                hop_i - 1, shard).first + nei.second;
-                                if (dnew < 0) {
-                                    std::cout << "dnew = " << dnew << std::endl;
+                                        (*L)[nei.first], v,
+                                        hop_i - 1, shard).first;
+                                if (dnew < std::numeric_limits<hop_weight_type>::max()) {
+//                                    std::cout << "dnew = " << dnew << std::endl;
+//                                    std::cout << "nei_D = " << nei.second << std::endl;
+                                    di = std::min(di, dnew + nei.second);
                                 }
-                                di = std::min(
-                                        di, dnew);
+
                                 //mtx_599[nei.first].unlock();
                             }
 //                            if (di >= TwoM_value)
@@ -284,7 +286,7 @@ namespace experiment::hop::ruc::increase {
                                                                                                                 shard);
                             //mtx_599[t].unlock_shared();
 
-                            if (query_dis > di) {
+                            if (query_dis > di && di != MAX_VALUE) {
                                 // only add new label when it's absolutely necessary
                                 mtx_599_1.lock();
                                 //cout<<"query_result.first > d1 + 1e-5: "<<t_first<<' '<<v << ' ' << hop_vn+1 << ' ' << d1 << endl;
@@ -292,7 +294,7 @@ namespace experiment::hop::ruc::increase {
                                 // std::cout << res << std::endl;
                                 al3->push_back(res);
                                 mtx_599_1.unlock();
-                            } else if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                            } else if (di != MAX_VALUE && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
                                     ppr_lock[t].lock();
                                     PPR_TYPE::PPR_insert(PPR, t, query_hub, v);
@@ -303,9 +305,10 @@ namespace experiment::hop::ruc::increase {
                                     PPR_TYPE::PPR_insert(PPR, v, query_hub, t);
                                     ppr_lock[v].unlock();
                                 }
-                            } else {
-                                std::cout << "both max length" << std::endl;
                             }
+//                            else {
+//                                std::cout << "both max length" << std::endl;
+//                            }
                         }
                     }
                     if (t < v) {
@@ -330,11 +333,11 @@ namespace experiment::hop::ruc::increase {
                             for (auto nei: instance_graph[v]) {
                                 hop_weight_type d_new = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                         (*L)[nei.first], t,
-                                        hop_i - 1, shard).first + nei.second;
-                                if (d_new < 0) {
-                                    std::cout << "d_new = " << d_new << std::endl;
+                                        hop_i - 1, shard).first;
+                                if (d_new < std::numeric_limits<hop_weight_type>::max()) {
+//                                    std::cout << "d_new = " << d_new << std::endl;
+                                    di = std::min(di, d_new + nei.second);
                                 }
-                                di = std::min(di, d_new);
                             }
 
 //                            if (di >= TwoM_value)
@@ -346,13 +349,13 @@ namespace experiment::hop::ruc::increase {
                                                                                                                 hop_i,
                                                                                                                 shard);
 
-                            if (query_dis > di) {
+                            if (query_dis > di && di != MAX_VALUE) {
                                 mtx_599_1.lock();
                                 hop_constrained_affected_label<hop_weight_type> res{v, t, hop_i, di};
                                 // std::cout << res << std::endl;
                                 al3->push_back(res);
                                 mtx_599_1.unlock();
-                            } else if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                            } else if (di != MAX_VALUE && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
                                     ppr_lock[t].lock();
                                     PPR_TYPE::PPR_insert(PPR, t, query_hub, v);
@@ -363,9 +366,10 @@ namespace experiment::hop::ruc::increase {
                                     PPR_TYPE::PPR_insert(PPR, v, query_hub, t);
                                     ppr_lock[v].unlock();
                                 }
-                            } else {
-                                std::cout << "both max length" << std::endl;
                             }
+//                            else {
+//                                std::cout << "both max length" << std::endl;
+//                            }
                         }
                     }
                 }
@@ -390,24 +394,24 @@ namespace experiment::hop::ruc::increase {
         // std::cout << "al3 address 2 is " << &al3 << std::endl;
         // std::cout << "al3 address 2.1 is " << &al3[0] << std::endl;
         std::map<hop_constrained_pair_label, hop_weight_type> al3_edge_map;
-        try {
-            std::cout << "3.1" << std::endl;
-            std::cout << al3.size() << std::endl;
-            for (auto &it :al3) {
-                std::cout << it << std::endl;
+//        try {
+//            std::cout << "3.1" << std::endl;
+//            std::cout << al3.size() << std::endl;
+//            for (auto &it: al3) {
+//                std::cout << it << std::endl;
+//            }
+        for (auto &it: al3) {
+            hop_constrained_pair_label label{it.first, it.second, it.hop};
+            if (!al3_edge_map.contains(label) || al3_edge_map[label] > it.dis) {
+                al3_edge_map[label] = it.dis;
             }
-            for (auto &it : al3) {
-                hop_constrained_pair_label label{it.first, it.second, it.hop};
-                if (!al3_edge_map.contains(label) || al3_edge_map[label] > it.dis) {
-                    al3_edge_map[label] = it.dis;
-                }
-            }
-            std::cout << "3.2" << std::endl;
-        } catch (const std::exception &e) {
-            std::cerr << "Exception caught in al3 processing: " << e.what() << std::endl;
-        } catch (...) {
-            std::cerr << "Unknown exception caught in al3 processing." << std::endl;
         }
+//            std::cout << "3.2" << std::endl;
+//        } catch (const std::exception &e) {
+//            std::cerr << "Exception caught in al3 processing: " << e.what() << std::endl;
+//        } catch (...) {
+//            std::cerr << "Unknown exception caught in al3 processing." << std::endl;
+//        }
 
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
@@ -428,7 +432,7 @@ namespace experiment::hop::ruc::increase {
                 vec_with_hub_v.emplace_back(tmp);
             }
         }
-        std::cout <<"3.3"<<std::endl;
+        std::cout << "3.3" << std::endl;
         for (auto &al3_item: al3_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
                 mtx_599_1.lock();
@@ -580,11 +584,11 @@ namespace experiment::hop::ruc::increase {
             }));
         }
 
-        std::cout <<"3.4"<<std::endl;
+        std::cout << "3.4" << std::endl;
         for (auto &&result: results_dynamic) {
             result.get();
         }
-        std::cout <<"3.5"<<std::endl;
+        std::cout << "3.5" << std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
     }
 }

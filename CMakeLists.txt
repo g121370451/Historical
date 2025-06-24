@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.12)
 project(HistoricalHopHL)
 
 set(CMAKE_CXX_STANDARD 20)
-
 # 在顶部添加调试模式配置
 option(DEBUG_MODE "Enable debugging" OFF)
 # 修改编译选项部分

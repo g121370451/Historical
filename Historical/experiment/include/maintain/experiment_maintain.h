@@ -675,6 +675,14 @@ namespace experiment {
         void readData(Args &&...args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
+//            for (const std::vector<hop::two_hop_label<HopType>> &item: this->hop_info.L){
+//                for (const hop::two_hop_label<HopType> &inner_item: item){
+//                    if(inner_item.distance < 0){
+//                        std::cout << inner_item.hub_vertex << "," << inner_item.hop << "," <<
+//                            inner_item.distance << "," << inner_item.t_s << "," << inner_item.t_e << std::endl;
+//                    }
+//                }
+//            }
         }
     };
 

@@ -79,7 +79,7 @@ namespace experiment::nonhop {
 
         //----------------------------------------------- step 3: canonical_repair ---------------------------------------------------------------
         generator_timer.startSubtask("step 4: canonical_repair");
-        // this->clean_L(case_info, num_of_threads);
+         this->clean_L(case_info, num_of_threads);
         generator_timer.endSubtask();
         //---------------------------------------------------------------------------------------------------------------------------------------
         this->PLL_clear_global_values();
