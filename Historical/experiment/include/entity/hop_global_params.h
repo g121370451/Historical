@@ -12,17 +12,19 @@ namespace experiment::hop {
     inline std::vector<std::mutex> mtx_599(max_N_ID_for_mtx_599);
     inline std::vector<std::mutex> ppr_599(max_N_ID_for_mtx_599);
 
-    template<typename T>
-    using hop_constrained_node_handle = typename boost::heap::fibonacci_heap<experiment::hop::two_hop_label<
-        T>>::handle_type;
+    template<typename hop_weight_type>
+    using hop_constrained_node_handle = typename boost::heap::fibonacci_heap<two_hop_label<
+        hop_weight_type> >::handle_type;
 
     inline PPR_TYPE::PPR_type PPR_599;
-    inline std::vector<std::vector<std::vector<std::pair<int, int> > > > Temp_L_vk_599;
-    inline std::vector<std::vector<std::pair<int, int> > > dist_hop_599;
-    template<typename T>
-    inline std::vector<std::vector<std::vector<std::pair<hop_constrained_node_handle<T>, int> > > >
-    Q_handle_priorities_599;
-    inline std::vector<std::vector<std::vector<int> > > Vh_599;
+    /** std::pair<dis,hop> */
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<std::vector<std::pair<hop_weight_type, int> > > > Temp_L_vk_599;
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599;
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<std::vector<std::pair<hop_constrained_node_handle<hop_weight_type>,
+        hop_weight_type> > > > Q_handle_priorities_599;
 #pragma endregion
 #pragma region hop maintain global variables
     inline int TwoM_value = 2 * 1e6;

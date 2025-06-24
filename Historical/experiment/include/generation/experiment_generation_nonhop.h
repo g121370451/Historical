@@ -44,13 +44,13 @@ namespace experiment::nonhop {
             /*seaching shortest paths*/
             ThreadPool pool(num_of_threads);
             std::vector<std::future<int> > results; // return typename: xxx
-            P_dij_595.resize(num_of_threads);
-            T_dij_595.resize(num_of_threads);
+            P_dij_595<hop_weight_type>.resize(num_of_threads);
+            T_dij_595<hop_weight_type>.resize(num_of_threads);
             Q_handles_595<hop_weight_type>.resize(num_of_threads);
             std::queue<int>().swap(Qid_595);
             for (int i = 0; i < num_of_threads; i++) {
-                P_dij_595[i].resize(N, std::numeric_limits<int>::max());
-                T_dij_595[i].resize(N, std::numeric_limits<int>::max());
+                P_dij_595<hop_weight_type>[i].resize(N, std::numeric_limits<hop_weight_type>::max());
+                T_dij_595<hop_weight_type>[i].resize(N, std::numeric_limits<hop_weight_type>::max());
                 Q_handles_595<hop_weight_type>[i].resize(N);
                 Qid_595.push(i);
             }
@@ -79,7 +79,7 @@ namespace experiment::nonhop {
 
         //----------------------------------------------- step 3: canonical_repair ---------------------------------------------------------------
         generator_timer.startSubtask("step 4: canonical_repair");
-         this->clean_L(case_info, num_of_threads);
+        this->clean_L(case_info, num_of_threads);
         generator_timer.endSubtask();
         //---------------------------------------------------------------------------------------------------------------------------------------
         this->PLL_clear_global_values();
@@ -94,9 +94,10 @@ namespace experiment::nonhop {
         mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
         std::vector<int> P_changed_vertices, T_changed_vertices;
-        std::vector<int> &T_dij = T_dij_595[used_id], P_dij = P_dij_595[used_id];
+        std::vector<hop_weight_type> &T_dij = T_dij_595<hop_weight_type>[used_id], P_dij = P_dij_595<hop_weight_type>[
+            used_id];
 
-        std::vector<nonhop::PLL_handle_t_for_sp<hop_weight_type> > &Q_handles = Q_handles_595<hop_weight_type>[used_id];
+        std::vector<PLL_handle_t_for_sp<hop_weight_type> > &Q_handles = Q_handles_595<hop_weight_type>[used_id];
 
         boost::heap::fibonacci_heap<two_hop_label<hop_weight_type> > Q;
         two_hop_label<hop_weight_type> node(0);
@@ -126,12 +127,17 @@ namespace experiment::nonhop {
                 continue;
             }
 
-            int query_v_k_u = std::numeric_limits<int>::max();
+            int query_v_k_u = std::numeric_limits<hop_weight_type>::max();
             int common_hub_for_query_v_k_u = 0;
             mtx_595[u].lock(); // put lock in for loop is very slow
             for (const auto &xx: L_temp_595<hop_weight_type>[u]) {
-                long long int dis = xx.distance + (long long int) T_dij[xx.vertex];
-                // long long int is to avoid overflow
+                if (T_dij[xx.vertex] == std::numeric_limits<hop_weight_type>::max()) {
+                    continue;
+                }
+                hop_weight_type dis = xx.distance + T_dij[xx.vertex];
+                if (dis < 0) {
+                    std::cout << "overflow happen in generation with nonhop" << std::endl;
+                }
                 if (query_v_k_u > dis) {
                     query_v_k_u = dis;
                     common_hub_for_query_v_k_u = xx.vertex;
@@ -151,7 +157,7 @@ namespace experiment::nonhop {
 
                 for (const auto &xx: input_graph.ADJs[u]) {
                     int adj_v = xx.first, ec = xx.second;
-                    if (P_dij[adj_v] == std::numeric_limits<int>::max()) {
+                    if (P_dij[adj_v] == std::numeric_limits<hop_weight_type>::max()) {
                         node.vertex = adj_v;
                         node.distance = P_u + ec;
 
@@ -187,6 +193,7 @@ namespace experiment::nonhop {
         }
 
         mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+        std::cout << "calculate pll v: " << v_k << std::endl;
         Qid_595.push(used_id);
         mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
     };
@@ -226,9 +233,9 @@ namespace experiment::nonhop {
 
     template<typename weight_type, typename hop_weight_type>
     void GeneratorNonHop<weight_type, hop_weight_type>::clean_L(
-        nonhop::two_hop_case_info<hop_weight_type> &case_info, int thread_num) const {
+        two_hop_case_info<hop_weight_type> &case_info, int thread_num) const {
         auto &L = case_info.L;
-        int N = L.size();
+        const int N = L.size();
 
         ThreadPool pool(thread_num);
         std::vector<std::future<int> > results;
@@ -246,7 +253,7 @@ namespace experiment::nonhop {
 
                     std::vector<two_hop_label<hop_weight_type> > &Lv = L[v];
 
-                    auto &T = T_dij_595[used_id];
+                    auto &T = T_dij_595<hop_weight_type>[used_id];
 
                     for (const auto &Lvi: Lv) {
                         int u = Lvi.vertex;
@@ -258,9 +265,15 @@ namespace experiment::nonhop {
                         mtx_595[u].lock();
                         const auto &Lu = L[u];
 
-                        int min_dis = std::numeric_limits<int>::max();
+                        int min_dis = std::numeric_limits<hop_weight_type>::max();
                         for (const auto &label: Lu) {
-                            long long int query_dis = label.distance + (long long int) T[label.vertex];
+                            if (T[label.vertex] == std::numeric_limits<hop_weight_type>::max()) {
+                                continue;
+                            }
+                            hop_weight_type query_dis = label.distance + T[label.vertex];
+                            if (query_dis < 0) {
+                                std::cout << "overflow happen in clean with nonhop" << std::endl;
+                            }
                             if (query_dis < min_dis) {
                                 min_dis = query_dis;
                             }
@@ -273,7 +286,7 @@ namespace experiment::nonhop {
                     }
 
                     for (const auto &label: Lv_final_inner) {
-                        T[label.vertex] = std::numeric_limits<int>::max();
+                        T[label.vertex] = std::numeric_limits<hop_weight_type>::max();
                     }
 
                     mtx_595[v].lock();
@@ -299,8 +312,8 @@ namespace experiment::nonhop {
         std::vector<std::vector<two_hop_label<hop_weight_type> > >().swap(L_temp_595<hop_weight_type>);
         PPR_TYPE::PPR_type().swap(PPR_595);
         std::queue<int>().swap(Qid_595);
-        std::vector<std::vector<int> >().swap(P_dij_595);
-        std::vector<std::vector<int> >().swap(T_dij_595);
+        std::vector<std::vector<hop_weight_type> >().swap(P_dij_595<hop_weight_type>);
+        std::vector<std::vector<hop_weight_type> >().swap(T_dij_595<hop_weight_type>);
         std::vector<std::vector<PLL_handle_t_for_sp<hop_weight_type> > >().swap(Q_handles_595<hop_weight_type>);
     }
 }

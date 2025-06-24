@@ -13,11 +13,13 @@ namespace experiment::nonhop {
     inline std::vector<std::mutex> mtx_595(max_N_ID_for_mtx_595);
     inline std::vector<std::shared_mutex> ppr_595(max_N_ID_for_mtx_595);
 
-    template<typename T>
-    inline std::vector<std::vector<two_hop_label<T>>> L_temp_595;
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<two_hop_label<hop_weight_type>>> L_temp_595;
     inline PPR_TYPE::PPR_type PPR_595;
-    inline std::vector<std::vector<int> > P_dij_595;
-    inline std::vector<std::vector<int> > T_dij_595;
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<hop_weight_type>> P_dij_595;
+    template<typename hop_weight_type>
+    inline std::vector<std::vector<hop_weight_type>> T_dij_595;
 
     template<typename T>
     inline std::vector<std::vector<PLL_handle_t_for_sp<T> > > Q_handles_595;

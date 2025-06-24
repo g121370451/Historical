@@ -31,7 +31,7 @@ namespace experiment
             void hop_constrained_clear_global_values();
         };
         template <typename weight_type, typename hop_weight_type>
-        inline void GeneratorHop<weight_type, hop_weight_type>::operator()(graph<weight_type> &graph, two_hop_case_info<hop_weight_type> &case_info)
+        void GeneratorHop<weight_type, hop_weight_type>::operator()(graph<weight_type> &graph, two_hop_case_info<hop_weight_type> &case_info)
         {
             //----------------------------------- step 1: initialization -----------------------------------
             generator_timer.startSubtask("step 1: initialization");
@@ -54,21 +54,18 @@ namespace experiment
              */
             generator_timer.startSubtask("step 2: generate labels");
             global_upper_k = case_info.upper_k;
-            Temp_L_vk_599.resize(num_of_threads);
-            dist_hop_599.resize(num_of_threads);
+            Temp_L_vk_599<hop_weight_type>.resize(num_of_threads);
+            dist_hop_599<hop_weight_type>.resize(num_of_threads);
             Q_handle_priorities_599<hop_weight_type>.resize(num_of_threads);
-            Vh_599.resize(num_of_threads);
-            experiment::hop::hop_constrained_node_handle<hop_weight_type> handle_x;
             for (int i = 0; i < num_of_threads; i++)
             {
-                Temp_L_vk_599[i].resize(N);
-                dist_hop_599[i].resize(N, {std::numeric_limits<int>::max(), 0});
+                Temp_L_vk_599<hop_weight_type>[i].resize(N);
+                dist_hop_599<hop_weight_type>[i].resize(N, {std::numeric_limits<hop_weight_type>::max(), 0});
                 Q_handle_priorities_599<hop_weight_type>[i].resize(N);
-                for (int j = 0; j < N; j++)
-                {
-                    Q_handle_priorities_599<hop_weight_type>[i][j].resize(global_upper_k + 1, {handle_x, std::numeric_limits<int>::max()});
+                for (int j = 0; j < N; j++) {
+                    hop_constrained_node_handle<hop_weight_type> handle_x;
+                    Q_handle_priorities_599<hop_weight_type>[i][j].resize(global_upper_k + 1, {handle_x, std::numeric_limits<hop_weight_type>::max()});
                 }
-                Vh_599[i].resize(global_upper_k + 2);
                 Qid_599.push(i);
             }
 
@@ -105,7 +102,7 @@ namespace experiment
         {
 
             std::vector<std::vector<experiment::hop::two_hop_label<hop_weight_type>>> &L = case_info.L;
-            int N = L.size();
+            const int N = L.size();
 
             ThreadPool pool(thread_num);
             std::vector<std::future<int>> results;
@@ -130,7 +127,7 @@ namespace experiment
                         /**
                          * the temp_L in this thread
                          */
-                        auto &T = Temp_L_vk_599[used_id];
+                        auto &T = Temp_L_vk_599<hop_weight_type>[used_id];
 
                         /**
                          * Traverse the L-list of the current vertex
@@ -148,14 +145,17 @@ namespace experiment
                             /**
                              * traverse downward from the perfectly correct first vertex
                              */
-                            int min_dis = std::numeric_limits<int>::max();
+                            int min_dis = std::numeric_limits<hop_weight_type>::max();
                             for (auto &label1 : Lu)
                             {
                                 for (auto &label2 : T[label1.hub_vertex])
                                 {
                                     if (label1.hop + label2.second <= u_hop)
                                     {
-                                        long long int query_dis = label1.distance + (long long int)label2.first;
+                                        hop_weight_type query_dis = label1.distance + label2.first;
+                                        if (query_dis < 0) {
+                                            std::cout << "overflow happen in clean with hop" << std::endl;
+                                        }
                                         if (query_dis < min_dis)
                                         {
                                             min_dis = query_dis;
@@ -173,7 +173,7 @@ namespace experiment
 
                         for (const auto &label : Lv_final)
                         {
-                            std::vector<std::pair<int, int>>().swap(T[label.hub_vertex]);
+                            std::vector<std::pair<hop_weight_type, int>>().swap(T[label.hub_vertex]);
                         }
 
                         mtx_599[max_N_ID_for_mtx_599 - 1].lock();
@@ -196,10 +196,9 @@ namespace experiment
         {
             std::vector<std::vector<two_hop_label<hop_weight_type>>>().swap(L_temp_599);
             std::vector<std::vector<two_hop_label<hop_weight_type>>>().swap(Lv_final_599);
-            std::vector<std::vector<std::vector<std::pair<int, int>>>>().swap(Temp_L_vk_599);
-            std::vector<std::vector<std::pair<int, int>>>().swap(dist_hop_599);
-            std::vector<std::vector<std::vector<std::pair<hop_constrained_node_handle<hop_weight_type>, int>>>>().swap(Q_handle_priorities_599<hop_weight_type>);
-            std::vector<std::vector<std::vector<int>>>().swap(Vh_599);
+            std::vector<std::vector<std::vector<std::pair<hop_weight_type, int>>>>().swap(Temp_L_vk_599<hop_weight_type>);
+            std::vector<std::vector<std::pair<hop_weight_type, int>>>().swap(dist_hop_599<hop_weight_type>);
+            std::vector<std::vector<std::vector<std::pair<hop_constrained_node_handle<hop_weight_type>, hop_weight_type>>>>().swap(Q_handle_priorities_599<hop_weight_type>);
             std::queue<int>().swap(Qid_599);
             PPR_TYPE::PPR_type().swap(PPR_599);
         }
@@ -208,17 +207,17 @@ namespace experiment
         {
             /* get unique thread id */
             /* critical section obtain array index  */
-            mtx_599[experiment::hop::max_N_ID_for_mtx_599 - 1].lock();
+            mtx_599[max_N_ID_for_mtx_599 - 1].lock();
             std::cout << "calculate pll vk is " << v_k << std::endl;
             int used_id = Qid_599.front();
             Qid_599.pop();
-            mtx_599[experiment::hop::max_N_ID_for_mtx_599 - 1].unlock();
+            mtx_599[max_N_ID_for_mtx_599 - 1].unlock();
 
             /* store the Temp L and dist_hop in current thread*/
             std::vector<int> Temp_L_vk_changes, dist_hop_changes;
             /* Temp_L_vk stores the dest_vertex_id and distance and hop */
-            auto &Temp_L_vk = Temp_L_vk_599[used_id];
-            auto &dist_hop = dist_hop_599[used_id]; // record the minimum distance (and the corresponding hop) of a searched vertex in Q
+            auto &Temp_L_vk = Temp_L_vk_599<hop_weight_type>[used_id];
+            auto &dist_hop = dist_hop_599<hop_weight_type>[used_id]; // record the minimum distance (and the corresponding hop) of a searched vertex in Q
             std::vector<std::pair<int, int>> Q_handle_priorities_changes;
             /* get the label list in current thread*/
             auto &Q_handle_priorities = Q_handle_priorities_599<hop_weight_type>[used_id];
@@ -264,9 +263,9 @@ namespace experiment
                 }
 
                 int u_hop = node.hop;
-                int P_u = node.distance;
+                hop_weight_type P_u = node.distance;
                 int common_hub_for_query_v_k_u = -1;
-                int query_v_k_u = std::numeric_limits<int>::max();
+                hop_weight_type query_v_k_u = std::numeric_limits<hop_weight_type>::max();
                 mtx_599[u].lock();
                 for (auto &xx : L_temp_599[u])
                 {
@@ -275,7 +274,10 @@ namespace experiment
                     {
                         if (xx.hop + yy.second <= u_hop)
                         {
-                            long long int dis = (long long int)xx.distance + yy.first;
+                            hop_weight_type dis = xx.distance + yy.first;
+                            if (dis < 0) {
+                                std::cout <<"overflow happen in generation with hop" << std::endl;
+                            }
                             if (query_v_k_u > dis)
                             {
                                 query_v_k_u = dis;
@@ -318,7 +320,7 @@ namespace experiment
                             continue;
                         }
                         /* the vertex has not been visited*/
-                        if (dist_hop[adj_v].first == std::numeric_limits<int>::max())
+                        if (dist_hop[adj_v].first == std::numeric_limits<hop_weight_type>::max())
                         { // adj_v has not been reached
                             yy = {Q.push({node}), node.distance};
                             Q_handle_priorities_changes.push_back({adj_v, node.hop});
@@ -330,7 +332,7 @@ namespace experiment
                         {
                             if (node.distance < dist_hop[adj_v].first)
                             { // adj_v has been reached with a less distance
-                                if (yy.second != std::numeric_limits<int>::max())
+                                if (yy.second != std::numeric_limits<hop_weight_type>::max())
                                 {
                                     Q.update(yy.first, node);
                                     yy.second = node.distance;
@@ -345,7 +347,7 @@ namespace experiment
                             }
                             else if (node.hop < dist_hop[adj_v].second)
                             { // adj_v has been reached with a less hop
-                                if (yy.second != std::numeric_limits<int>::max())
+                                if (yy.second != std::numeric_limits<hop_weight_type>::max())
                                 {
                                     Q.update(yy.first, node);
                                     yy.second = node.distance;
@@ -378,15 +380,15 @@ namespace experiment
             }
             for (const auto &xx : Temp_L_vk_changes)
             {
-                std::vector<std::pair<int, int>>().swap(Temp_L_vk[xx]);
+                std::vector<std::pair<hop_weight_type, int>>().swap(Temp_L_vk[xx]);
             }
             for (const auto &xx : dist_hop_changes)
             {
-                dist_hop[xx] = {std::numeric_limits<int>::max(), 0};
+                dist_hop[xx] = {std::numeric_limits<hop_weight_type>::max(), 0};
             }
             for (auto &[fst, snd] : Q_handle_priorities_changes) {
                 hop_constrained_node_handle<hop_weight_type> handle_x;
-                Q_handle_priorities[fst][snd] = {handle_x, std::numeric_limits<int>::max()};
+                Q_handle_priorities[fst][snd] = {handle_x, std::numeric_limits<hop_weight_type>::max()};
             }
 
             // mtx_599[v_k].lock();

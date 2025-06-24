@@ -388,25 +388,24 @@ namespace experiment {
     };
 
     namespace hop {
-        template<typename weight_type>
+        template<typename hop_weight_type>
         class two_hop_label {
         public:
             int hub_vertex, hop;
-            weight_type distance;
+            hop_weight_type distance;
             int t_s, t_e;
 
-            two_hop_label(const two_hop_label<weight_type> &other);
+            two_hop_label(const two_hop_label &other);
 
             two_hop_label();
 
             two_hop_label &operator=(const two_hop_label &) = default;
 
-            bool operator<(const two_hop_label<weight_type> &other) const {
+            bool operator<(const two_hop_label &other) const {
                 if (distance != other.distance) {
                     return distance > other.distance; // < is the max-heap; > is the min heap
-                } else {
-                    return hop > other.hop; // < is the max-heap; > is the min heap
                 }
+                return hop > other.hop; // < is the max-heap; > is the min heap
             }
 
             void serialize(std::ofstream &out) const {
@@ -426,8 +425,8 @@ namespace experiment {
             }
         };
 
-        template<typename weight_type>
-        inline experiment::hop::two_hop_label<weight_type>::two_hop_label(const two_hop_label<weight_type> &other) {
+        template<typename hop_weight_type>
+        two_hop_label<hop_weight_type>::two_hop_label(const two_hop_label &other) {
             t_s = other.t_s;
             t_e = other.t_e;
             hub_vertex = other.hub_vertex;
@@ -435,12 +434,11 @@ namespace experiment {
             distance = other.distance;
         }
 
-        template<typename weight_type>
-        inline
-        experiment::hop::two_hop_label<weight_type>::two_hop_label() : t_s(0), t_e(std::numeric_limits<int>::max()) {
+        template<typename hop_weight_type>
+        two_hop_label<hop_weight_type>::two_hop_label() : t_s(0), t_e(std::numeric_limits<int>::max()) {
             hub_vertex = 0;
             hop = 0;
-            distance = std::numeric_limits<weight_type>::max();
+            distance = std::numeric_limits<hop_weight_type>::max();
         }
 
         template<typename weight_type>
