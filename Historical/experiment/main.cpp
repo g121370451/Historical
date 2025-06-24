@@ -33,18 +33,18 @@ int main(const int argc, char *argv[])
             std::filesystem::path saveDir = std::filesystem::path(config->save_path);
             std::filesystem::create_directory(saveDir);
             if(config->hop_limit == 0){
-                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::NoHop, int, int>;
+                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::NoHop, int, unsigned int>;
                 Generator generator(config);
-                experiment::nonhop::two_hop_case_info<int> hop_info;
+                experiment::nonhop::two_hop_case_info<unsigned int> hop_info;
                 hop_info.PPR.resize(instance_graph.size());
                 generator.pll(instance_graph, hop_info);
                 // hop_info.print_L();
                 export_degree_distribution_and_plot(instance_graph,saveDir.string());
                 generator.persistData(instance_graph, graph_time,hop_info);
             }else{
-                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::WithHop, int, int>;
+                using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::WithHop, int, unsigned int>;
                 Generator generator(config);
-                experiment::hop::two_hop_case_info<int> hop_info;
+                experiment::hop::two_hop_case_info<unsigned int> hop_info;
                 hop_info.upper_k = config->hop_limit;
                 generator.pll(instance_graph, hop_info);
                 // hop_info.print_L();

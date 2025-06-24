@@ -443,8 +443,8 @@ namespace experiment {
                 : ruc_process(),
                   a2021_process(),
                   thread_num(config->threads),
-                  iteration_count(config->iterations),
                   upper_k(config->hop_limit),
+                  iteration_count(config->iterations),
                   pool_dynamic(config->threads),
                   csvWriter(config->save_path.string() + "/" + "maintain_result_withhop.csv", "1.0", true) {
             this->graph_res_filename = config->data_source.string() + "/" + "binary_hop_constrained_"+std::to_string(config->hop_limit)+"_graph";
