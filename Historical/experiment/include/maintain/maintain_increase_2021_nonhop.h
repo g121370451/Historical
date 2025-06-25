@@ -150,7 +150,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                         mtx_595[it.first].lock();
                         insert_sorted_two_hop_label_with_csv(
                                 (*L)[it.first], it.second,
-                                MAX_VALUE, time,
+                                std::numeric_limits<hop_weight_type>::max(), time,
                                 shard); // this does not change the size of L[it->first] here, so does not need to lock here
                         mtx_595[it.first].unlock();
                         mtx_595_1.lock();
@@ -198,7 +198,7 @@ namespace experiment::nonhop::algorithm2021::increase {
 
                         for (auto t: temp) {
                             if (v < t) {
-                                hop_weight_type d1 = MAX_VALUE;
+                                hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                                 for (auto nei: instance_graph[t]) {
                                     mtx_595[nei.first].lock();
                                     d1 = std::min(d1, search_sorted_two_hop_label_in_current_with_csv(
@@ -237,7 +237,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                                 }
                             }
                             if (t < v) {
-                                hop_weight_type d1 = MAX_VALUE;
+                                hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                                 for (auto nei: instance_graph[v]) {
                                     mtx_595[nei.first].lock();
                                     d1 = std::min(d1, search_sorted_two_hop_label_in_current_with_csv(

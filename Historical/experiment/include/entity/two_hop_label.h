@@ -7,7 +7,7 @@
 #include "utils/global.h"
 #include "utils/vector_operations.h"
 
-#define MAX_VALUE 1e7
+
 namespace experiment {
     namespace PPR_TYPE {
         using PPR_type = std::vector<std::vector<std::pair<int, std::vector<int>>>>;
@@ -179,7 +179,7 @@ namespace experiment {
                         }
                         input_vector[mid].distance = value;
                         input_vector[mid].t_s = time;
-                        if (old_label.distance != MAX_VALUE) {
+                        if (old_label.distance != std::numeric_limits<hop_weight_type>::max()) {
                             int insert_left = mid + 1, insert_right = input_vector.size() - 1;
 
                             while (insert_left <= insert_right) {
@@ -212,7 +212,7 @@ namespace experiment {
                     right = mid - 1;
                 }
             }
-            if (value != MAX_VALUE) {
+            if (value != std::numeric_limits<hop_weight_type>::max()) {
                 two_hop_label<hop_weight_type> new_label(time);
                 new_label.vertex = key;
                 new_label.distance = value;
@@ -682,13 +682,13 @@ namespace experiment {
                         if (input_vector[mid].hop == hop) {
                             two_hop_label old_label = input_vector[mid];
                             old_label.t_e = t - 1;
-                            if (input_vector[mid].distance < new_distance && new_distance != MAX_VALUE) {
+                            if (input_vector[mid].distance < new_distance && new_distance != std::numeric_limits<hop_weight_type>::max()) {
                                 std::cout << "error input " << std::endl;
                                 return;
                             }
                             input_vector[mid].distance = new_distance;
                             input_vector[mid].t_s = t;
-                            if (old_label.t_s != t && old_label.distance != MAX_VALUE) {
+                            if (old_label.t_s != t && old_label.distance != std::numeric_limits<hop_weight_type>::max()) {
                                 int insert_left = mid + 1, insert_right = input_vector.size() - 1;
 
                                 while (insert_left <= insert_right) {
@@ -726,7 +726,7 @@ namespace experiment {
                     right = mid - 1;
                 }
             }
-            if (new_distance != MAX_VALUE) {
+            if (new_distance != std::numeric_limits<hop_weight_type>::max()) {
                 two_hop_label<hop_weight_type> new_label;
                 new_label.hub_vertex = key;
                 new_label.hop = hop;

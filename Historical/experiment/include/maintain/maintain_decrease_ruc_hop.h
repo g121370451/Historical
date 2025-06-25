@@ -68,7 +68,7 @@ namespace experiment::hop::ruc::decrease {
                                 auto [label_dis,label_hop] =
                                         search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
                                             (*L)[v2], it.hub_vertex, it.hop + 1, shard);
-                                if (label_dis < MAX_VALUE && label_dis > it.distance + w_new) {
+                                if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > it.distance + w_new) {
                                     mtx_599_1.lock();
                                     CL->push_back(hop_constrained_affected_label<hop_weight_type>{
                                             v2, it.hub_vertex, it.hop + 1, it.distance + w_new

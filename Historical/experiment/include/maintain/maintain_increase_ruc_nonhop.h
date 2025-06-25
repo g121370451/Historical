@@ -139,7 +139,7 @@ namespace experiment::nonhop::ruc::increase {
                             weight_type dx = q.front().second;
                             q.pop();
                             mtx_595[x].lock();
-                            insert_sorted_two_hop_label_with_csv((*L)[x], v, MAX_VALUE, time, shard);
+                            insert_sorted_two_hop_label_with_csv((*L)[x], v, std::numeric_limits<hop_weight_type>::max(), time, shard);
                             mtx_595[x].unlock();
                             mtx_595_1.lock();
                             al2->emplace_back(x, v);
@@ -201,7 +201,7 @@ namespace experiment::nonhop::ruc::increase {
                 temp.push_back(u);
                 for (auto t: temp) {
                     if (v < t) {
-                        hop_weight_type d1 = MAX_VALUE;
+                        hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                         for (auto nei: instance_graph[t]) {
                             mtx_595[nei.first].lock();
                             d1 = std::min(d1,
@@ -210,7 +210,7 @@ namespace experiment::nonhop::ruc::increase {
                                           nei.second);
                             mtx_595[nei.first].unlock();
                         }
-                        if (d1 >= 2e6) continue;
+                        if (d1 == std::numeric_limits<hop_weight_type>::max()) continue;
                         auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[t], (*L)[v], t, v, shard);
                         if (query_dis > d1) { // only add new label when it's absolutely necessary
@@ -230,7 +230,7 @@ namespace experiment::nonhop::ruc::increase {
                             }
                         }
                     } else if (t < v) {
-                        hop_weight_type d1 = MAX_VALUE;
+                        hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                         for (auto nei: instance_graph[v]) {
                             mtx_595[nei.first].lock();
                             d1 = std::min(d1,
@@ -239,7 +239,7 @@ namespace experiment::nonhop::ruc::increase {
                                           nei.second);
                             mtx_595[nei.first].unlock();
                         }
-                        if (d1 >= 2e6) continue;
+                        if (d1 == std::numeric_limits<hop_weight_type>::max()) continue;
                         auto [query_dis,query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[v], (*L)[t], v, t, shard);
                         if (query_dis > d1) {
@@ -333,7 +333,7 @@ namespace experiment::nonhop::ruc::increase {
                 std::vector<int> Dis_changed;
                 auto &DIS = Dis<hop_weight_type>[current_tid];
                 auto &Q_HANDLES = Q_handles[current_tid];
-                auto &Q_VALUE = Q_value[current_tid];
+                auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
                 boost::heap::fibonacci_heap<node_for_DIFFUSE> pq;
 
@@ -384,7 +384,7 @@ namespace experiment::nonhop::ruc::increase {
                     int x = pq.top().index;
                     weight_type dx = pq.top().disx;
                     pq.pop();
-                    Q_VALUE[x] = MAX_VALUE;
+                    Q_VALUE[x] = std::numeric_limits<hop_weight_type>::max();
 
                     mtx_595[x].lock();
                     hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
@@ -411,7 +411,7 @@ namespace experiment::nonhop::ruc::increase {
                             }
                             if (DIS[xnei].first > d_new) {
                                 DIS[xnei] = {d_new, v};
-                                if (Q_VALUE[xnei] >= MAX_VALUE) {
+                                if (Q_VALUE[xnei] >= std::numeric_limits<hop_weight_type>::max()) {
                                     Q_HANDLES[xnei] = pq.push(node_for_DIFFUSE(xnei, d_new));
                                     if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                         shard.diffuse_count_slot1++;

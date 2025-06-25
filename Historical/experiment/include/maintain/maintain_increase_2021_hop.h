@@ -70,7 +70,7 @@ namespace experiment::hop::algorithm2021::increase {
                             mm.L[v2], it.hub_vertex,
                             it.hop + 1, shard).first;
                     if (search_weight >= it.distance + w_old &&
-                        search_weight < MAX_VALUE) {
+                        search_weight < std::numeric_limits<hop_weight_type>::max()) {
                         if (search_weight > it.distance + w_old) {
                             std::cout << "judge the affected label :search_weight is " << search_weight
                                       << " old_length is " << it.distance + w_old << std::endl;
@@ -87,7 +87,7 @@ namespace experiment::hop::algorithm2021::increase {
                             mm.L[v1], it.hub_vertex,
                             it.hop + 1, shard).first;
                     if (search_weight >= it.distance + w_old &&
-                        search_weight < MAX_VALUE) {
+                        search_weight < std::numeric_limits<hop_weight_type>::max()) {
                         if (search_weight > it.distance + w_old) {
                             std::cout << "judge the affected label :search_weight is " << search_weight
                                       << " old_length is " << it.distance + w_old << std::endl;
@@ -150,7 +150,7 @@ namespace experiment::hop::algorithm2021::increase {
                         w_old = nei.second;
                     }
 
-                    if (it.dis + w_old <= search_weight && search_weight < MAX_VALUE) {
+                    if (it.dis + w_old <= search_weight && search_weight < std::numeric_limits<hop_weight_type>::max()) {
                         mtx_599_1.lock();
                         al1_next->push_back(
                                 hop_constrained_affected_label<hop_weight_type>{nei.first, it.second, it.hop + 1,
@@ -160,7 +160,7 @@ namespace experiment::hop::algorithm2021::increase {
                 }
                 L_lock[it.first].lock();
                 insert_sorted_hop_constrained_two_hop_label_with_csv<hop_weight_type>((*L)[it.first], it.second, it.hop,
-                                                                     MAX_VALUE,
+                                                                     std::numeric_limits<hop_weight_type>::max(),
                                                                      time, shard);
                 // this does not change the size of L[it->first] here, so does not need to lock here
                 L_lock[it.first].unlock();
@@ -211,7 +211,7 @@ namespace experiment::hop::algorithm2021::increase {
 
                 for (auto t: temp) {
                     if (v < t) {
-                        long long d1 = MAX_VALUE;
+                        hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                         int hop_vn = 0;
                         for (auto nei: instance_graph[t]) {
                             L_lock[nei.first].lock();
@@ -226,7 +226,7 @@ namespace experiment::hop::algorithm2021::increase {
                         for (int hop_i = 1; hop_i <= hop_vn + 1; hop_i++) {
                             if (hop_i > upper_k)
                                 break;
-                            hop_weight_type di = MAX_VALUE;
+                            hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                             for (auto nei: instance_graph[t]) {
                                 L_lock[nei.first].lock();
                                 di = std::min(
@@ -267,7 +267,7 @@ namespace experiment::hop::algorithm2021::increase {
                         }
                     }
                     if (t < v) {
-                        long long d1 = MAX_VALUE;
+                        hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                         int hop_vn = 0;
                         for (auto nei: instance_graph[v]) {
                             L_lock[nei.first].lock();
@@ -283,7 +283,7 @@ namespace experiment::hop::algorithm2021::increase {
                         for (int hop_i = 1; hop_i <= hop_vn + 1; hop_i++) {
                             if (hop_i > upper_k)
                                 break;
-                            hop_weight_type di = MAX_VALUE;
+                            hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                             for (auto nei: instance_graph[v]) {
                                 L_lock[nei.first].lock();
                                 di = std::min(

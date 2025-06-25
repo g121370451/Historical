@@ -189,7 +189,7 @@ namespace experiment::nonhop::ruc::decrease {
                 std::vector<int> Dis_changed;
                 auto &DIS = Dis<hop_weight_type>[current_tid];
                 auto &Q_HANDLES = Q_handles[current_tid];
-                auto &Q_VALUE = Q_value[current_tid];
+                auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
                 boost::heap::fibonacci_heap<node_for_DIFFUSE> Q;
 

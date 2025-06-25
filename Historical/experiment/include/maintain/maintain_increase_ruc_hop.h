@@ -168,7 +168,7 @@ namespace experiment::hop::ruc::increase {
                         q.pop();
                         L_lock[x].lock();
                         insert_sorted_hop_constrained_two_hop_label_with_csv<hop_weight_type>((*L)[x], v, h_x,
-                            MAX_VALUE,
+                            std::numeric_limits<hop_weight_type>::max(),
                             time, shard);
                         // this does not change the size of L[x] here, so does not need to lock here
                         L_lock[x].unlock();
@@ -199,7 +199,7 @@ namespace experiment::hop::ruc::increase {
                                             << std::endl;
                                 }
                                 if (d_new <= search_weight &&
-                                    search_weight < MAX_VALUE) {
+                                    search_weight < std::numeric_limits<hop_weight_type>::max()) {
                                     q.push(hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                             dx + nei.second));
                                 }
