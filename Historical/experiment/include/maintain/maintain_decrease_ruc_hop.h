@@ -182,7 +182,7 @@ namespace experiment::hop::ruc::decrease {
                     hop_weight_type dx = pq.top().disx;
                     pq.pop();
                     if (xhv <= upper_k)
-                        Q_VALUE[x][xhv] = MAX_VALUE;
+                        Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
 
                     L_lock[x].lock();
                     auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[x], v, xhv,shard);
@@ -221,7 +221,7 @@ namespace experiment::hop::ruc::decrease {
 
                             if (d_new < dist_hop[xnei].first) {
                                 //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
-                                if (Q_VALUE[xnei][hop_nei] < MAX_VALUE) {
+                                if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
                                     if (Q_handle[{xnei, hop_nei}].second > d_new) {
                                         pq.update(Q_handle[{xnei, hop_nei}].first, node);
                                         Q_handle[{xnei, hop_nei}].second = d_new;
@@ -235,7 +235,7 @@ namespace experiment::hop::ruc::decrease {
                                 Q_VALUE[xnei][hop_nei] = d_new;
                             } else if (hop_nei < dist_hop[xnei].second) {
                                 //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
-                                if (Q_VALUE[xnei][hop_nei] < MAX_VALUE) {
+                                if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
                                     if (Q_handle[{xnei, hop_nei}].second > d_new) {
                                         pq.update(Q_handle[{xnei, hop_nei}].first, node);
                                         Q_handle[{xnei, hop_nei}].second = d_new;
@@ -265,7 +265,7 @@ namespace experiment::hop::ruc::decrease {
                 for (int i: dist_hop_changes) {
                     dist_hop[i] = {-1, 0};
                 }
-                Q_VALUE.resize(Q_VALUE.size(), std::vector<hop_weight_type>(upper_k + 1, MAX_VALUE));
+                Q_VALUE.resize(Q_VALUE.size(), std::vector<hop_weight_type>(upper_k + 1, std::numeric_limits<hop_weight_type>::max()));
                 mtx_599_1.lock();
                 Qid_599.push(current_tid);
                 mtx_599_1.unlock();

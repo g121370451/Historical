@@ -516,7 +516,7 @@ namespace experiment {
             std::queue<int>().swap(hop::Qid_599);
             for (int i = 0; i < this->thread_num; i++) {
                 hop::dist_hop_599_v2[i].resize(N, {-1, 0});
-                hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, MAX_VALUE));
+                hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, std::numeric_limits<HopType>::max()));
                 hop::Qid_599.push(i);
             }
         };
