@@ -81,7 +81,7 @@ namespace experiment::hop::ruc::increase {
                                 mm.L[v2], it.hub_vertex,
                                 it.hop + 1, shard).first;
                         if (search_weight >= it.distance + w_old &&
-                            search_weight < MAX_VALUE) {
+                            search_weight < std::numeric_limits<hop_weight_type>::max()) {
                             if (search_weight > it.distance + w_old) {
                                 std::cout << "judge the affected label :search_weight is " << search_weight
                                           << " old_length is " << it.distance + w_old << std::endl;
@@ -101,7 +101,7 @@ namespace experiment::hop::ruc::increase {
                                 mm.L[v1], it.hub_vertex,
                                 it.hop + 1, shard).first;
                         if (search_weight >= it.distance + w_old &&
-                            search_weight < MAX_VALUE) {
+                            search_weight < std::numeric_limits<hop_weight_type>::max()) {
                             if (search_weight > it.distance + w_old) {
                                 std::cout << "judge the affected label :search_weight is " << search_weight
                                           << " old_length is " << it.distance + w_old << std::endl;
@@ -133,8 +133,6 @@ namespace experiment::hop::ruc::increase {
         HOP_maintain_SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic,
                                    mm.upper_k);
         std::cout << "ruc increase al3 size is " << al3.size() << std::endl;
-        std::cout << "al3 address 0 is " << &al3 << std::endl;
-        std::cout << "al3 address 0.1 is " << &al3[0] << std::endl;
         HOP_maintain_SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, mm.upper_k,
                                    time);
     }
@@ -147,7 +145,6 @@ namespace experiment::hop::ruc::increase {
             ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time, int upper_k) const {
         // std::map<int, long> map;
         for (const auto &it: al1) {
-            // results_dynamic.emplace_back(pool_dynamic.enqueue([t, upper_k, &map, &it, L, al2, &instance_graph, &w_old_map]
             results_dynamic.emplace_back(
                     pool_dynamic.enqueue([time, upper_k, &it, L, al2, &instance_graph, &w_old_map] {
                         mtx_599_1.lock();
@@ -185,7 +182,7 @@ namespace experiment::hop::ruc::increase {
                                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                             (*L)[nei.first], v, h_x + 1, shard).first;
                                     L_lock[nei.first].unlock();
-                                    int w_old = nei.second;
+                                    hop_weight_type w_old = nei.second;
                                     if (w_old_map.count(std::pair<int, int>(x, nei.first)) > 0) {
                                         w_old = w_old_map[std::pair<int, int>(x, nei.first)];
                                     } else if (w_old_map.count(std::pair<int, int>(nei.first, x)) > 0) {
@@ -193,7 +190,12 @@ namespace experiment::hop::ruc::increase {
                                     } else {
                                         w_old = nei.second;
                                     }
-                                    if (dx + w_old <= search_weight &&
+                                    hop_weight_type d_new = dx + w_old;
+                                    if (d_new < 0) {
+                                        std::cout << "overflow happen spread1 of maintain increase ruc with hop "
+                                                  << std::endl;
+                                    }
+                                    if (d_new <= search_weight &&
                                         search_weight < MAX_VALUE) {
                                         q.push(hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                                 dx + nei.second));
@@ -241,14 +243,21 @@ namespace experiment::hop::ruc::increase {
                 // mtx_ruc_increase[v].unlock_shared();
                 for (auto t: temp) {
                     if (v < t) {
-                        long long int d1 = MAX_VALUE;
+                        hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                         int hop_vn = 0;
                         for (const auto &nei: instance_graph[t]) {
                             //mtx_599[nei.first].lock();
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], v, shard);
                             //mtx_599[nei.first].unlock();
-                            if (d1 > dis_hop.first + nei.second) {
+                            if(dis_hop.first == std::numeric_limits<hop_weight_type>::max()){
+                                continue;
+                            }
+                            hop_weight_type d_new =dis_hop.first +  nei.second;
+                            if(d_new < 0){
+                                std::cout << "overflow happen in spread2 maintain increase ruc with hop" << std::endl;
+                            }
+                            if (d1 > dis_hop.first +  nei.second) {
                                 d1 = dis_hop.first + nei.second;
                                 hop_vn = dis_hop.second;
                             }
@@ -260,7 +269,7 @@ namespace experiment::hop::ruc::increase {
                         for (int hop_i = 1; hop_i <= hop_vn + 1; hop_i++) {
                             if (hop_i > upper_k)
                                 break;
-                            hop_weight_type di = MAX_VALUE;
+                            hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                             for (const auto &nei: instance_graph[t]) {
                                 //mtx_599[nei.first].lock();
                                 hop_weight_type dnew = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
@@ -269,9 +278,12 @@ namespace experiment::hop::ruc::increase {
                                 if (dnew < std::numeric_limits<hop_weight_type>::max()) {
 //                                    std::cout << "dnew = " << dnew << std::endl;
 //                                    std::cout << "nei_D = " << nei.second << std::endl;
+                                    hop_weight_type d_sum = dnew + nei.second;
+                                    if(d_sum < 0){
+                                        std::cout << "overflow happen in spread2 maintain increase ruc with hop 1" << std::endl;
+                                    }
                                     di = std::min(di, dnew + nei.second);
                                 }
-
                                 //mtx_599[nei.first].unlock();
                             }
 //                            if (di >= TwoM_value)
@@ -286,7 +298,7 @@ namespace experiment::hop::ruc::increase {
                                                                                                                 shard);
                             //mtx_599[t].unlock_shared();
 
-                            if (query_dis > di && di != MAX_VALUE) {
+                            if (query_dis > di && di != std::numeric_limits<hop_weight_type>::max()) {
                                 // only add new label when it's absolutely necessary
                                 mtx_599_1.lock();
                                 //cout<<"query_result.first > d1 + 1e-5: "<<t_first<<' '<<v << ' ' << hop_vn+1 << ' ' << d1 << endl;
@@ -294,7 +306,7 @@ namespace experiment::hop::ruc::increase {
                                 // std::cout << res << std::endl;
                                 al3->push_back(res);
                                 mtx_599_1.unlock();
-                            } else if (di != MAX_VALUE && query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                            } else if (di != std::numeric_limits<hop_weight_type>::max() && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
                                     ppr_lock[t].lock();
                                     PPR_TYPE::PPR_insert(PPR, t, query_hub, v);

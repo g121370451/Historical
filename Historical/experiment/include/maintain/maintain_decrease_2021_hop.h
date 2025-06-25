@@ -15,7 +15,7 @@ namespace experiment::hop::algorithm2021::decrease {
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) const;
 
     private:
-        void ProDecreasep_batch(graph<int> &instance_graph,
+        void ProDecreasep_batch(graph<weight_type> &instance_graph,
                                 std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                 PPR_TYPE::PPR_type *PPR,
                                 std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
@@ -25,7 +25,7 @@ namespace experiment::hop::algorithm2021::decrease {
     };
 
     template<typename weight_type, typename hop_weight_type>
-    void StrategyA2021HopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<int> &instance_graph,
+    void StrategyA2021HopDecrease<weight_type, hop_weight_type>::ProDecreasep_batch(graph<weight_type> &instance_graph,
                                                                                     std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                                                                     PPR_TYPE::PPR_type *PPR,
                                                                                     std::vector<hop_constrained_affected_label<hop_weight_type> > &CL_curr,
@@ -60,6 +60,9 @@ namespace experiment::hop::algorithm2021::decrease {
                     int vnei = nei.first;
                     int hop_u = it.hop;
                     hop_weight_type dnew = it.dis + nei.second;
+                    if(dnew <0){
+                        std::cout <<"overflow happen in maintain decrease 2021 with hop" << std::endl;
+                    }
                     if (u < vnei) {
                         L_lock[vnei].lock();
                         auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
@@ -82,7 +85,7 @@ namespace experiment::hop::algorithm2021::decrease {
                                     (*L)[vnei], u,
                                     hop_u + 1, shard);
                             L_lock[vnei].unlock();
-                            if (label_dis < MAX_VALUE && label_dis > dnew) {
+                            if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dnew) {
                                 L_lock[vnei].lock();
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[vnei], u, hop_u + 1, dnew, time,
                                                                             shard);
@@ -178,7 +181,7 @@ namespace experiment::hop::algorithm2021::decrease {
                                     search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(L[v2], _v,
                                                                                                            hop_v + 1,
                                                                                                            shard);
-                            if (label_dis < MAX_VALUE && label_dis > dis) {
+                            if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dis) {
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((L)[v2], _v, hop_v + 1, dis, time,
                                                                                      shard);
                                 CL_curr.push_back(

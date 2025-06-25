@@ -87,10 +87,11 @@ namespace experiment::nonhop {
     typedef boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE;
     template <typename hop_weight_type>
     inline std::vector<std::vector<std::pair<hop_weight_type, int>>> Dis;
-    inline std::vector<std::vector<int> > Q_value;
+    template <typename hop_weight_type>
+    inline std::vector<std::vector<hop_weight_type>> Q_value;
     inline std::vector<std::vector<handle_t_for_DIFFUSE> > Q_handles;
 
-    inline std::mutex mtx_595_1, mtx_595_2;
+    inline std::mutex mtx_595_1;
     inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
 #pragma endregion
 }
