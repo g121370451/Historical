@@ -21,10 +21,10 @@ namespace experiment {
 
         // 对齐缓存行的分片数据单元
         struct alignas(128) MaintainShard {
-            int label_count_slot1 = 0; //4
-            int label_count_slot2 = 0; //4
-            int cover_count_slot1 = 0; //4
-            int cover_count_slot2 = 0; // 4
+            size_t label_count_slot1 = 0; //8
+            size_t label_count_slot2 = 0; //8
+            size_t cover_count_slot1 = 0; //8
+            size_t cover_count_slot2 = 0; // 8
             size_t ppr_insert_slot1 = 0; // 8
             size_t ppr_insert_slot2 = 0; // 8
             size_t label_decrease_insert_slot1 = 0; // 8
@@ -33,7 +33,7 @@ namespace experiment {
             size_t label_increase_insert_slot2 = 0; // 8
             size_t diffuse_count_slot1 = 0; // 8
             size_t diffuse_count_slot2 = 0; // 8
-            char padding[128 - 80]{};
+            char padding[128 - 96]{};
         };
         struct alignas(64) QueryShard {
             long long int compare_count = 0;
@@ -73,10 +73,10 @@ namespace experiment {
 
         // 对外暴露的统计接口
         struct MethodData {
-            int label_count_slot1 = 0;
-            int label_count_slot2 = 0;
-            int cover_count_slot1 = 0;
-            int cover_count_slot2 = 0;
+            size_t label_count_slot1 = 0;
+            size_t label_count_slot2 = 0;
+            size_t cover_count_slot1 = 0;
+            size_t cover_count_slot2 = 0;
             size_t ppr_insert_slot1 = 0;
             size_t ppr_insert_slot2 = 0;
             size_t label_decrease_insert_slot1 = 0;

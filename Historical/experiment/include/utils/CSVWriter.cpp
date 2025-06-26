@@ -36,7 +36,7 @@ namespace experiment::csv {
         return oss.str();
     }
 
-    void CSVWriter::write_fields(const std::vector<std::string> &fields) {
+    void CSVWriter::write_fields(const std::vector<std::string> &fields) const {
         if (!out_stream || !out_stream->is_open())
             return;
 

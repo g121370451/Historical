@@ -33,7 +33,7 @@ namespace experiment::csv {
 
         static bool file_exists(const std::string &path);
 
-        void write_fields(const std::vector<std::string> &fields);
+        void write_fields(const std::vector<std::string> &fields) const;
 
         void write_csv_header();
     };
