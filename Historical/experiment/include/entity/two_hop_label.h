@@ -456,7 +456,7 @@ namespace experiment {
             }
         };
 
-        /**result is <dis,hop,hub> .if dont find effective result, method will return the <max,max,-1>*/
+        /** result is as \<dis,hop,hub\> .if dont find effective result, method will return the \<max,max,-1\> */
         template<typename hop_weight_type>
         std::tuple<hop_weight_type, int, int>
         graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
@@ -541,12 +541,12 @@ namespace experiment {
             } else {
                 ++maintain_shard.label_count_slot2;
             }
-            int left = 0, right = input_vector.size() - 1;
+            size_t left = 0, right = input_vector.size() - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
             int hop_val = std::numeric_limits<int>::max();
 
             while (left <= right) {
-                int mid = (right - left) / 2 + left;
+                size_t mid = (right - left) / 2 + left;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
                     right = mid - 1;
                 } else {
@@ -586,12 +586,12 @@ namespace experiment {
             } else {
                 ++maintain_shard.label_count_slot2;
             }
-            int left = 0, right = input_vector.size() - 1;
+            size_t left = 0, right = input_vector.size() - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
             int hop_val = std::numeric_limits<int>::max();
 
             while (left <= right) {
-                int mid = (right - left) / 2 + left;
+                size_t mid = (right - left) / 2 + left;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
                     right = mid - 1;
                 } else {
@@ -625,7 +625,6 @@ namespace experiment {
         search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                 std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
                 int hop_k, result::MaintainShard &maintain_shard) {
-            hop_weight_type max = std::numeric_limits<hop_weight_type>::max();
             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.label_count_slot1;
             } else {

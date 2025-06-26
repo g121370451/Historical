@@ -141,9 +141,6 @@ namespace experiment::nonhop::algorithm2021::increase {
                                 al1_next->push_back(
                                         affected_label(nei.first, it.second, search_weight));
                                 tempMarkInsertToALNext1++;
-                                if(tempMarkInsertToALNext1 > al1_next->size() / 5 && tempMarkInsertToALNext1 > 1000){
-                                    std::cout << it.first <<": "<< it.second <<"- "<< it.dis << std::endl;
-                                }
                                 mtx_595_1.unlock();
                             }
                         }

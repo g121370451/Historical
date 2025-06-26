@@ -53,25 +53,28 @@ namespace experiment::hop::ruc::decrease {
                     }
                     for (auto &it: (*L)[v1]) {
                         if (it.hub_vertex <= v2 && it.hop + 1 < upper_k
-                            && it.distance + w_new < TwoM_value
                             && it.t_e == std::numeric_limits<int>::max()) {
+                            hop_weight_type dnew = it.distance + w_new;
+                            if(dnew <0){
+                                std::cout <<"overflow happen in maintain decrease ruc with hop" << std::endl;
+                            }
                             auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                     (*L)[it.hub_vertex], (*L)[v2], it.hub_vertex, v2, it.hop + 1,
                                     shard); // query_result is {distance, common hub}
-                            if (query_dis > it.distance + w_new) {
+                            if (query_dis > dnew) {
                                 mtx_599_1.lock();
                                 CL->push_back(hop_constrained_affected_label<hop_weight_type>{
-                                        v2, it.hub_vertex, it.hop + 1, it.distance + w_new
+                                        v2, it.hub_vertex, it.hop + 1, dnew
                                 });
                                 mtx_599_1.unlock();
                             } else {
                                 auto [label_dis,label_hop] =
                                         search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
                                             (*L)[v2], it.hub_vertex, it.hop + 1, shard);
-                                if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > it.distance + w_new) {
+                                if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dnew) {
                                     mtx_599_1.lock();
                                     CL->push_back(hop_constrained_affected_label<hop_weight_type>{
-                                            v2, it.hub_vertex, it.hop + 1, it.distance + w_new
+                                            v2, it.hub_vertex, it.hop + 1, dnew
                                     });
                                     mtx_599_1.unlock();
                                 }
@@ -154,9 +157,9 @@ namespace experiment::hop::ruc::decrease {
                 L_lock[v].unlock();
 
                 std::vector<int> dist_hop_changes;
-                auto &dist_hop = dist_hop_599_v2[current_tid];
+                auto &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
                 boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type>> pq;
-                std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>, int> > Q_handle;
+                std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>, hop_weight_type>> Q_handle;
                 std::vector<int> hubs(instance_graph.size(), -1);
                 auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
@@ -196,13 +199,14 @@ namespace experiment::hop::ruc::decrease {
                     if (xhv + 1 > upper_k)
                         continue;
                     for (const auto &nei: instance_graph[x]) {
-                        if (dx + nei.second >= TwoM_value)
-                            continue;
                         int xnei = nei.first;
-                        int hop_nei = xhv + 1;
-                        hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
-                        hop_constrained_node_for_DIFFUSE<hop_weight_type> node = {xnei, hop_nei, d_new};
                         if (v < xnei) {
+                            int hop_nei = xhv + 1;
+                            hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
+                            if(d_new<0){
+                                std::cout <<"overflow happen in maintain decrease ruc diffuse with hop" << std::endl;
+                            }
+                            hop_constrained_node_for_DIFFUSE<hop_weight_type> node = {xnei, hop_nei, d_new};
                             if (dist_hop[xnei].first == -1) {
                                 // Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                 // Q_VALUE[xnei][hop_nei] = d_new;

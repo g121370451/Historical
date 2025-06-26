@@ -30,8 +30,7 @@ namespace experiment::nonhop::ruc::increase {
                            std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
                            PPR_TYPE::PPR_type *PPR,
                            std::vector<pair_label> &al2, std::vector<affected_label> *al3,
-                           ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic,
-                           int time);
+                           ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic);
 
         void SPREAD3_batch(graph<weight_type> &instance_graph,
                            std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
@@ -110,7 +109,7 @@ namespace experiment::nonhop::ruc::increase {
         }
         std::vector<std::future<int>>().swap(results_dynamic);
         SPREAD1_batch(instance_graph, &mm.L, al1, &al2, w_old_map, pool_dynamic, results_dynamic, time);
-        SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic, time);
+        SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
         SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, time);
     }
 
@@ -183,7 +182,7 @@ namespace experiment::nonhop::ruc::increase {
     inline void Strategy2024NonHopIncrease<weight_type, hop_weight_type>::SPREAD2_batch(
             graph<weight_type> &instance_graph, std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
             PPR_TYPE::PPR_type *PPR, std::vector<pair_label> &al2, std::vector<affected_label> *al3,
-            ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic, int time) {
+            ThreadPool &pool_dynamic, std::vector<std::future<int>> &results_dynamic) {
 
         for (auto &it: al2) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([it, L, PPR, al3, &instance_graph] {
