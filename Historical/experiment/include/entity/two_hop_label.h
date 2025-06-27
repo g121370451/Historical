@@ -149,7 +149,8 @@ namespace experiment {
 
         template<typename hop_weight_type>
         void
-        insert_sorted_two_hop_label_with_csv(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key, int value,
+        insert_sorted_two_hop_label_with_csv(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
+                                             int value,
                                              int time, experiment::result::MaintainShard &maintain_shard) {
             if (experiment::status::currentTimeMode == experiment::status::MaintainTimeMode::SLOT1) {
                 if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::DECREASE) {
@@ -173,8 +174,8 @@ namespace experiment {
                     if (input_vector[mid].vertex == key) {
                         two_hop_label<hop_weight_type> old_label = input_vector[mid];
                         old_label.t_e = time - 1;
-                        if(input_vector[mid].distance == value){
-                            std::cout <<"nihop has same label,so dont insert new label to it" << std::endl;
+                        if (input_vector[mid].distance == value) {
+                            std::cout << "nihop has same label,so dont insert new label to it" << std::endl;
                             return;
                         }
                         input_vector[mid].distance = value;
@@ -288,7 +289,7 @@ namespace experiment {
 
             long long int compute_PPR_byte_size() {
                 long long int size = 0;
-                for (const auto & i : PPR) {
+                for (const auto &i: PPR) {
                     for (int j = 0; j < i.size(); j++) {
                         // TODO-GPY 如果正确要修改这里
                         // size = size + (PPR[i][j].second.size() + 1) * sizeof(int);
@@ -311,7 +312,7 @@ namespace experiment {
             }
 
             /*record_all_details*/
-            void record_all_details(const std::string& save_name) {
+            void record_all_details(const std::string &save_name) {
                 std::ofstream outputFile;
                 outputFile.precision(6);
                 outputFile.setf(std::ios::fixed);
@@ -541,12 +542,16 @@ namespace experiment {
             } else {
                 ++maintain_shard.label_count_slot2;
             }
-            size_t left = 0, right = input_vector.size() - 1;
+            int left = 0, right = static_cast<int>(input_vector.size()) - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
             int hop_val = std::numeric_limits<int>::max();
-
-            while (left <= right) {
-                size_t mid = (right - left) / 2 + left;
+            if (input_vector.empty()) {
+                return {mindis, hop_val};
+            }
+//            std::cout << "diffuse 1.1.1" <<input_vector.size()<< std::endl;
+            while (left < right) {
+                int mid = (right - left) / 2 + left;
+//                std::cout << "left is " << left <<" right is " << right <<" mid is "<< mid << std::endl;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
                     right = mid - 1;
                 } else {
@@ -563,6 +568,7 @@ namespace experiment {
                     }
                 }
             }
+//            std::cout << "diffuse 1.1.2" << std::endl;
             while (left < input_vector.size() &&
                    input_vector[left].t_e == std::numeric_limits<int>::max() &&
                    input_vector[left].hub_vertex == key) {
@@ -586,12 +592,15 @@ namespace experiment {
             } else {
                 ++maintain_shard.label_count_slot2;
             }
-            size_t left = 0, right = input_vector.size() - 1;
+            int left = 0, right = static_cast<int>(input_vector.size()) - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
             int hop_val = std::numeric_limits<int>::max();
+            if (input_vector.empty()) {
+                return {mindis, hop_val};
+            }
 
-            while (left <= right) {
-                size_t mid = (right - left) / 2 + left;
+            while (left < right) {
+                int mid = (right - left) / 2 + left;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
                     right = mid - 1;
                 } else {
@@ -619,6 +628,7 @@ namespace experiment {
             }
             return {mindis, hop_val};
         }
+
         /**result is <dis,hop> .if dont find effective result, method will return the <max,max>*/
         template<typename hop_weight_type>
         std::pair<hop_weight_type, int>
@@ -631,7 +641,9 @@ namespace experiment {
                 ++maintain_shard.label_count_slot2;
             }
             int left = 0, right = input_vector.size() - 1;
-
+            if (input_vector.empty()) {
+                return {std::numeric_limits<hop_weight_type>::max(), std::numeric_limits<int>::max()};
+            }
             while (left <= right) {
                 int mid = (right - left) / 2 + left;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
@@ -639,15 +651,15 @@ namespace experiment {
                 } else {
                     if (input_vector[mid].hub_vertex < key) {
                         left = mid + 1;
-                    } else if(input_vector[mid].hub_vertex > key){
+                    } else if (input_vector[mid].hub_vertex > key) {
                         right = mid - 1;
-                    }else{
-                        if(input_vector[mid].hop < hop_k){
-                            left = mid+1;
-                        }else if(input_vector[mid].hop > hop_k){
-                            right = mid-1;
-                        }else{
-                            return std::make_pair(input_vector[mid].distance,input_vector[mid].hop);
+                    } else {
+                        if (input_vector[mid].hop < hop_k) {
+                            left = mid + 1;
+                        } else if (input_vector[mid].hop > hop_k) {
+                            right = mid - 1;
+                        } else {
+                            return std::make_pair(input_vector[mid].distance, input_vector[mid].hop);
                         }
                     }
                 }
@@ -656,8 +668,11 @@ namespace experiment {
         }
 
         template<typename hop_weight_type>
-        void insert_sorted_hop_constrained_two_hop_label_with_csv(std::vector<two_hop_label<hop_weight_type>> &input_vector, int key,
-                                                         int hop, hop_weight_type new_distance, int t,result::MaintainShard &maintain_shard) {
+        void
+        insert_sorted_hop_constrained_two_hop_label_with_csv(std::vector<two_hop_label<hop_weight_type>> &input_vector,
+                                                             int key,
+                                                             int hop, hop_weight_type new_distance, int t,
+                                                             result::MaintainShard &maintain_shard) {
             if (experiment::status::currentTimeMode == experiment::status::MaintainTimeMode::SLOT1) {
                 if (experiment::status::currentMaintainMode == experiment::status::MaintainMode::DECREASE) {
                     ++maintain_shard.label_decrease_insert_slot1;
@@ -672,7 +687,19 @@ namespace experiment {
                 }
             }
             int left = 0, right = input_vector.size() - 1;
+            if (input_vector.empty()) {
+                if (new_distance != std::numeric_limits<hop_weight_type>::max()) {
+                    two_hop_label<hop_weight_type> new_label;
+                    new_label.hub_vertex = key;
+                    new_label.hop = hop;
+                    new_label.distance = new_distance;
+                    new_label.t_s = t;
+                    new_label.t_e = std::numeric_limits<int>::max();
 
+                    input_vector.insert(input_vector.begin(), new_label);
+                }
+                return;
+            }
             while (left <= right) {
                 int mid = left + ((right - left) / 2);
 
@@ -681,13 +708,14 @@ namespace experiment {
                         if (input_vector[mid].hop == hop) {
                             two_hop_label old_label = input_vector[mid];
                             old_label.t_e = t - 1;
-                            if (input_vector[mid].distance < new_distance && new_distance != std::numeric_limits<hop_weight_type>::max()) {
-                                std::cout << "error input " << std::endl;
-                                return;
+                            if (input_vector[mid].distance < new_distance &&
+                                new_distance != std::numeric_limits<hop_weight_type>::max()) {
+//                                std::cout << "error input " << std::endl;
                             }
                             input_vector[mid].distance = new_distance;
                             input_vector[mid].t_s = t;
-                            if (old_label.t_s != t && old_label.distance != std::numeric_limits<hop_weight_type>::max()) {
+                            if (old_label.t_s != t &&
+                                old_label.distance != std::numeric_limits<hop_weight_type>::max()) {
                                 int insert_left = mid + 1, insert_right = input_vector.size() - 1;
 
                                 while (insert_left <= insert_right) {
@@ -707,7 +735,11 @@ namespace experiment {
                                         insert_left = insert_mid + 1;
                                     }
                                 }
-
+                                if (insert_left > input_vector.size()) {
+                                    std::cerr << "insert_left out of range: " << insert_left << " > "
+                                              << input_vector.size() << std::endl;
+                                    return;
+                                }
                                 input_vector.insert(input_vector.begin() + insert_left, old_label);
                             }
                             return;
@@ -736,6 +768,7 @@ namespace experiment {
                 input_vector.insert(input_vector.begin() + left, new_label);
             }
         }
+
         template<typename weight_type>
         class two_hop_case_info {
         public:

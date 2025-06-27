@@ -229,6 +229,9 @@ namespace experiment::hop::algorithm2021::increase {
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], v, shard);
                             L_lock[nei.first].unlock();
+                            if(dis_hop.first == std::numeric_limits<hop_weight_type>::max()){
+                                continue;
+                            }
                             hop_weight_type d_new = dis_hop.first + nei.second;
                             if (d_new < 0) {
                                 std::cout << "overflow happen in pi12 maintain increase 2021 with hop" << std::endl;
@@ -244,9 +247,13 @@ namespace experiment::hop::algorithm2021::increase {
                             hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                             for (auto nei: instance_graph[t]) {
                                 L_lock[nei.first].lock();
-                                hop_weight_type d_new = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                hop_weight_type search_result= search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
                                         (*L)[nei.first], v,
-                                        hop_i - 1, shard).first + nei.second;
+                                        hop_i - 1, shard).first;
+                                if(search_result == std::numeric_limits<hop_weight_type>::max()){
+                                    continue;
+                                }
+                                hop_weight_type d_new = search_result + nei.second;
                                 if(d_new < 0){
                                     std::cout << "overflow happen in pil2 maintain increase 2021 with hop2" << std::endl;
                                 }
@@ -293,6 +300,9 @@ namespace experiment::hop::algorithm2021::increase {
                             std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], t, shard);
                             L_lock[nei.first].unlock();
+                            if(dis_hop.first == std::numeric_limits<hop_weight_type>::max()){
+                                continue;
+                            }
                             hop_weight_type d_new = dis_hop.first + nei.second;
                             if (d_new < 0) {
                                 std::cout << "overflow happen in pi12 maintain increase 2021 with hop3" << std::endl;
@@ -309,9 +319,13 @@ namespace experiment::hop::algorithm2021::increase {
                             hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                             for (auto nei: instance_graph[v]) {
                                 L_lock[nei.first].lock();
-                                hop_weight_type d_new = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
                                         (*L)[nei.first], t,
-                                        hop_i - 1, shard).first + nei.second;
+                                        hop_i - 1, shard).first;
+                                if(search_result == std::numeric_limits<hop_weight_type>::max()){
+                                    continue;
+                                }
+                                hop_weight_type d_new = search_result + nei.second;
                                 if(d_new < 0){
                                     std::cout << "overflow happen in pil2 maintain increase 2021 with hop4" << std::endl;
                                 }

@@ -233,7 +233,7 @@ namespace experiment::hop::ruc::increase {
         std::vector<std::future<int> > &results_dynamic, int upper_k) const {
         for (const auto &it: al2) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([&it, L, PPR, al3, &instance_graph, upper_k] {
-                std::cout << "get thread info " << std::endl;
+//                std::cout << "get thread info " << std::endl;
                 mtx_599_1.lock();
                 const int current_tid = Qid_599.front();
                 Qid_599.pop();
@@ -242,36 +242,36 @@ namespace experiment::hop::ruc::increase {
                 auto &counter = result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
-                std::cout << "get thread info end" << std::endl;
-                std::cout << "ppr insert" << std::endl;
+//                std::cout << "get thread info end" << std::endl;
+//                std::cout << "ppr insert" << std::endl;
                 int v = it.first, h_u = it.hop;
                 const int u = it.second;
                 ppr_lock[v].lock();
                 std::vector<int> temp = PPR_TYPE::PPR_retrieve(*PPR, v, u);
                 ppr_lock[v].unlock();
                 temp.push_back(u);
-                std::cout << "ppr insert end" << std::endl;
+//                std::cout << "ppr insert end" << std::endl;
                 // mtx_ruc_increase[v].lock_shared();
                 // auto Lv = (*L)[v]; // to avoid interlocking
                 // mtx_ruc_increase[v].unlock_shared();
-                std::cout << "diffuse" << std::endl;
+//                std::cout << "diffuse" << std::endl;
                 for (auto t: temp) {
                     int diffuseVertex = std::max(v, t);
                     int targetVertex = std::min(v, t);
                     // if (v < t) {
                     hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                     int hop_vn = 0;
-                    std::cout << "diffuse 1" << std::endl;
+//                    std::cout << "diffuse 1" << std::endl;
                     for (const auto &nei: instance_graph[diffuseVertex]) {
                         if (nei.first < targetVertex) {
                             continue;
                         }
-                        std::cout << "diffuse 1.1" << std::endl;
-                        std::cout << nei.first <<"-" <<targetVertex <<std::endl;
+//                        std::cout << "diffuse 1.1" << std::endl;
+//                        std::cout << nei.first <<"-" <<targetVertex <<std::endl;
                         std::pair<hop_weight_type, int> dis_hop =
                                 search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], targetVertex, shard);
-                        std::cout << "diffuse 1.2" << std::endl;
+//                        std::cout << "diffuse 1.2" << std::endl;
                         if (dis_hop.first == std::numeric_limits<hop_weight_type>::max()) {
                             continue;
                         }
@@ -411,7 +411,6 @@ namespace experiment::hop::ruc::increase {
                     //     }
                     // }
                 }
-                std::cout << "diffuse end" << std::endl;
                 mtx_599_1.lock();
                 Qid_599.push(current_tid);
                 mtx_599_1.unlock();
@@ -420,7 +419,6 @@ namespace experiment::hop::ruc::increase {
             for (size_t i = 0; i < results_dynamic.size(); ++i) {
                 try {
                     results_dynamic[i].get();
-                    std::cout << "Task #" << i << " finished successfully" << std::endl;
                 } catch (const std::exception &e) {
                     std::cerr << "Task #" << i << " threw exception: " << e.what() << std::endl;
                 } catch (...) {
