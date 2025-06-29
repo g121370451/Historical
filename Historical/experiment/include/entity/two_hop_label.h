@@ -686,6 +686,9 @@ namespace experiment {
                     ++maintain_shard.label_increase_insert_slot2;
                 }
             }
+            if (new_distance < 0) {
+                std::cout <<"overflow happen in insert new label to L" << std::endl;
+            }
             int left = 0, right = input_vector.size() - 1;
             if (input_vector.empty()) {
                 if (new_distance != std::numeric_limits<hop_weight_type>::max()) {
