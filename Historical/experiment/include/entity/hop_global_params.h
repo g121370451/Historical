@@ -56,7 +56,7 @@ namespace experiment::hop {
         friend std::ostream& operator<<(std::ostream& out, const hop_constrained_affected_label<hop_weight_type>& obj) {
             out << "hop_constrained_affected_label object: first = " << obj.first << ", second = " << obj.second << ", hop = " << obj.hop << ", dis = " << obj.dis << std::endl;
             return out;
-        };
+        }
     };
 
     class hop_constrained_pair_label {

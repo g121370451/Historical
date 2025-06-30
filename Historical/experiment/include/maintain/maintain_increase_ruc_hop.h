@@ -76,7 +76,7 @@ namespace experiment::hop::ruc::increase {
                 int v2 = iter.first.second;
                 int w_old = iter.second;
                 for (const auto &it: mm.L[v1]) {
-                    if (it.hub_vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
+                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
                         hop_weight_type search_weight =
                                 search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                     mm.L[v2], it.hub_vertex,
@@ -101,7 +101,7 @@ namespace experiment::hop::ruc::increase {
                     }
                 }
                 for (const auto &it: mm.L[v2]) {
-                    if (it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()) {
+                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()) {
                         hop_weight_type search_weight =
                                 search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                     mm.L[v1], it.hub_vertex,

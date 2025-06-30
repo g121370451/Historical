@@ -586,9 +586,9 @@ namespace experiment {
                         graph_time.add_edge(v1, v2, w, time);
                         // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
-                    // this->initialize_experiment_global_values_dynamic();
-                    // this->ruc_process.decrease(instance_graph_temp, hop_info, path_decrease, weight_decrease,
-                                               // this->pool_dynamic, time);
+                    this->initialize_experiment_global_values_dynamic();
+                    this->ruc_process.decrease(instance_graph_temp, hop_info, path_decrease, weight_decrease,
+                                               this->pool_dynamic, time);
                     this->initialize_experiment_global_values_dynamic();
                     this->a2021_process.decrease(instance_graph_temp, hop_info_2021, path_decrease, weight_decrease,
                                                  this->pool_dynamic, time);
@@ -612,12 +612,12 @@ namespace experiment {
                         graph_time.add_edge(v1, v2, w, time);
                         // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
-                    // this->initialize_experiment_global_values_dynamic();
-                    // this->ruc_process.increase(instance_graph_temp,
-                                               // hop_info, path_increase,
-                                               // weight_old_increase,
-                                               // pool_dynamic,
-                                               // time);
+                    this->initialize_experiment_global_values_dynamic();
+                    this->ruc_process.increase(instance_graph_temp,
+                                               hop_info, path_increase,
+                                               weight_old_increase,
+                                               pool_dynamic,
+                                               time);
                     this->initialize_experiment_global_values_dynamic();
                     this->a2021_process.increase(instance_graph_temp,
                                                  hop_info_2021, path_increase,

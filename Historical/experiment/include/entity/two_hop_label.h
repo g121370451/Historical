@@ -424,6 +424,11 @@ namespace experiment {
                 experiment::loadBinary(in, t_s);
                 experiment::loadBinary(in, t_e);
             }
+
+            friend std::ostream& operator<<(std::ostream& out, const two_hop_label& obj) {
+                out << "two_hop_label object: vertex = " << obj.hub_vertex << ", dis = " << obj.distance << ", hop = " << obj.hop << ", ts = " << obj.t_s << ", te = " << obj.t_e << std::endl;
+                return out;
+            }
         };
 
         template<typename hop_weight_type>

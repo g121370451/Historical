@@ -61,7 +61,8 @@ namespace experiment::hop::algorithm2021::decrease {
                     int hop_u = it.hop;
                     hop_weight_type dnew = it.dis + nei.second;
                     if(dnew <0){
-                        std::cout <<"overflow happen in maintain decrease 2021 with hop" << std::endl;
+                        std::cout <<"overflow happen in maintain decrease 2021 with hop" << " it_dis is " << it.dis <<" nei.second is " << nei.second <<std::endl;
+                        exit(0);
                     }
                     if (u < vnei) {
                         L_lock[vnei].lock();
@@ -164,6 +165,14 @@ namespace experiment::hop::algorithm2021::decrease {
                     int _v = it.hub_vertex;
                     int hop_v = it.hop;
                     hop_weight_type dis = it.distance + _w_new;
+                    if (it.distance == std::numeric_limits<weight_type>::max()) {
+                        continue;
+                    }
+                    if (dis < 0) {
+                        mm.print_L_vk(v1);
+                        std::cout << it << std::endl;
+                        std::cout << "overflow happen in 2021 maintain decrease step1 it dis is " << it.distance <<" _w_new is "<< _w_new << std::endl;
+                    }
                     if (_v <= v2 && hop_v + 1 < mm.upper_k && it.t_e == std::numeric_limits<int>::max()) {
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(

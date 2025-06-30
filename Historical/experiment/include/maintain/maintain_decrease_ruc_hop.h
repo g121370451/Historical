@@ -31,10 +31,10 @@ namespace experiment::hop::ruc::decrease {
 
     template<typename weight_type, typename hop_weight_type>
     void Strategy2024HopDecrease<weight_type, hop_weight_type>::decrease_maintain_step1_batch(
-            std::map<std::pair<int, int>, hop_weight_type> &v_map,
-            std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
-            std::vector<hop_constrained_affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
-            std::vector<std::future<int> > &results_dynamic, int upper_k) const {
+        std::map<std::pair<int, int>, hop_weight_type> &v_map,
+        std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
+        std::vector<hop_constrained_affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
+        std::vector<std::future<int> > &results_dynamic, int upper_k) const {
         for (const auto &v_map_item: v_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([&v_map_item, L, PPR, CL, upper_k] {
                 mtx_599_1.lock();
@@ -52,19 +52,20 @@ namespace experiment::hop::ruc::decrease {
                         std::swap(v1, v2);
                     }
                     for (auto &it: (*L)[v1]) {
-                        if (it.hub_vertex <= v2 && it.hop + 1 < upper_k
+                        if (it.distance!=std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v2 && it.hop + 1 < upper_k
                             && it.t_e == std::numeric_limits<int>::max()) {
                             hop_weight_type dnew = it.distance + w_new;
-                            if(dnew <0){
-                                std::cout <<"overflow happen in maintain decrease ruc with hop" << std::endl;
+                            if (dnew < 0) {
+                                std::cout << "overflow happen in maintain decrease ruc with hop" << std::endl;
                             }
-                            auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                    (*L)[it.hub_vertex], (*L)[v2], it.hub_vertex, v2, it.hop + 1,
-                                    shard); // query_result is {distance, common hub}
+                            auto [query_dis, query_hop, query_hub] =
+                                    graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                        (*L)[it.hub_vertex], (*L)[v2], it.hub_vertex, v2, it.hop + 1,
+                                        shard); // query_result is {distance, common hub}
                             if (query_dis > dnew) {
                                 mtx_599_1.lock();
                                 CL->push_back(hop_constrained_affected_label<hop_weight_type>{
-                                        v2, it.hub_vertex, it.hop + 1, dnew
+                                    v2, it.hub_vertex, it.hop + 1, dnew
                                 });
                                 mtx_599_1.unlock();
                             } else {
@@ -74,7 +75,7 @@ namespace experiment::hop::ruc::decrease {
                                 if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dnew) {
                                     mtx_599_1.lock();
                                     CL->push_back(hop_constrained_affected_label<hop_weight_type>{
-                                            v2, it.hub_vertex, it.hop + 1, dnew
+                                        v2, it.hub_vertex, it.hop + 1, dnew
                                     });
                                     mtx_599_1.unlock();
                                 }
@@ -107,11 +108,14 @@ namespace experiment::hop::ruc::decrease {
 
     template<typename weight_type, typename hop_weight_type>
     void Strategy2024HopDecrease<weight_type, hop_weight_type>::DIFFUSE_batch(graph<weight_type> &instance_graph,
-                                                                              std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
+                                                                              std::vector<std::vector<two_hop_label<
+                                                                                  hop_weight_type> > > *L,
                                                                               PPR_TYPE::PPR_type *PPR,
-                                                                              std::vector<hop_constrained_affected_label<hop_weight_type> > &CL,
+                                                                              std::vector<hop_constrained_affected_label
+                                                                                  <hop_weight_type> > &CL,
                                                                               ThreadPool &pool_dynamic,
-                                                                              std::vector<std::future<int> > &results_dynamic,
+                                                                              std::vector<std::future<int> > &
+                                                                              results_dynamic,
                                                                               int upper_k, int time) const {
         std::map<hop_constrained_pair_label, hop_weight_type> CL_edge_map;
         for (auto &it: CL) {
@@ -122,19 +126,19 @@ namespace experiment::hop::ruc::decrease {
         }
 
         // extract each unique hub v and its (u,hop,dis) list
-        std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type>>> CL_map;
+        std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > CL_map;
         for (auto &it: CL_edge_map) {
             int u = it.first.first;
             int v = it.first.second;
             int hop = it.first.hop;
             hop_weight_type dis = it.second;
             if (CL_map.count(v) == 0) {
-                std::vector<hop_constrained_label_v2<hop_weight_type>> vec_with_hub_v;
+                std::vector<hop_constrained_label_v2<hop_weight_type> > vec_with_hub_v;
                 hop_constrained_label_v2 tmp(u, hop, dis);
                 vec_with_hub_v.emplace_back(tmp);
                 CL_map[v] = vec_with_hub_v;
             } else {
-                std::vector<hop_constrained_label_v2<hop_weight_type>> &vec_with_hub_v = CL_map[v];
+                std::vector<hop_constrained_label_v2<hop_weight_type> > &vec_with_hub_v = CL_map[v];
                 hop_constrained_label_v2 tmp(u, hop, dis);
                 vec_with_hub_v.emplace_back(tmp);
             }
@@ -150,7 +154,7 @@ namespace experiment::hop::ruc::decrease {
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                 int v = cl_item.first;
-                std::vector<hop_constrained_label_v2<hop_weight_type>> vec_with_hub_v = cl_item.second;
+                std::vector<hop_constrained_label_v2<hop_weight_type> > vec_with_hub_v = cl_item.second;
 
                 L_lock[v].lock();
                 auto Lv = (*L)[v]; // to avoid interlocking
@@ -158,8 +162,9 @@ namespace experiment::hop::ruc::decrease {
 
                 std::vector<int> dist_hop_changes;
                 auto &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
-                boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type>> pq;
-                std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>, hop_weight_type>> Q_handle;
+                boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type> > pq;
+                std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>,
+                    hop_weight_type> > Q_handle;
                 std::vector<int> hubs(instance_graph.size(), -1);
                 auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
@@ -188,11 +193,12 @@ namespace experiment::hop::ruc::decrease {
                         Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
 
                     L_lock[x].lock();
-                    auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv((*L)[x], v, xhv,shard);
+                    auto [label_dis,label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                        (*L)[x], v, xhv, shard);
                     L_lock[x].unlock();
                     if (dx >= 0 && dx < label_dis) {
                         L_lock[x].lock();
-                        insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time,shard);
+                        insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
                         L_lock[x].unlock();
                     }
 
@@ -203,8 +209,9 @@ namespace experiment::hop::ruc::decrease {
                         if (v < xnei) {
                             int hop_nei = xhv + 1;
                             hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
-                            if(d_new<0){
-                                std::cout <<"overflow happen in maintain decrease ruc diffuse with hop" << std::endl;
+                            if (d_new < 0) {
+                                std::cout << "overflow happen in maintain decrease ruc diffuse with hop" << " dx is "
+                                        << dx << " nei.second is " << nei.second << std::endl;
                             }
                             hop_constrained_node_for_DIFFUSE<hop_weight_type> node = {xnei, hop_nei, d_new};
                             if (dist_hop[xnei].first == -1) {
@@ -213,7 +220,7 @@ namespace experiment::hop::ruc::decrease {
                                 L_lock[xnei].lock();
                                 auto [query_dis,query_hop,query_hub] =
                                         graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                                (*L)[xnei], Lv, xnei, v, xhv + 1, shard);
+                                            (*L)[xnei], Lv, xnei, v, xhv + 1, shard);
                                 //std::pair<int, int> temp_dis = hop_constrained_extract_distance_and_hop(*L, xnei, v, xhv + 1);
                                 L_lock[xnei].unlock();
                                 hubs[xnei] = query_hub;
@@ -269,7 +276,8 @@ namespace experiment::hop::ruc::decrease {
                 for (int i: dist_hop_changes) {
                     dist_hop[i] = {-1, 0};
                 }
-                Q_VALUE.resize(Q_VALUE.size(), std::vector<hop_weight_type>(upper_k + 1, std::numeric_limits<hop_weight_type>::max()));
+                Q_VALUE.resize(Q_VALUE.size(),
+                               std::vector<hop_weight_type>(upper_k + 1, std::numeric_limits<hop_weight_type>::max()));
                 mtx_599_1.lock();
                 Qid_599.push(current_tid);
                 mtx_599_1.unlock();

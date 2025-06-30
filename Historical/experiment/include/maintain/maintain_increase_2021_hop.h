@@ -65,6 +65,9 @@ namespace experiment::hop::algorithm2021::increase {
             int v2 = iter.first.second;
             weight_type w_old = iter.second;
             for (const auto &it: mm.L[v1]) {
+                if (it.distance == std::numeric_limits<hop_weight_type>::max()) {
+                    continue;
+                }
                 hop_weight_type d_new = it.distance + w_old;
                 if (d_new < 0) {
                     std::cout << "overflow happen in increase 2021 with hop" << std::endl;
@@ -86,6 +89,9 @@ namespace experiment::hop::algorithm2021::increase {
                 }
             }
             for (auto it: mm.L[v2]) {
+                if (it.distance == std::numeric_limits<hop_weight_type>::max()) {
+                    continue;
+                }
                 hop_weight_type d_new = it.distance + w_old;
                 if (d_new < 0) {
                     std::cout << "overflow happen in increase 2021 with hop" << std::endl;
