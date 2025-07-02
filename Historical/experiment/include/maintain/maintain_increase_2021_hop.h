@@ -113,22 +113,22 @@ namespace experiment::hop::algorithm2021::increase {
                 }
             }
         }
-        std::cout << "1"  << std::endl;
+        long long int al1Size = 0;
+        long long int al2Size = 0;
         while (al1_curr.size() || !al2_curr.empty()) {
             std::cout << " al1 size is " << al1_curr.size() <<" al2_size is " << al2_curr.size()<<std::endl;
+            al1Size += al1_curr.size();
+            al2Size += al2_curr.size();
             PI11(instance_graph, &mm.L, al1_curr, &al1_next, w_old_map, pool_dynamic, results_dynamic, time);
-            std::cout << "2" << std::endl;
             PI12(instance_graph, &mm.L, &mm.PPR, al1_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
-            std::cout << "3" << std::endl;
             PI22(instance_graph, &mm.L, &mm.PPR, al2_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
-            std::cout << "4" << std::endl;
 
             al1_curr = al1_next;
             al2_curr = al2_next;
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(al1_next);
             std::vector<hop_constrained_pair_label>().swap(al2_next);
         }
-        std::cout << "2021 ppr size " << experiment::PPR_TYPE::getSize(mm.PPR) << std::endl;
+        std::cout << "2021 algorithm al1Size is " << al1Size << " al2Size is " << al2Size << std::endl;
     };
 
     template<typename weight_type, typename hop_weight_type>

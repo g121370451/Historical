@@ -438,7 +438,6 @@ namespace experiment::hop::ruc::increase {
         std::vector<std::future<int> > &results_dynamic,
         int upper_k,
         int time) const {
-        std::cout << "1" << std::endl;
         std::map<hop_constrained_pair_label, hop_weight_type> al3_edge_map;
         for (auto &it: al3) {
             hop_constrained_pair_label label{it.first, it.second, it.hop};
@@ -446,7 +445,6 @@ namespace experiment::hop::ruc::increase {
                 al3_edge_map[label] = it.dis;
             }
         }
-        std::cout << "2" << std::endl;
 
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
@@ -467,7 +465,6 @@ namespace experiment::hop::ruc::increase {
                 vec_with_hub_v.emplace_back(tmp);
             }
         }
-        std::cout << "3" << std::endl;
         for (auto &al3_item: al3_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
                 mtx_599_1.lock();
