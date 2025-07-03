@@ -113,8 +113,8 @@ namespace experiment::hop::algorithm2021::increase {
                 }
             }
         }
-        long long int al1Size = 0;
-        long long int al2Size = 0;
+        unsigned long long int al1Size = 0;
+        unsigned long long int al2Size = 0;
         while (al1_curr.size() || !al2_curr.empty()) {
             std::cout << " al1 size is " << al1_curr.size() <<" al2_size is " << al2_curr.size()<<std::endl;
             al1Size += al1_curr.size();

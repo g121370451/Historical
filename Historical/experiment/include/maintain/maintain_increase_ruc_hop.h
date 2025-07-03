@@ -76,7 +76,8 @@ namespace experiment::hop::ruc::increase {
                 int v2 = iter.first.second;
                 int w_old = iter.second;
                 for (const auto &it: mm.L[v1]) {
-                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
+                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v2 && it.t_e ==
+                        std::numeric_limits<int>::max()) {
                         hop_weight_type search_weight =
                                 search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                     mm.L[v2], it.hub_vertex,
@@ -101,7 +102,8 @@ namespace experiment::hop::ruc::increase {
                     }
                 }
                 for (const auto &it: mm.L[v2]) {
-                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()) {
+                    if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v1 && it.t_e ==
+                        std::numeric_limits<int>::max()) {
                         hop_weight_type search_weight =
                                 search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                     mm.L[v1], it.hub_vertex,
@@ -233,7 +235,7 @@ namespace experiment::hop::ruc::increase {
         std::vector<std::future<int> > &results_dynamic, int upper_k) const {
         for (const auto &it: al2) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([&it, L, PPR, al3, &instance_graph, upper_k] {
-//                std::cout << "get thread info " << std::endl;
+                //                std::cout << "get thread info " << std::endl;
                 mtx_599_1.lock();
                 const int current_tid = Qid_599.front();
                 Qid_599.pop();
@@ -242,36 +244,36 @@ namespace experiment::hop::ruc::increase {
                 auto &counter = result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
-//                std::cout << "get thread info end" << std::endl;
-//                std::cout << "ppr insert" << std::endl;
+                //                std::cout << "get thread info end" << std::endl;
+                //                std::cout << "ppr insert" << std::endl;
                 int v = it.first, h_u = it.hop;
                 const int u = it.second;
                 ppr_lock[v].lock();
                 std::vector<int> temp = PPR_TYPE::PPR_retrieve(*PPR, v, u);
                 ppr_lock[v].unlock();
                 temp.push_back(u);
-//                std::cout << "ppr insert end" << std::endl;
+                //                std::cout << "ppr insert end" << std::endl;
                 // mtx_ruc_increase[v].lock_shared();
                 // auto Lv = (*L)[v]; // to avoid interlocking
                 // mtx_ruc_increase[v].unlock_shared();
-//                std::cout << "diffuse" << std::endl;
+                //                std::cout << "diffuse" << std::endl;
                 for (auto t: temp) {
                     int diffuseVertex = std::max(v, t);
                     int targetVertex = std::min(v, t);
                     // if (v < t) {
                     hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                     int hop_vn = 0;
-//                    std::cout << "diffuse 1" << std::endl;
+                    //                    std::cout << "diffuse 1" << std::endl;
                     for (const auto &nei: instance_graph[diffuseVertex]) {
                         if (nei.first < targetVertex) {
                             continue;
                         }
-//                        std::cout << "diffuse 1.1" << std::endl;
-//                        std::cout << nei.first <<"-" <<targetVertex <<std::endl;
+                        //                        std::cout << "diffuse 1.1" << std::endl;
+                        //                        std::cout << nei.first <<"-" <<targetVertex <<std::endl;
                         std::pair<hop_weight_type, int> dis_hop =
                                 search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[nei.first], targetVertex, shard);
-//                        std::cout << "diffuse 1.2" << std::endl;
+                        //                        std::cout << "diffuse 1.2" << std::endl;
                         if (dis_hop.first == std::numeric_limits<hop_weight_type>::max()) {
                             continue;
                         }
@@ -291,19 +293,23 @@ namespace experiment::hop::ruc::increase {
                             break;
                         hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
                         for (const auto &nei: instance_graph[diffuseVertex]) {
+                            if (nei.first < targetVertex) {
+                                continue;
+                            }
                             hop_weight_type dnew =
                                     search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                                         (*L)[nei.first], targetVertex,
                                         hop_i - 1, shard).first;
-                            if (dnew < std::numeric_limits<hop_weight_type>::max()) {
-                                hop_weight_type d_sum = dnew + nei.second;
-                                if (d_sum < 0) {
-                                    std::cout << "overflow happen in spread2 maintain increase ruc with hop 4"
-                                            <<
-                                            std::endl;
-                                }
-                                di = std::min(di, dnew + nei.second);
+                            if (dnew == std::numeric_limits<hop_weight_type>::max()) {
+                                continue;
                             }
+                            hop_weight_type d_sum = dnew + nei.second;
+                            if (d_sum < 0) {
+                                std::cout << "overflow happen in spread2 maintain increase ruc with hop 4"
+                                        <<
+                                        std::endl;
+                            }
+                            di = std::min(di, dnew + nei.second);
                         }
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(

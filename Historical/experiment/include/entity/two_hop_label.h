@@ -514,6 +514,9 @@ namespace experiment {
                             // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
                             if (vector1_begin->hop + vector2_begin->hop <= hop_cst) {
                                 hop_weight_type dis = vector1_begin->distance + vector2_begin->distance;
+                                if (dis < 0) {
+                                    dis = std::numeric_limits<hop_weight_type>::max();
+                                }
                                 if (distance > dis) {
                                     distance = dis;
                                     hop = vector1_begin->hop + vector2_begin->hop;

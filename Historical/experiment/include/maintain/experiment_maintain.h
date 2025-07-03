@@ -33,7 +33,7 @@ namespace experiment {
         ~MaintainStrategyAlgorithmSelector() = default;
 
         void decrease(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2024 Decrease"+ std::to_string(this->maintainTimes));
@@ -43,7 +43,7 @@ namespace experiment {
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2024 Increase"+ std::to_string(this->maintainTimes));
@@ -165,7 +165,7 @@ namespace experiment {
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2021 Increase"+ std::to_string(this->maintainTimes));
@@ -521,7 +521,7 @@ namespace experiment {
 
         // 动态维护
         void maintain() {
-            for (int time = 1; time <= this->iteration_count; time++) {
+            for (int time = 1; time <= 1; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
@@ -613,16 +613,16 @@ namespace experiment {
                         // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
                     this->initialize_experiment_global_values_dynamic();
+                    this->a2021_process.increase(instance_graph_temp,
+                                                 hop_info_2021, path_increase,
+                                                 weight_old_increase,
+                                                 pool_dynamic, time);
+                    this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.increase(instance_graph_temp,
                                                hop_info, path_increase,
                                                weight_old_increase,
                                                pool_dynamic,
                                                time);
-                    this->initialize_experiment_global_values_dynamic();
-                    this->a2021_process.increase(instance_graph_temp,
-                                                 hop_info_2021, path_increase,
-                                                 weight_old_increase,
-                                                 pool_dynamic, time);
                     std::vector<std::pair<int, int>>().swap(path_increase);
                     std::vector<int>().swap(weight_increase);
                     std::vector<int>().swap(weight_old_increase);
