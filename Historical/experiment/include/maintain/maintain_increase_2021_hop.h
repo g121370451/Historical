@@ -60,6 +60,7 @@ namespace experiment::hop::algorithm2021::increase {
 
         std::vector<hop_constrained_affected_label<hop_weight_type> > al1_curr, al1_next;
         std::vector<hop_constrained_pair_label> al2_curr, al2_next;
+        std::vector<hop_constrained_pair_label> global_al2;
         for (auto &iter: w_old_map) {
             int v1 = iter.first.first;
             int v2 = iter.first.second;
@@ -125,9 +126,13 @@ namespace experiment::hop::algorithm2021::increase {
 
             al1_curr = al1_next;
             al2_curr = al2_next;
+            global_al2.insert(global_al2.end(),
+                              std::make_move_iterator(al2_next.begin()),
+                              std::make_move_iterator(al2_next.end()));
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(al1_next);
             std::vector<hop_constrained_pair_label>().swap(al2_next);
         }
+        hop::sort_and_output_to_file(global_al2,"2021_al2.txt");
         std::cout << "2021 algorithm al1Size is " << al1Size << " al2Size is " << al2Size << std::endl;
     };
 
@@ -203,7 +208,6 @@ namespace experiment::hop::algorithm2021::increase {
         }
         std::vector<std::future<int> >().swap(results_dynamic);
     }
-
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopIncrease<weight_type, hop_weight_type>::PI12(graph<int> &instance_graph,
                                                                       std::vector<std::vector<two_hop_label<
@@ -284,7 +288,8 @@ namespace experiment::hop::algorithm2021::increase {
                         L_lock[diffuseVertex].lock();
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                    (*L)[diffuseVertex], Lv,
+                                        //TODO
+                                    (*L)[diffuseVertex], (*L)[targetVertex],
                                     diffuseVertex, targetVertex,
                                     hop_i, shard);
                         L_lock[diffuseVertex].unlock();

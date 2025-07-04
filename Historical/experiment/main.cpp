@@ -56,8 +56,8 @@ int main(const int argc, char *argv[])
             if(config->hop_limit >0){
                 using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::WithHop, int, int>;
                 Maintain maintain(config);
-                maintain.generateChangeEdge();
-//            maintain.readChangeEdge("changeinfo_res_2025-06-20-13-47-18.txt");
+//                maintain.generateChangeEdge();
+            maintain.readChangeEdge("changeinfo_res_2025-07-03-10-19-19.txt");
                 std::cout <<"finish generateChangeEdge" << std::endl;
                 maintain.initialize_experiment_global_values_dynamic();
                 maintain.maintain();

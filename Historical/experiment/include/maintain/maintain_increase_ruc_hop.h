@@ -208,6 +208,10 @@ namespace experiment::hop::ruc::increase {
                                 }
                                 if (d_old <= search_weight &&
                                     search_weight < std::numeric_limits<hop_weight_type>::max()) {
+                                    if (search_weight > d_old) {
+                                        std::cout << "judge the affected label :search_weight is " << search_weight
+                                                  << " old_length is " << d_old << std::endl;
+                                    }
                                     q.push(hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                             dx + nei.second));
                                 }
@@ -451,7 +455,11 @@ namespace experiment::hop::ruc::increase {
                 al3_edge_map[label] = it.dis;
             }
         }
-
+        std::vector<hop_constrained_pair_label> global_al2;
+        for(const auto& item:al3_edge_map){
+            global_al2.push_back(item.first);
+        }
+        hop::sort_and_output_to_file(global_al2,"ruc_al3.txt");
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
         // al3_map[v]=(u1,hop1,dis1),(u2,hop2,dis2)...
@@ -481,6 +489,7 @@ namespace experiment::hop::ruc::increase {
                 auto &counter = result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
+                // this is the hub about the diffuse procession
                 int v = al3_item.first;
                 const std::vector<hop_constrained_label_v2<hop_weight_type> > &vec_with_hub_v = al3_item.second;
 

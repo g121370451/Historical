@@ -84,6 +84,30 @@ namespace experiment::hop {
         }
     };
 
+    static void sort_and_output_to_file(std::vector<hop_constrained_pair_label>& labels, const std::string& filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "First"
+             << std::setw(10) << "Second"
+             << std::setw(10) << "Hop" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (const auto& label : labels) {
+            fout << std::left << std::setw(10) << label.first
+                 << std::setw(10) << label.second
+                 << std::setw(10) << label.hop << "\n";
+        }
+
+        fout.close();
+    }
+
     template<typename hop_weight_type>
     class hop_constrained_label_v2 {
     public:
