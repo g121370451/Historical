@@ -51,7 +51,7 @@ namespace experiment::csv {
     void CSVWriter::write_csv_header() {
         if (!out_stream)
             return;
-        *out_stream << "timestamp,version,dataset,changeFileName"
+        *out_stream << "timestamp,version,dataset,changeFileName,"
                     // RUC 数据列
                     << "ruc_time_slot1,ruc_time_slot2,a2021_time_slot1,a2021_time_slot2,"
                     << "ruc_label_count_slot1,ruc_label_count_slot2,ruc_total_label_count,"
@@ -103,6 +103,7 @@ namespace experiment::csv {
 
         oss << ruc.cover_count_slot1 << "," << ruc.cover_count_slot2 << ","
             << ruc.total_cover_count() << ",";
+        std::cout << "ruc total cover is " << ruc.total_cover_count() << std::endl;
         oss << ruc.ppr_insert_slot1 << "," << ruc.ppr_insert_slot2 << ","
             << ruc.total_ppr_insert_count() << ",";
 
@@ -120,6 +121,7 @@ namespace experiment::csv {
         // 10. Old method data - Other metrics
         oss << old.cover_count_slot1 << "," << old.cover_count_slot2 << ","
             << old.total_cover_count() << ",";
+        std::cout << "2021 total cover is " << old.total_cover_count() << std::endl;
         oss << old.ppr_insert_slot1 << "," << old.ppr_insert_slot2 << ","
             << old.total_ppr_insert_count() << ",";
 
@@ -134,7 +136,8 @@ namespace experiment::csv {
             << (double) old.total_cover_count() / ruc.total_cover_count() << ","
             << (double) old.total_ppr_insert_count() / ruc.total_ppr_insert_count() << ","
             << (double) old.total_diffuse_count() / ruc.total_diffuse_count();
-
+        std::cout << "old cover total " << old.total_cover_count() << "," <<" ruc cover total is " << ruc.total_cover_count()
+            <<"speed up is " << old.total_cover_count() / ruc.total_cover_count() <<std::endl;
         (*out_stream) << oss.str() << std::endl;
     }
 }

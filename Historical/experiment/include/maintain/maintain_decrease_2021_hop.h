@@ -207,11 +207,14 @@ namespace experiment::hop::algorithm2021::decrease {
                 }
             }
         }
+        long long int size = 0;
         while (!CL_curr.empty()) {
+            size += CL_curr.size();
             ProDecreasep_batch(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic,
                                mm.upper_k, time);
             CL_curr = CL_next;
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(CL_next);
         }
+        std::cout <<"2021 decrease size is " << size <<std::endl;
     }
 }

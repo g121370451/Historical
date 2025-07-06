@@ -143,13 +143,14 @@ namespace experiment::hop::ruc::decrease {
                 vec_with_hub_v.emplace_back(tmp);
             }
         }
+        long long size = 0;
         for (auto &cl_item: CL_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k] {
+            // results_dynamic.emplace_back(pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k] {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k,&size] {
                 mtx_599_1.lock();
                 int current_tid = Qid_599.front();
                 Qid_599.pop();
                 mtx_599_1.unlock();
-
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
@@ -188,6 +189,7 @@ namespace experiment::hop::ruc::decrease {
                     int x = pq.top().index;
                     int xhv = pq.top().hop;
                     hop_weight_type dx = pq.top().disx;
+                    ++size;
                     pq.pop();
                     if (xhv <= upper_k)
                         Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
@@ -287,6 +289,7 @@ namespace experiment::hop::ruc::decrease {
         for (auto &&result: results_dynamic) {
             result.get();
         }
+        std::cout <<"ruc size is " << size <<std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
     };
 
@@ -313,6 +316,5 @@ namespace experiment::hop::ruc::decrease {
         decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
         // std::cout << "ruc L insert size is " << lInsertSize << std::endl;
-        std::cout << "ruc CL size is " << CL.size() << std::endl;
     };
 }

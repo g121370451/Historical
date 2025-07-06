@@ -45,6 +45,7 @@ double experiment::result::MethodData::total_label_count() const noexcept
 
 double experiment::result::MethodData::total_cover_count() const noexcept
 {
+    std::cout << "cover is " << this->cover_count_slot1 << "+" << this->cover_count_slot2 << std::endl;
     return this->cover_count_slot1 + this->cover_count_slot2;
 }
 

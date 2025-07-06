@@ -12,9 +12,10 @@ namespace experiment::hop::ruc::increase {
     public:
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
                         std::vector<std::pair<int, int> > v, std::vector<weight_type> w_old_vec,
-                        ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) const;
+                        ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 
     private:
+        std::vector<record_in_increase_with_hop<hop_weight_type> > list;
         void HOP_maintain_SPREAD1_batch(graph<weight_type> &instance_graph,
                                         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                         std::vector<hop_constrained_affected_label<hop_weight_type> > &al1,
@@ -35,7 +36,7 @@ namespace experiment::hop::ruc::increase {
                                         PPR_TYPE::PPR_type *PPR,
                                         std::vector<hop_constrained_affected_label<hop_weight_type> > &al3,
                                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic,
-                                        int upper_k, int time) const;
+                                        int upper_k, int time);
     };
 
     template<typename weight_type, typename hop_weight_type>
@@ -46,7 +47,7 @@ namespace experiment::hop::ruc::increase {
                                                                            ThreadPool &pool_dynamic,
                                                                            std::vector<std::future<int> > &
                                                                            results_dynamic,
-                                                                           int time) const {
+                                                                           int time) {
         std::vector<hop_constrained_affected_label<hop_weight_type> >
                 al1, al3;
         std::vector<hop_constrained_pair_label> al2;
@@ -147,6 +148,7 @@ namespace experiment::hop::ruc::increase {
         std::cout << "ruc increase al3 size is " << al3.size() << std::endl;
         HOP_maintain_SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, mm.upper_k,
                                    time);
+        hop::sort_and_output_to_file(this->list,"increase_item_ruc.txt");
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -210,7 +212,7 @@ namespace experiment::hop::ruc::increase {
                                     search_weight < std::numeric_limits<hop_weight_type>::max()) {
                                     if (search_weight > d_old) {
                                         std::cout << "judge the affected label :search_weight is " << search_weight
-                                                  << " old_length is " << d_old << std::endl;
+                                                << " old_length is " << d_old << std::endl;
                                     }
                                     q.push(hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                             dx + nei.second));
@@ -447,7 +449,7 @@ namespace experiment::hop::ruc::increase {
         ThreadPool &pool_dynamic,
         std::vector<std::future<int> > &results_dynamic,
         int upper_k,
-        int time) const {
+        int time) {
         std::map<hop_constrained_pair_label, hop_weight_type> al3_edge_map;
         for (auto &it: al3) {
             hop_constrained_pair_label label{it.first, it.second, it.hop};
@@ -456,10 +458,10 @@ namespace experiment::hop::ruc::increase {
             }
         }
         std::vector<hop_constrained_pair_label> global_al2;
-        for(const auto& item:al3_edge_map){
+        for (const auto &item: al3_edge_map) {
             global_al2.push_back(item.first);
         }
-        hop::sort_and_output_to_file(global_al2,"ruc_al3.txt");
+        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
         // al3_map[v]=(u1,hop1,dis1),(u2,hop2,dis2)...
@@ -480,7 +482,8 @@ namespace experiment::hop::ruc::increase {
             }
         }
         for (auto &al3_item: al3_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
+            // results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k,this] {
                 mtx_599_1.lock();
                 int current_tid = Qid_599.front();
                 Qid_599.pop();
@@ -555,9 +558,11 @@ namespace experiment::hop::ruc::increase {
                     if (dx >= 0 && dx < d_old.first) {
                         L_lock[x].lock();
                         insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
+                        this->list.emplace_back(x, v, xhv, dx, d_old.first);
                         L_lock[x].unlock();
+                    } else {
+                        continue;
                     }
-
                     if (xhv + 1 > upper_k)
                         continue;
 
