@@ -236,5 +236,37 @@ namespace experiment::hop {
         }
         fout.close();
     }
+
+    template<typename hop_weight_type>
+    static void sort_and_output_to_file_unique(std::vector<record_in_increase_with_hop<hop_weight_type>> &labels, const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "vertex"
+                << std::setw(10) << "hub"
+                << std::setw(10) << "hop"
+                << std::setw(20) << "distance"
+                << std::setw(20) << "old_distance" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (size_t index = 0; index < labels.size(); ++index) {
+            if (index > 0 && labels[index] != labels[index - 1]) {
+                fout << std::left << std::setw(10) << labels[index].vertex
+                    << std::setw(10) << labels[index].hub
+                    << std::setw(10) << labels[index].hop
+                    << std::setw(20) << labels[index].distance
+                    << std::setw(20) << labels[index].old_distance
+                << "\n";
+            }
+
+        }
+        fout.close();
+    }
 #pragma endregion
 }
