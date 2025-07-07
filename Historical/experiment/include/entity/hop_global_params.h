@@ -35,7 +35,7 @@ namespace experiment::hop {
     template<typename hop_weight_type>
     inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599_v2;
     template<typename hop_weight_type>
-    inline std::vector<std::vector<std::vector<hop_weight_type> > > Q_value;
+    inline std::vector<std::vector<std::vector<hop_weight_type>>> Q_value;
 
     template<typename hop_weight_type>
     class hop_constrained_affected_label {
@@ -157,10 +157,14 @@ namespace experiment::hop {
     template<typename hop_weight_type>
     bool operator<(hop_constrained_node_for_DIFFUSE<hop_weight_type> const &x,
                    hop_constrained_node_for_DIFFUSE<hop_weight_type> const &y) {
-        if (x.hop != y.hop) {
-            return x.hop > y.hop;
+        if (x.disx != y.disx) {
+            return x.disx > y.disx;
         }
-        return x.disx > y.disx; // < is the max-heap; > is the min heap
+        return x.hop > y.hop; // < is the max-heap; > is the min heap
+//         if (x.hop != y.hop) {
+//            return x.hop > y.hop;
+//        }
+//        return x.disx > y.disx; // < is the max-heap; > is the min heap
     }
 
     template<typename hop_weight_type>
@@ -187,10 +191,10 @@ namespace experiment::hop {
 
         bool operator<(const record_in_increase_with_hop &other) const {
             // used to sort/search pair_label2 in set
-            if (vertex != other.vertex)
-                return vertex < other.vertex;
             if (hub != other.hub)
                 return hub < other.hub;
+            if (vertex != other.vertex)
+                return vertex < other.vertex;
             if (hop != other.hop)
                 return hop < other.hop;
             if (distance != other.distance)
@@ -227,10 +231,9 @@ namespace experiment::hop {
             fout << std::left << std::setw(10) << label.vertex
                     << std::setw(10) << label.hub
                     << std::setw(10) << label.hop
-                    << std::setw(10) << label.distance
-                    << std::setw(10) << label.old_distance << "\n";
+                    << std::setw(10) << label.distance << "\n";
+//                    << std::setw(10) << label.old_distance <<
         }
-
         fout.close();
     }
 #pragma endregion
