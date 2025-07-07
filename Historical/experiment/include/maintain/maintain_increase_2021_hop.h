@@ -249,9 +249,6 @@ namespace experiment::hop::algorithm2021::increase {
                     ppr_lock[v].unlock();
                     temp.push_back(u);
 
-                    L_lock[v].lock();
-                    auto Lv = (*L)[v]; // to avoid interlocking
-                    L_lock[v].unlock();
                     for (auto t: temp) {
                         int diffuseVertex = std::max(v, t);
                         int targetVertex = std::min(v, t);
@@ -299,14 +296,15 @@ namespace experiment::hop::algorithm2021::increase {
                                 di = std::min(
                                     di, d_new);
                             }
+                            L_lock[targetVertex].lock();
                             L_lock[diffuseVertex].lock();
                             auto [query_dis, query_hop, query_hub] =
                                     graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                        //TODO
                                         (*L)[diffuseVertex], (*L)[targetVertex],
                                         diffuseVertex, targetVertex,
                                         hop_i, shard);
                             L_lock[diffuseVertex].unlock();
+                            L_lock[targetVertex].unlock();
                             if (query_dis > di) {
                                 L_lock[diffuseVertex].lock();
                                 insert_sorted_hop_constrained_two_hop_label_with_csv(
