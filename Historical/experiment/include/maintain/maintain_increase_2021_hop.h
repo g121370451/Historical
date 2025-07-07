@@ -254,8 +254,8 @@ namespace experiment::hop::algorithm2021::increase {
                             int hop_vn = 0;
                             for (auto nei: instance_graph[diffuseVertex]) {
                                 L_lock[nei.first].lock();
-                                std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                                        (*L)[nei.first], targetVertex, shard);
+                                std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                        (*L)[nei.first], targetVertex, upper_k - 1, shard);
                                 L_lock[nei.first].unlock();
                                 if (dis_hop.first == std::numeric_limits<hop_weight_type>::max()) {
                                     continue;
@@ -266,10 +266,10 @@ namespace experiment::hop::algorithm2021::increase {
                                 }
                                 if (d1 > d_new) {
                                     d1 = d_new;
-                                    hop_vn = dis_hop.second;
+                                    hop_vn = dis_hop.second + 1;
                                 }
                             }
-                            for (int hop_i = 1; hop_i <= hop_vn + 1; hop_i++) {
+                            for (int hop_i = 1; hop_i <= hop_vn; hop_i++) {
                                 if (hop_i > upper_k)
                                     break;
                                 hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
