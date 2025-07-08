@@ -425,8 +425,9 @@ namespace experiment {
                 experiment::loadBinary(in, t_e);
             }
 
-            friend std::ostream& operator<<(std::ostream& out, const two_hop_label& obj) {
-                out << "two_hop_label object: vertex = " << obj.hub_vertex << ", dis = " << obj.distance << ", hop = " << obj.hop << ", ts = " << obj.t_s << ", te = " << obj.t_e << std::endl;
+            friend std::ostream &operator<<(std::ostream &out, const two_hop_label &obj) {
+                out << "two_hop_label object: vertex = " << obj.hub_vertex << ", dis = " << obj.distance << ", hop = "
+                    << obj.hop << ", ts = " << obj.t_s << ", te = " << obj.t_e << std::endl;
                 return out;
             }
         };
@@ -695,7 +696,7 @@ namespace experiment {
                 }
             }
             if (new_distance < 0) {
-                std::cout <<"overflow happen in insert new label to L" << std::endl;
+                std::cout << "overflow happen in insert new label to L" << std::endl;
             }
             int left = 0, right = input_vector.size() - 1;
             if (input_vector.empty()) {
@@ -780,7 +781,7 @@ namespace experiment {
             }
         }
 
-        template<typename weight_type>
+        template<typename hop_weight_type>
         class two_hop_case_info {
         public:
             /*hop bounded*/
@@ -788,7 +789,7 @@ namespace experiment {
             int upper_k = 0;
 
             /*labels*/
-            std::vector<std::vector<two_hop_label<weight_type>>> L;
+            std::vector<std::vector<two_hop_label<hop_weight_type>>> L;
             PPR_TYPE::PPR_type PPR;
 
             void serialize(std::ofstream &out) const {
@@ -796,8 +797,8 @@ namespace experiment {
                 experiment::saveBinary(out, upper_k);
                 size_t size = L.size();
                 BinarySerializer<size_t>::saveBinary(out, size);
-                for (const std::vector<experiment::hop::two_hop_label<weight_type>> &item: L) {
-                    BinarySerializer<std::vector<experiment::hop::two_hop_label<weight_type>>>::saveBinary(out, item);
+                for (const std::vector<experiment::hop::two_hop_label<hop_weight_type>> &item: L) {
+                    BinarySerializer<std::vector<experiment::hop::two_hop_label<hop_weight_type>>>::saveBinary(out, item);
                     out.flush();
                 }
                 experiment::saveBinary(out, PPR);
@@ -809,8 +810,8 @@ namespace experiment {
                 size_t size;
                 BinarySerializer<size_t>::loadBinary(in, size);
                 L.resize(size);
-                for (std::vector<experiment::hop::two_hop_label<weight_type>> &item: L) {
-                    BinarySerializer<std::vector<experiment::hop::two_hop_label<weight_type>>>::loadBinary(in, item);
+                for (std::vector<experiment::hop::two_hop_label<hop_weight_type>> &item: L) {
+                    BinarySerializer<std::vector<experiment::hop::two_hop_label<hop_weight_type>>>::loadBinary(in, item);
                 }
                 experiment::loadBinary(in, PPR);
             }
@@ -818,14 +819,14 @@ namespace experiment {
             long long int compute_label_bit_size() {
                 long long int size = 0;
                 for (auto &xx: L) {
-                    size = size + xx.size() * sizeof(two_hop_label<weight_type>);
+                    size = size + xx.size() * sizeof(two_hop_label<hop_weight_type>);
                 }
                 return size;
             }
 
             /*clear labels*/
             void clear_labels() {
-                std::vector<std::vector<two_hop_label<weight_type>>>().swap(L);
+                std::vector<std::vector<two_hop_label<hop_weight_type>>>().swap(L);
                 PPR_TYPE::PPR_type().swap(PPR);
             }
 
@@ -926,6 +927,40 @@ namespace experiment {
                 return distance;
             }
         };
+
+        /**
+         * The label list must follow a certain order. In descending order of te, in ascending order of vertex, and in ascending order of hop.
+         * @tparam hop_weight_type
+         * @param info
+         * @param vk
+         * @return
+         */
+        template<typename hop_weight_type>
+        static bool check_correctness_vk(const two_hop_case_info<hop_weight_type> &info, int vk) {
+            const std::vector<two_hop_label<hop_weight_type>> &list = info.L[vk];
+            for (size_t i = 1; i < list.size(); ++i) {
+                const two_hop_label<hop_weight_type> &prev = list[i - 1];
+                const two_hop_label<hop_weight_type> &curr = list[i];
+
+                // 按 te 降序排序
+                if (curr.t_e > prev.t_e) {
+                    return false;
+                }
+
+                // 如果 te 相同，vertex 升序
+                if (curr.t_e == prev.t_e && curr.hub_vertex < prev.hub_vertex) {
+                    return false;
+                }
+
+                // 如果 te 和 vertex 都相同，hop 升序
+                if (curr.t_e == prev.t_e && curr.hub_vertex == prev.hub_vertex && curr.hop <= prev.hop) {
+                    return false;
+                }else if(curr.t_e == prev.t_e && curr.hub_vertex == prev.hub_vertex && curr.hop > prev.hop && curr.distance >= prev.distance){
+                    return false;
+                }
+            }
+            return true;
+        }
 
     }
 

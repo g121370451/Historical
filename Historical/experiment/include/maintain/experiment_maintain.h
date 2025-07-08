@@ -36,7 +36,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2024 Decrease"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain hop 2024 Decrease" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -46,7 +46,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2024 Increase"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain hop 2024 Increase" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -86,7 +86,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Increase"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain Nonhop 2024 Increase" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -117,7 +117,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Decrease"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Decrease" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -127,7 +127,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Increase"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain Nonhop 2021 Increase" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -158,7 +158,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2021 Decrease"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain hop 2021 Decrease" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -168,7 +168,7 @@ namespace experiment {
                       std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2021 Increase"+ std::to_string(this->maintainTimes));
+            this->maintain_timer.startSubtask("Maintain hop 2021 Increase" + std::to_string(this->maintainTimes));
             std::vector<std::future<int>> results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
@@ -445,14 +445,18 @@ namespace experiment {
                   iteration_count(config->iterations),
                   pool_dynamic(config->threads),
                   csvWriter(config->save_path.string() + "/" + "maintain_result_withhop.csv", "1.0", true) {
-            this->graph_res_filename = config->data_source.string() + "/" + "binary_hop_constrained_"+std::to_string(config->hop_limit)+"_graph";
+            this->graph_res_filename =
+                    config->data_source.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +
+                    "_graph";
             this->change_info_res_filename =
                     config->save_path.string() + "/" + "changeinfo_res_" + get_current_time_string() + ".txt";
             this->savePath = config->save_path.string();
             this->hop_label_res_filename =
-                    config->save_path.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +"_2_hop_label_info";
+                    config->save_path.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +
+                    "_2_hop_label_info";
             this->experiment_MAINTAIN_LABEL_res_filename =
-                    config->save_path.string() + "/" + "MAINTAIN_LABEL_hop_constrained_"+std::to_string(config->hop_limit)+"_" +
+                    config->save_path.string() + "/" + "MAINTAIN_LABEL_hop_constrained_" +
+                    std::to_string(config->hop_limit) + "_" +
                     std::to_string(config->threads) + "_threads_result.txt";
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
@@ -634,6 +638,10 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
+            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 3);
+            auto res1 = this->hop_info.query(3, 0, 1, 1, 5);
+            auto res2 = this->hop_info_2021.query(3, 0, 1, 1, 5);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 3, 0, 1, 1, 5);
         }
 
         // 保存csv的值
