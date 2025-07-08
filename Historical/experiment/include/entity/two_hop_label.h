@@ -629,7 +629,7 @@ namespace experiment {
             while (left < input_vector.size() &&
                    input_vector[left].t_e == std::numeric_limits<int>::max() &&
                    input_vector[left].hub_vertex == key && input_vector[left].hop <= hop_k) {
-                if (input_vector[left].distance < mindis) {
+                if (input_vector[left].distance < mindis || input_vector[left].hop < hop_val) {
                     mindis = input_vector[left].distance;
                     hop_val = input_vector[left].hop;
                 }

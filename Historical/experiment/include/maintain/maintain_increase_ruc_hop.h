@@ -537,8 +537,8 @@ namespace experiment::hop::ruc::increase {
                             ppr_lock[v].unlock();
                         }
                     } else {
-                        dist_hop[u] = {du, h_v}; //  {dis, hop}
-                        dist_hop_changes.push_back(u);
+                        // dist_hop[u] = {du, h_v}; //  {dis, hop}
+                        // dist_hop_changes.push_back(u);
                         hop_constrained_node_for_DIFFUSE<hop_weight_type> tmp;
                         tmp.index = u;
                         tmp.hop = h_v;
@@ -611,10 +611,13 @@ namespace experiment::hop::ruc::increase {
                             if (Q_VALUE[xnei][hop_nei] == -1) {
                                 L_lock[xnei].lock();
                                 // 查询当前的单侧值 如果更小则加入
-                                Q_VALUE[xnei][hop_nei] =
-                                        search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
-                                            (*L)[xnei], v, hop_nei, shard).first;
+                                auto [best_dis,best_hop] =
+                                        search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                            (*L)[xnei], v, hop_nei, shard);
                                 L_lock[xnei].unlock();
+                                for (int index = best_hop;index<=hop_nei;++index) {
+                                    Q_VALUE[xnei][index] = best_dis;
+                                }
                             }
                             if (Q_VALUE[xnei][hop_nei] > d_new) {
                                 if (Q_handle.contains({xnei, hop_nei})) {

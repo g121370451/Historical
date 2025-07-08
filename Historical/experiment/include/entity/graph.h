@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utility>
 #include <vector>
 #include <iostream>
 #include <string>
@@ -17,7 +18,7 @@ namespace experiment {
     template<typename weight_type> // weight_type may be int, long long int, float, double...
     class graph {
     public:
-        std::vector<std::vector<std::pair<int, weight_type>>> ADJs;
+        std::vector<std::vector<std::pair<int, weight_type> > > ADJs;
 
         /*constructors*/
         graph() = default;
@@ -32,7 +33,7 @@ namespace experiment {
             ADJs.resize(n); // initialize n vertices
         }
 
-        std::vector<std::pair<int, weight_type>> &operator[](int i) {
+        std::vector<std::pair<int, weight_type> > &operator[](int i) {
             return ADJs[i];
         }
 
@@ -64,7 +65,6 @@ namespace experiment {
         }
 
         void remove_edge(int e1, int e2) {
-
             /*we assume that the size of g is larger than e1 or e2*/
             /*
              Remove the edges (e1,e2) and (e2,e1)
@@ -77,16 +77,14 @@ namespace experiment {
         }
 
         void remove_all_adjacent_edges(int v) {
-
             for (auto it = ADJs[v].begin(); it != ADJs[v].end(); it++) {
                 sorted_vector_binary_operations_erase(ADJs[it->first], v);
             }
 
-            std::vector<std::pair<int, weight_type>>().swap(ADJs[v]);
+            std::vector<std::pair<int, weight_type> >().swap(ADJs[v]);
         }
 
         bool contain_edge(int e1, int e2) const {
-
             /*
             Return true if graph contain edge (e1,e2)
             Time complexity: O(logn)
@@ -96,7 +94,6 @@ namespace experiment {
         }
 
         weight_type edge_weight(int e1, int e2) const {
-
             /*
             Return the weight of edge (e1,e2)
             If the edge does not exist, return std::numeric_limits<double>::max()
@@ -107,7 +104,6 @@ namespace experiment {
         }
 
         long long int edge_number() const {
-
             /*
             Returns the number of edges in the figure
             (e1,e2) and (e2,e1) will be counted only once
@@ -137,8 +133,7 @@ namespace experiment {
         }
 
         void clear() {
-
-            return std::vector<std::vector<std::pair<int, weight_type>>>().swap(ADJs);
+            return std::vector<std::vector<std::pair<int, weight_type> > >().swap(ADJs);
         }
 
         int degree(int v) const {
@@ -146,7 +141,6 @@ namespace experiment {
         }
 
         int search_adjv_by_weight(int e1, weight_type ec) const {
-
             for (auto &xx: ADJs[e1]) {
                 if (xx.second == ec) {
                     return xx.first;
@@ -174,12 +168,11 @@ namespace experiment {
         }
 
         void txt_read(std::string save_name) {
-
             graph<weight_type>::clear();
 
             std::string line_content;
             std::ifstream myfile(save_name); // open the file
-            if (myfile.is_open())            // if the file is opened successfully
+            if (myfile.is_open()) // if the file is opened successfully
             {
                 while (getline(myfile, line_content)) // read file line by line
                 {
@@ -199,9 +192,9 @@ namespace experiment {
                 myfile.close(); // close the file
             } else {
                 std::cout << "Unable to open file " << save_name << std::endl
-                          << "Please check the file location or file name." << std::endl; // throw an error message
-                getchar();                                                                // keep the console window
-                exit(1);                                                                  // end the program
+                        << "Please check the file location or file name." << std::endl; // throw an error message
+                getchar(); // keep the console window
+                exit(1); // end the program
             }
         }
 
@@ -221,14 +214,16 @@ namespace experiment {
         static bool sortEdgeById(const std::pair<int, int> &i, std::pair<int, int> &j) {
             /*< is nearly 10 times slower than >*/
             return i.first <
-                   j.first; // < is from small to big; > is from big to small.  sort by the second item of pair<int, int>
+                   j.first;
+            // < is from small to big; > is from big to small.  sort by the second item of pair<int, int>
         }
 
         static bool compare_graph_v_of_v_update_vertexIDs_by_degrees_large_to_small(const std::pair<int, int> &i,
-                                                                                    std::pair<int, int> &j) {
+            std::pair<int, int> &j) {
             /*< is nearly 10 times slower than >*/
             return i.second >
-                   j.second; // < is from small to big; > is from big to small.  sort by the second item of pair<int, int>
+                   j.second;
+            // < is from small to big; > is from big to small.  sort by the second item of pair<int, int>
         }
     };
 
@@ -240,7 +235,7 @@ namespace experiment {
     template<typename weight_type>
     inline void graph<weight_type>::graph_v_of_v_update_vertexIDs_by_degrees_large_to_small() {
         int N = this->ADJs.size();
-        std::vector<std::pair<int, int>> sorted_vertices;
+        std::vector<std::pair<int, int> > sorted_vertices;
         sorted_vertices.reserve(N);
 
         for (int i = 0; i < N; i++) {
@@ -260,7 +255,7 @@ namespace experiment {
             std::sort(this->ADJs[i].begin(), this->ADJs[i].end(), experiment::graph<weight_type>::sortEdgeById);
         }
 
-        std::vector<std::vector<std::pair<int, weight_type>>> newADJs(N);
+        std::vector<std::vector<std::pair<int, weight_type> > > newADJs(N);
         for (int i = 0; i < N; i++) {
             newADJs[vertexID_old_to_new[i]] = std::move(this->ADJs[i]);
         }
@@ -272,7 +267,7 @@ namespace experiment {
         std::string readPath = config->data_source.string();
         std::string line_content;
         boost::random::uniform_int_distribution<> random_weight = boost::random::uniform_int_distribution<>(
-                config->min_value, config->max_value);
+            config->min_value, config->max_value);
         int v_num = 0;
         std::ifstream myfile(readPath);
         if (myfile.is_open()) {
@@ -296,49 +291,83 @@ namespace experiment {
     };
 
     template<typename weight_type>
-    struct dijkstra_withHop_compare {
-        bool
-        operator()(const std::tuple<int, weight_type, int> &lhs, const std::tuple<int, weight_type, int> &rhs) const {
-            if (get<1>(lhs) == get<1>(rhs)) {
-                return get<2>(lhs) > get<2>(rhs);
-            }
-            return get<1>(lhs) > get<1>(rhs);
+    struct dijkstra_withHop {
+        int vertex_id;
+        weight_type weight;
+        int hop;
+        std::vector<int> path;
+
+        dijkstra_withHop(int vertex_id, weight_type weight, int hop, std::vector<int> path)
+            : vertex_id(vertex_id), weight(weight), hop(hop), path(std::move(path)) {
         }
     };
 
     template<typename weight_type>
-    static long long int
-    GetSpecialGraphSPD(graph<weight_type> &graph, int source, int target, int k) {
-        std::vector<weight_type> dist(graph.size(), std::numeric_limits<weight_type>::max());
-        std::vector<int> hop_list(graph.size(), std::numeric_limits<int>::max());
-        boost::heap::fibonacci_heap<std::tuple<int, weight_type, int>, boost::heap::compare<
-                dijkstra_withHop_compare<weight_type>>> queue;
+    struct dijkstra_withHop_compare {
+        bool operator()(const dijkstra_withHop<weight_type> &lhs, const dijkstra_withHop<weight_type> &rhs) const {
+            if (lhs.weight == rhs.weight) {
+                return lhs.hop > rhs.hop; // 优先选择hop数更少的
+            }
+            return lhs.weight > rhs.weight; // 优先选择权重更小的
+        }
+    };
 
-        dist[source] = 0;
-        hop_list[source] = 0;
-        queue.push({source, 0, 0});
-        int res = std::numeric_limits<int>::max();
+    template<typename weight_type>
+    static dijkstra_withHop<weight_type>
+    GetSpecialGraphSPD(graph<weight_type> &graph, int source, int target, int k) {
+        // 使用二维数组记录到达每个节点在不同hop数下的最短距离
+        std::vector<std::vector<weight_type> > dist(graph.size(),
+                                                    std::vector<weight_type>(
+                                                        k + 1, std::numeric_limits<weight_type>::max()));
+
+        boost::heap::fibonacci_heap<dijkstra_withHop<weight_type>,
+            boost::heap::compare<dijkstra_withHop_compare<weight_type> > > queue;
+
+        // 初始化源节点
+        dist[source][0] = 0;
+        std::vector<int> initial_path = {source};
+        dijkstra_withHop<weight_type> start(source, 0, 0, initial_path);
+        queue.push(start);
+
+        // 初始化结果为无解状态
+        dijkstra_withHop<weight_type> res(target, std::numeric_limits<weight_type>::max(), 0, {});
+
         while (!queue.empty()) {
-            auto [vertex, currentDist, hop] = queue.top();
+            auto item = queue.top();
             queue.pop();
 
-            if (vertex == target) {
-                res = std::min(res, currentDist);
-            }
-            if (hop >= k) {
+            // 如果当前状态已经不是最优，跳过
+            if (item.weight > dist[item.vertex_id][item.hop]) {
                 continue;
             }
 
-            for (const auto &edge: graph[vertex]) {
+            // 找到目标节点
+            if (item.vertex_id == target) {
+                if (res.weight > item.weight) {
+                    // 修正：找更小的权重
+                    res = item;
+                }
+                continue; // 找到目标后继续寻找可能的更优解
+            }
+
+            // 如果已达到最大hop数，不能再扩展
+            if (item.hop >= k) {
+                continue;
+            }
+
+            // 遍历邻居节点
+            for (const auto &edge: graph[item.vertex_id]) {
                 int next = edge.first;
                 weight_type weight = edge.second;
+                weight_type newDist = item.weight + weight;
+                int newHop = item.hop + 1;
 
-                weight_type newDist = currentDist + weight;
-
-                if (newDist < dist[next] || (hop + 1 < hop_list[next])) {
-                    dist[next] = newDist;
-                    hop_list[next] = hop + 1;
-                    queue.push({next, newDist, hop + 1});
+                // 只有在找到更好的路径时才更新
+                if (newDist < dist[next][newHop]) {
+                    dist[next][newHop] = newDist;
+                    auto newPath = item.path;
+                    newPath.push_back(next);
+                    queue.push({next, newDist, newHop, newPath});
                 }
             }
         }
@@ -348,20 +377,34 @@ namespace experiment {
 
     template<typename weight_type>
     static long long int
-    Baseline1ResultWithHop(const std::vector<graph<weight_type>> &graphs, int source, int target, int t_s, int t_e,
+    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
                            int hop) {
-        long long int res = INT_MAX;
+        weight_type res = std::numeric_limits<weight_type>::max();
         auto start_time = std::chrono::high_resolution_clock::now();
-        for (experiment::graph<int> graph_item: graphs) {
-            res = std::min(res, GetSpecialGraphSPD(graph_item, source, target, hop));
-            // cout << "dijkstra" << res << endl;
+
+        for (int index = t_s; index <= t_e; index++) {
+            auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target, hop);
+
+            if (item_res.weight < std::numeric_limits<weight_type>::max()) {
+                std::cout << "Found path with weight " << item_res.weight << ": ";
+                for (int vertex: item_res.path) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << std::endl;
+                res = std::min(res, item_res.weight);
+            }
         }
+
         auto endTime = std::chrono::high_resolution_clock::now();
-        return res;
+
+        if (res == std::numeric_limits<weight_type>::max()) {
+            return -1; // 表示无解
+        }
+        return static_cast<long long int>(res);
     }
 
     template<typename weight_type>
-    class BinarySerializer<graph<weight_type>> {
+    class BinarySerializer<graph<weight_type> > {
     public:
         static void saveBinary(std::ofstream &out, const graph<weight_type> &vec) {
             vec.serialize(out);
@@ -372,4 +415,3 @@ namespace experiment {
         }
     };
 }
-
