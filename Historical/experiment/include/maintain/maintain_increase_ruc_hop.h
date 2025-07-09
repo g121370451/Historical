@@ -301,6 +301,8 @@ namespace experiment::hop::ruc::increase {
                         }
                     }
                     // std::cout << "diffuse 2" << std::endl;
+                    // d_min must greater than pre d_i
+                    hop_weight_type d_min = std::numeric_limits<hop_weight_type>::max();
                     for (int hop_i = 1; hop_i <= hop_vn; hop_i++) {
                         if (hop_i > upper_k)
                             break;
@@ -324,6 +326,10 @@ namespace experiment::hop::ruc::increase {
                             }
                             di = std::min(di, dnew + nei.second);
                         }
+                        if (d_min < di) {
+                            continue;
+                        }
+                        d_min = di;
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                         (*L)[diffuseVertex],
@@ -556,7 +562,9 @@ namespace experiment::hop::ruc::increase {
                     pq.pop();
                     //                    if (xhv <= upper_k)
                     //                        Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
-
+                    if (Q_VALUE[x][xhv-1]!=-1 && Q_VALUE[x][xhv-1] <= dx) {
+                        continue;
+                    }
                     L_lock[x].lock();
                     std::pair<hop_weight_type, int> d_old =
                             search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(

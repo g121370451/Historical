@@ -638,14 +638,14 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 1038);
-            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 1038);
+            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 825);
+            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 825);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
-            auto res1 = this->hop_info.query(87, 0, 1, 1, 4);
-            auto res2 = this->hop_info_2021.query(87, 0, 1, 1, 4);
+            auto res1 = this->hop_info.query(825, 1, 1, 1, 4);
+            auto res2 = this->hop_info_2021.query(825, 1, 1, 1, 4);
 //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 87, 0, 1, 1, 4);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 825, 1, 1, 1, 4);
             std::cout << "res1 : " << res1 << " res2: "<< res2 << " res3: " << res3 << std::endl;
         }
 

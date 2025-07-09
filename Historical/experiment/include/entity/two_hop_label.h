@@ -622,9 +622,15 @@ namespace experiment {
                         // if (hop_val == hop_k) {
                         //     return {mindis, hop_val};
                         // }
-                        right = mid - 1;
+                        right = mid;
                     }
                 }
+            }
+            // current item is legal
+            if (input_vector[left].hub_vertex == key && input_vector[left].hop <= hop_k) {
+                mindis = input_vector[left].distance;
+                hop_val = input_vector[left].hop;
+                left++;
             }
             while (left < input_vector.size() &&
                    input_vector[left].t_e == std::numeric_limits<int>::max() &&
