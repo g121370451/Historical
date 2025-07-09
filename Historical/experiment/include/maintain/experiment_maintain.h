@@ -617,16 +617,16 @@ namespace experiment {
                         // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
                     this->initialize_experiment_global_values_dynamic();
-                    this->a2021_process.increase(instance_graph_temp,
-                                                 hop_info_2021, path_increase,
-                                                 weight_old_increase,
-                                                 pool_dynamic, time);
-                    this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.increase(instance_graph_temp,
                                                hop_info, path_increase,
                                                weight_old_increase,
                                                pool_dynamic,
                                                time);
+                    this->initialize_experiment_global_values_dynamic();
+                    this->a2021_process.increase(instance_graph_temp,
+                                                 hop_info_2021, path_increase,
+                                                 weight_old_increase,
+                                                 pool_dynamic, time);
                     std::vector<std::pair<int, int>>().swap(path_increase);
                     std::vector<int>().swap(weight_increase);
                     std::vector<int>().swap(weight_old_increase);
@@ -638,13 +638,14 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 146);
-            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 146);
+            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 1038);
+            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 1038);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
-            auto res1 = this->hop_info.query(7919, 0, 1, 1, 5);
-            auto res2 = this->hop_info_2021.query(7919, 0, 1, 1, 5);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 7919, 0, 1, 1, 5);
+            auto res1 = this->hop_info.query(87, 0, 1, 1, 4);
+            auto res2 = this->hop_info_2021.query(87, 0, 1, 1, 4);
+//            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 87, 0, 1, 1, 4);
             std::cout << "res1 : " << res1 << " res2: "<< res2 << " res3: " << res3 << std::endl;
         }
 
