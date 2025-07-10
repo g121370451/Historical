@@ -58,9 +58,9 @@ int main(const int argc, char *argv[])
                 Maintain maintain(config);
 //                 maintain.generateChangeEdge();
                 //home
-//                maintain.readChangeEdge("changeinfo_res_2025-07-06-19-50-55.txt");
+                maintain.readChangeEdge("changeinfo_res_2025-07-06-19-50-55.txt");
 //                // jsfs
-                maintain.readChangeEdge("changeinfo_res_2025-07-08-09-37-40.txt");
+                // maintain.readChangeEdge("changeinfo_res_2025-07-08-09-37-40.txt");
                 std::cout <<"finish generateChangeEdge" << std::endl;
                 maintain.initialize_experiment_global_values_dynamic();
                 maintain.maintain();
