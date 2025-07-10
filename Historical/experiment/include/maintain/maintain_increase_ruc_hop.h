@@ -66,7 +66,7 @@ namespace experiment::hop::ruc::increase {
         }
 
         for (auto iter: w_old_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([iter, &al1, &mm] {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([iter, &al1, &mm, this] {
                 mtx_599_1.lock();
                 const int current_tid = Qid_599.front();
                 Qid_599.pop();
@@ -100,6 +100,9 @@ namespace experiment::hop::ruc::increase {
                                     hop_constrained_affected_label<hop_weight_type>{
                                             v2, it.hub_vertex, it.hop + 1, d_new
                                     });
+                            this->list_infinite.emplace_back(v2, it.hub_vertex, it.hop + 1,
+                                                             std::numeric_limits<hop_weight_type>::max(),
+                                                             search_weight);
                             mtx_599_1.unlock();
                         }
                     }
@@ -126,6 +129,9 @@ namespace experiment::hop::ruc::increase {
                                     hop_constrained_affected_label<hop_weight_type>{
                                             v1, it.hub_vertex, it.hop + 1, d_new
                                     });
+                            this->list_infinite.emplace_back(v1, it.hub_vertex, it.hop + 1,
+                                                             std::numeric_limits<hop_weight_type>::max(),
+                                                             search_weight);
                             mtx_599_1.unlock();
                         }
                     }
@@ -142,16 +148,25 @@ namespace experiment::hop::ruc::increase {
         }
         std::vector<std::future<int> >().swap(results_dynamic);
         std::cout << "ruc increase init al1 size is " << al1.size() << std::endl;
+        auto time1 = std::chrono::steady_clock::now();
         HOP_maintain_SPREAD1_batch(instance_graph, &mm.L, al1, &al2, w_old_map, pool_dynamic, results_dynamic, time,
                                    mm.upper_k);
         std::cout << "ruc increase al2 size is " << al2.size() << std::endl;
+        auto time2 = std::chrono::steady_clock::now();
         HOP_maintain_SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic,
                                    mm.upper_k);
+//        this->list = this->list_infinite;
         std::cout << "ruc increase al3 size is " << al3.size() << std::endl;
+        auto time3 = std::chrono::steady_clock::now();
         HOP_maintain_SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, mm.upper_k,
                                    time);
-        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
-        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
+        auto time4 = std::chrono::steady_clock::now();
+        auto cost1 = std::chrono::duration_cast<std::chrono::duration<double>>(time2 - time1).count();
+        auto cost2 = std::chrono::duration_cast<std::chrono::duration<double>>(time3 - time2).count();
+        auto cost3 = std::chrono::duration_cast<std::chrono::duration<double>>(time4 - time3).count();
+        std::cout << cost1 << " " << cost2 << " " << cost3 << std::endl;
+//        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
+//        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -220,9 +235,11 @@ namespace experiment::hop::ruc::increase {
                                         auto item = hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                                      dx + nei.second);
                                         q.push(item);
+                                        mtx_599_1.lock();
                                         this->list_infinite.emplace_back(item.index, v, item.hop,
                                                                          std::numeric_limits<hop_weight_type>::max(),
                                                                          item.disx);
+                                        mtx_599_1.unlock();
                                     }
                                 }
                             }
@@ -441,14 +458,8 @@ namespace experiment::hop::ruc::increase {
                 mtx_599_1.unlock();
                 return 1;
             }));
-            for (size_t i = 0; i < results_dynamic.size(); ++i) {
-                try {
-                    results_dynamic[i].get();
-                } catch (const std::exception &e) {
-                    std::cerr << "Task #" << i << " threw exception: " << e.what() << std::endl;
-                } catch (...) {
-                    std::cerr << "Task #" << i << " threw unknown exception." << std::endl;
-                }
+            for (auto & i : results_dynamic) {
+                i.get();
             }
             std::vector<std::future<int> >().swap(results_dynamic);
         }
@@ -562,7 +573,7 @@ namespace experiment::hop::ruc::increase {
                     pq.pop();
                     //                    if (xhv <= upper_k)
                     //                        Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
-                    if (Q_VALUE[x][xhv-1]!=-1 && Q_VALUE[x][xhv-1] <= dx) {
+                    if (Q_VALUE[x][xhv - 1] != -1 && Q_VALUE[x][xhv - 1] <= dx) {
                         continue;
                     }
                     L_lock[x].lock();
@@ -573,8 +584,10 @@ namespace experiment::hop::ruc::increase {
                     if (dx >= 0 && dx < d_old.first) {
                         L_lock[x].lock();
                         insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
-                        this->list.emplace_back(x, v, xhv, dx, d_old.first);
                         L_lock[x].unlock();
+                        mtx_599_1.lock();
+                        this->list.emplace_back(x, v, xhv, dx, d_old.first);
+                        mtx_599_1.unlock();
                     } else {
                         continue;
                     }
@@ -626,7 +639,9 @@ namespace experiment::hop::ruc::increase {
                                                 (*L)[xnei], v, hop_nei, shard);
                                 L_lock[xnei].unlock();
                                 for (int index = best_hop; index <= hop_nei; ++index) {
-                                    Q_VALUE[xnei][index] = best_dis;
+                                    if (Q_VALUE[xnei][index] == -1) {
+                                        Q_VALUE[xnei][index] = best_dis;
+                                    }
                                 }
                             }
                             if (Q_VALUE[xnei][hop_nei] > d_new) {

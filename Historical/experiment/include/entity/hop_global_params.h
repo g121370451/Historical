@@ -231,8 +231,9 @@ namespace experiment::hop {
             fout << std::left << std::setw(10) << label.vertex
                     << std::setw(10) << label.hub
                     << std::setw(10) << label.hop
-                    << std::setw(10) << label.distance << "\n";
-//                    << std::setw(10) << label.old_distance <<
+                    << std::setw(10) << label.distance
+//                    << std::setw(10) << label.old_distance
+                    << "\n";
         }
         fout.close();
     }
