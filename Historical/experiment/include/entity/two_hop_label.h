@@ -77,9 +77,9 @@ namespace experiment {
         /*result as std::pair<int,int> means <distance,hub>*/
         template<typename hop_weight_type>
         std::pair<hop_weight_type, int> graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-            std::vector<two_hop_label<hop_weight_type> > &L_s,
-            std::vector<two_hop_label<hop_weight_type> > &L_t, int source, int terminal,
-            experiment::result::MaintainShard &maintain_shard) {
+                std::vector<two_hop_label<hop_weight_type> > &L_s,
+                std::vector<two_hop_label<hop_weight_type> > &L_t, int source, int terminal,
+                experiment::result::MaintainShard &maintain_shard) {
             /*return std::numeric_limits<double>::max() is not connected*/
             if (experiment::status::currentTimeMode == experiment::status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.cover_count_slot1;
@@ -245,7 +245,7 @@ namespace experiment {
                 BinarySerializer<size_t>::saveBinary(out, size);
                 for (auto &item: L) {
                     BinarySerializer<std::vector<experiment::nonhop::two_hop_label<hop_weight_type> > >::saveBinary(out,
-                        item);
+                                                                                                                    item);
                     out.flush();
                 }
                 experiment::saveBinary(out, PPR);
@@ -258,7 +258,7 @@ namespace experiment {
                 L.resize(size);
                 for (auto &item: L) {
                     BinarySerializer<std::vector<experiment::nonhop::two_hop_label<hop_weight_type> > >::loadBinary(in,
-                        item);
+                                                                                                                    item);
                 }
                 experiment::loadBinary(in, PPR);
             }
@@ -306,7 +306,7 @@ namespace experiment {
                     std::cout << "L[" << i << "]=";
                     for (int j = 0; j < L[i].size(); j++) {
                         std::cout << "{" << L[i][j].vertex << "," << L[i][j].distance << "," << L[i][j].t_s << ","
-                                << L[i][j].t_e << "}";
+                                  << L[i][j].t_e << "}";
                     }
                     std::cout << std::endl;
                 }
@@ -428,7 +428,7 @@ namespace experiment {
 
             friend std::ostream &operator<<(std::ostream &out, const two_hop_label &obj) {
                 out << "two_hop_label object: vertex = " << obj.hub_vertex << ", dis = " << obj.distance << ", hop = "
-                        << obj.hop << ", ts = " << obj.t_s << ", te = " << obj.t_e << std::endl;
+                    << obj.hop << ", ts = " << obj.t_s << ", te = " << obj.t_e << std::endl;
                 return out;
             }
         };
@@ -468,10 +468,10 @@ namespace experiment {
         template<typename hop_weight_type>
         std::tuple<hop_weight_type, int, int>
         graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-            std::vector<two_hop_label<hop_weight_type> > &L_s, std::vector<two_hop_label<hop_weight_type> > &L_t,
-            int source, int terminal,
-            int hop_cst,
-            result::MaintainShard &maintain_shard) {
+                std::vector<two_hop_label<hop_weight_type> > &L_s, std::vector<two_hop_label<hop_weight_type> > &L_t,
+                int source, int terminal,
+                int hop_cst,
+                result::MaintainShard &maintain_shard) {
             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.cover_count_slot1;
             } else {
@@ -545,10 +545,10 @@ namespace experiment {
         template<typename hop_weight_type>
         std::vector<std::tuple<hop_weight_type, int, int> >
         graph_weighted_two_hop_extract_all_distances_under_hop_limit(
-            std::vector<two_hop_label<hop_weight_type> > &L_s, std::vector<two_hop_label<hop_weight_type> > &L_t,
-            int source, int terminal,
-            int hop_cst,
-            result::MaintainShard &maintain_shard) {
+                std::vector<two_hop_label<hop_weight_type> > &L_s, std::vector<two_hop_label<hop_weight_type> > &L_t,
+                int source, int terminal,
+                int hop_cst,
+                result::MaintainShard &maintain_shard) {
             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.cover_count_slot1;
             } else {
@@ -735,8 +735,8 @@ namespace experiment {
         template<typename hop_weight_type>
         std::pair<hop_weight_type, int>
         search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
-            std::vector<two_hop_label<hop_weight_type> > &input_vector, int key,
-            int hop_k, result::MaintainShard &maintain_shard) {
+                std::vector<two_hop_label<hop_weight_type> > &input_vector, int key,
+                int hop_k, result::MaintainShard &maintain_shard) {
             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                 ++maintain_shard.label_count_slot1;
             } else {
@@ -842,7 +842,7 @@ namespace experiment {
                                 }
                                 if (insert_left > input_vector.size()) {
                                     std::cerr << "insert_left out of range: " << insert_left << " > "
-                                            << input_vector.size() << std::endl;
+                                              << input_vector.size() << std::endl;
                                     return;
                                 }
                                 input_vector.insert(input_vector.begin() + insert_left, old_label);
@@ -892,7 +892,7 @@ namespace experiment {
                 BinarySerializer<size_t>::saveBinary(out, size);
                 for (const std::vector<experiment::hop::two_hop_label<hop_weight_type> > &item: L) {
                     BinarySerializer<std::vector<experiment::hop::two_hop_label<hop_weight_type> > >::saveBinary(
-                        out, item);
+                            out, item);
                     out.flush();
                 }
                 experiment::saveBinary(out, PPR);
@@ -906,7 +906,7 @@ namespace experiment {
                 L.resize(size);
                 for (std::vector<experiment::hop::two_hop_label<hop_weight_type> > &item: L) {
                     BinarySerializer<std::vector<experiment::hop::two_hop_label<hop_weight_type> > >::loadBinary(
-                        in, item);
+                            in, item);
                 }
                 experiment::loadBinary(in, PPR);
             }
@@ -932,7 +932,7 @@ namespace experiment {
                     std::cout << "vertex " << index++ << ": ";
                     for (auto &yy: xx) {
                         std::cout << "(" << yy.hub_vertex << "," << yy.hop << "," << yy.distance << "," << yy.t_s << ","
-                                << yy.t_e << ")";
+                                  << yy.t_e << ")";
                     }
                     std::cout << std::endl;
                 }
@@ -954,7 +954,7 @@ namespace experiment {
             void print_L_vk(int v_k) {
                 for (auto it = L[v_k].begin(); it != L[v_k].end(); it++) {
                     std::cout << "(" << it->hub_vertex << "," << it->hop << "," << it->distance << "," << it->t_s << ","
-                            << it->t_e << ")";
+                              << it->t_e << ")";
                 }
                 std::cout << std::endl;
             }
@@ -1051,7 +1051,7 @@ namespace experiment {
                 if (curr.t_e == prev.t_e && curr.hub_vertex == prev.hub_vertex && curr.hop <= prev.hop) {
                     return false;
                 } else if (curr.t_e == prev.t_e && curr.hub_vertex == prev.hub_vertex && curr.hop > prev.hop && curr.
-                           distance >= prev.distance) {
+                        distance >= prev.distance) {
                     return false;
                 }
             }

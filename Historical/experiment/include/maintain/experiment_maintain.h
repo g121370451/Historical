@@ -642,17 +642,17 @@ namespace experiment {
             auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 119);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
-            auto res1 = this->hop_info.query(424, 2, 1, 1, 5);
-            auto res2 = this->hop_info_2021.query(424, 2, 1, 1, 5);
+            auto res1 = this->hop_info.query(119, 2, 1, 1, 5);
+            auto res2 = this->hop_info_2021.query(119, 2, 1, 1, 5);
 //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 424, 2, 1, 1, 5);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 119, 2, 1, 1, 5);
             std::cout << "res1 : " << res1 << " res2: "<< res2 << " res3: " << res3 << std::endl;
         }
 
         // 保存csv的值
         void save_csv() {
             experiment::result::global_csv_config.ruc_counter.merge_to(
-                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
+                    static_cast<result ::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
             experiment::result::global_csv_config.old_counter.merge_to(
                     static_cast<result::MaintainShard &>(experiment::result::global_csv_config.old_data));
             csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
