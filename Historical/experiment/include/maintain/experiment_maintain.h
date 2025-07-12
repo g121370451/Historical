@@ -518,14 +518,14 @@ namespace experiment {
             std::queue<int>().swap(hop::Qid_599);
             for (int i = 0; i < this->thread_num; i++) {
                 hop::dist_hop_599_v2<HopType>[i].resize(N, {-1, 0});
-                hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k, -1));
+                hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, -1));
                 hop::Qid_599.push(i);
             }
         };
 
         // 动态维护
         void maintain() {
-            for (int time = 1; time <= 1; time++) {
+            for (int time = 1; time <= iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
@@ -638,14 +638,14 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 119);
-            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 119);
+            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 5170);
+            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 5170);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
-            auto res1 = this->hop_info.query(119, 2, 1, 1, 5);
-            auto res2 = this->hop_info_2021.query(119, 2, 1, 1, 5);
+            auto res1 = this->hop_info.query(5170, 4, 1, 1, 3);
+            auto res2 = this->hop_info_2021.query(5170, 4, 1, 1, 3);
 //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 119, 2, 1, 1, 5);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 5170, 4, 1, 1, 3);
             std::cout << "res1 : " << res1 << " res2: "<< res2 << " res3: " << res3 << std::endl;
         }
 

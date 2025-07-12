@@ -166,8 +166,8 @@ namespace experiment::hop::ruc::increase {
         auto cost2 = std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
         auto cost3 = std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
         std::cout << cost1 << " " << cost2 << " " << cost3 << std::endl;
-        //        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
-        //        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
+//        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
+//        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -431,7 +431,8 @@ namespace experiment::hop::ruc::increase {
         double r3 = std::accumulate(cost3.begin(), cost3.end(), 0.0);
         double r4 = std::accumulate(cost4.begin(), cost4.end(), 0.0);
         double r5 = std::accumulate(cost5.begin(), cost5.end(), 0.0);
-        std::cout << "Spread2 " <<costPre0 << " " << r0 << " " << r1 << " " << r2 << " " << r3 << " " << r4 << " " << r5 << std::endl;
+        std::cout << "Spread2 " << costPre0 << " " << r0 << " " << r1 << " " << r2 << " " << r3 << " " << r4 << " "
+                  << r5 << std::endl;
         std::cout << "Spread2  old size is " << oldSpread2Size << " new Size is " << newSpread2Size << std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
     }
@@ -448,6 +449,11 @@ namespace experiment::hop::ruc::increase {
         double cost1 = 0;
         double cost2 = 0;
         double cost3 = 0;
+        double cost4 = 0;
+        double cost5 = 0;
+        double cost6 = 0;
+        double cost7 = 0;
+        double cost8 = 0;
         std::map<hop_constrained_pair_label, hop_weight_type> al3_edge_map;
         for (auto &it: al3) {
             hop_constrained_pair_label label{it.first, it.second, it.hop};
@@ -455,11 +461,11 @@ namespace experiment::hop::ruc::increase {
                 al3_edge_map[label] = it.dis;
             }
         }
-        std::vector<hop_constrained_pair_label> global_al2;
-        for (const auto &item: al3_edge_map) {
-            global_al2.push_back(item.first);
-        }
-        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
+//        std::vector<hop_constrained_pair_label> global_al2;
+//        for (const auto &item: al3_edge_map) {
+//            global_al2.push_back(item.first);
+//        }
+//        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
         // al3_map[v]=(u1,hop1,dis1),(u2,hop2,dis2)...
@@ -482,11 +488,20 @@ namespace experiment::hop::ruc::increase {
         for (auto &al3_item: al3_map) {
             // results_dynamic.emplace_back(pool_dynamic.enqueue([time, al3_item, L, &instance_graph, PPR, upper_k] {
             results_dynamic.emplace_back(pool_dynamic.enqueue(
-                    [time, al3_item, L, &instance_graph, PPR, upper_k, this, &cost1, &cost2, &cost3] {
+                    [time, al3_item, L, &instance_graph, PPR, upper_k, this, &cost1, &cost2, &cost3, &cost4, &cost5, &cost6, &cost7, &cost8] {
                         mtx_599_1.lock();
                         int current_tid = Qid_599.front();
                         Qid_599.pop();
                         mtx_599_1.unlock();
+
+                        double cost_inner_1 = 0;
+                        double cost_inner_2 = 0;
+                        double cost_inner_3 = 0;
+                        double cost_inner_4 = 0;
+                        double cost_inner_5 = 0;
+                        double cost_inner_6 = 0;
+                        double cost_inner_7 = 0;
+                        double cost_inner_8 = 0;
 
                         auto &counter = result::global_csv_config.ruc_counter;
                         auto &shard = counter.get_thread_maintain_shard(current_tid);
@@ -499,7 +514,9 @@ namespace experiment::hop::ruc::increase {
                         auto Lv = (*L)[v]; // to avoid interlocking
                         L_lock[v].unlock();
                         auto time2 = std::chrono::steady_clock::now();
-
+                        cost_inner_1 = std::chrono::duration_cast<std::chrono::duration<double> >(
+                                time2 - time1).
+                                count();
                         std::vector<int> dist_hop_changes;
                         auto &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
                         boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type> > pq;
@@ -543,6 +560,9 @@ namespace experiment::hop::ruc::increase {
                             }
                         }
                         auto time3 = std::chrono::steady_clock::now();
+                        cost_inner_2 = std::chrono::duration_cast<std::chrono::duration<double> >(
+                                time3 - time2).
+                                count();
                         while (!pq.empty()) {
                             int x = pq.top().index;
                             int xhv = pq.top().hop;
@@ -553,15 +573,27 @@ namespace experiment::hop::ruc::increase {
                             if (Q_VALUE[x][xhv - 1] != -1 && Q_VALUE[x][xhv - 1] <= dx) {
                                 continue;
                             }
+                            auto time01 = std::chrono::steady_clock::now();
+
                             L_lock[x].lock();
                             std::pair<hop_weight_type, int> d_old =
                                     search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
                                             (*L)[x], v, xhv, shard);
                             L_lock[x].unlock();
+                            auto time02 = std::chrono::steady_clock::now();
+                            cost_inner_3 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                    time02 - time01).
+                                    count();
                             if (dx >= 0 && dx < d_old.first) {
+                                auto time03 = std::chrono::steady_clock::now();
                                 L_lock[x].lock();
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
                                 L_lock[x].unlock();
+                                Q_VALUE[x][xhv] = dx;
+                                auto time04 = std::chrono::steady_clock::now();
+                                cost_inner_4 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                        time04 - time03).
+                                        count();
                                 mtx_599_1.lock();
                                 this->list.emplace_back(x, v, xhv, dx, d_old.first);
                                 mtx_599_1.unlock();
@@ -584,17 +616,23 @@ namespace experiment::hop::ruc::increase {
                                 hop_constrained_node_for_DIFFUSE node = {xnei, xhv + 1, d_new};
 
                                 if (dist_hop[xnei].first == -1) {
+                                    auto time05 = std::chrono::steady_clock::now();
                                     L_lock[xnei].lock();
                                     auto [query_dis, query_hop, query_hub] =
                                             graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                                     (*L)[xnei], Lv, xnei, v, upper_k, shard);
                                     L_lock[xnei].unlock();
+                                    auto time06 = std::chrono::steady_clock::now();
+                                    cost_inner_5 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                            time06 - time05).
+                                            count();
                                     dist_hop[xnei].first = query_dis;
                                     dist_hop[xnei].second = query_hop;
                                     dist_hop_changes.push_back(xnei);
                                     hubs[xnei] = query_hub;
                                 }
                                 if (d_new < dist_hop[xnei].first) {
+                                    auto time07 = std::chrono::steady_clock::now();
                                     if (Q_handle.contains({xnei, hop_nei})) {
                                         if (Q_handle[{xnei, hop_nei}].second > d_new) {
                                             pq.update(Q_handle[{xnei, hop_nei}].first, node);
@@ -607,7 +645,12 @@ namespace experiment::hop::ruc::increase {
                                     dist_hop[xnei].second = hop_nei;
                                     hubs[xnei] = v;
                                     Q_VALUE[xnei][hop_nei] = d_new;
+                                    auto time08 = std::chrono::steady_clock::now();
+                                    cost_inner_6 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                            time08 - time07).
+                                            count();
                                 } else if (hop_nei < dist_hop[xnei].second) {
+                                    auto time09 = std::chrono::steady_clock::now();
                                     if (Q_VALUE[xnei][hop_nei] == -1) {
                                         L_lock[xnei].lock();
                                         // 查询当前的单侧值 如果更小则加入
@@ -632,8 +675,13 @@ namespace experiment::hop::ruc::increase {
                                         }
                                         Q_VALUE[xnei][hop_nei] = d_new;
                                     }
+                                    auto time10 = std::chrono::steady_clock::now();
+                                    cost_inner_7 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                            time10 - time09).
+                                            count();
                                 }
 
+                                auto time11 = std::chrono::steady_clock::now();
                                 if (dist_hop[xnei].first < d_new) {
                                     if (hubs[xnei] != -1 && hubs[xnei] != v) {
                                         ppr_lock[xnei].lock();
@@ -646,6 +694,10 @@ namespace experiment::hop::ruc::increase {
                                         ppr_lock[v].unlock();
                                     }
                                 }
+                                auto time12 = std::chrono::steady_clock::now();
+                                cost_inner_8 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                        time12 - time11).
+                                        count();
                             }
                         }
                         auto time4 = std::chrono::steady_clock::now();
@@ -657,10 +709,15 @@ namespace experiment::hop::ruc::increase {
                         }
                         mtx_599_1.lock();
                         Qid_599.push(current_tid);
+                        cost1 += cost_inner_1;
+                        cost2 += cost_inner_2;
+                        cost3 += cost_inner_3;
+                        cost4 += cost_inner_4;
+                        cost5 += cost_inner_5;
+                        cost6 += cost_inner_6;
+                        cost7 += cost_inner_7;
+                        cost8 += cost_inner_8;
                         mtx_599_1.unlock();
-                        cost1 += std::chrono::duration_cast<std::chrono::duration<double> >(time2 - time1).count();
-                        cost2 += std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
-                        cost3 += std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
                         return 1;
                     }));
         }
@@ -668,7 +725,9 @@ namespace experiment::hop::ruc::increase {
         for (auto &&result: results_dynamic) {
             result.get();
         }
-        std::cout << "Spread3 " << cost1 << " " << cost2 << " " << cost3 << std::endl;
+        std::cout << "Spread3 " << cost1 << " " << cost2 << " " << cost3 << " " << cost4 << " "
+                  << cost5 << " " << cost6 << " " << cost7 << " " << cost8
+                  << std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
     }
 }

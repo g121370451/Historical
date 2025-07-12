@@ -18,6 +18,7 @@ namespace experiment::hop::algorithm2021::increase {
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 
     private:
+        double cost_inner3 = 0;
         std::vector<record_in_increase_with_hop<hop_weight_type> > list;
         std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
 
@@ -122,6 +123,7 @@ namespace experiment::hop::algorithm2021::increase {
         double cost1 = 0;
         double cost2 = 0;
         double cost3 = 0;
+        double cost33 = 0;
         while (!al1_curr.empty() || !al2_curr.empty()) {
             std::cout << " al1 size is " << al1_curr.size() << " al2_size is " << al2_curr.size() << std::endl;
             al1Size += al1_curr.size();
@@ -131,6 +133,7 @@ namespace experiment::hop::algorithm2021::increase {
             auto time2 = std::chrono::steady_clock::now();
             PI12(instance_graph, &mm.L, &mm.PPR, al1_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
             auto time3 = std::chrono::steady_clock::now();
+
             PI22(instance_graph, &mm.L, &mm.PPR, al2_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
             auto time4 = std::chrono::steady_clock::now();
             cost1 += std::chrono::duration_cast<std::chrono::duration<double>>(time2 - time1).count();
@@ -144,10 +147,10 @@ namespace experiment::hop::algorithm2021::increase {
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(al1_next);
             std::vector<hop_constrained_pair_label>().swap(al2_next);
         }
-        std::cout << "2021 " << cost1 << " " << cost2 << " " << cost3 << std::endl;
-        hop::sort_and_output_to_file(global_al2, "2021_al2.txt");
-        hop::sort_and_output_to_file(this->list, "increase_item_2021.txt");
-        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_2021_infinite.txt");
+        std::cout << "2021 " << cost1 << " " << cost2 << " " << cost3 <<" " << this->cost_inner3 << std::endl;
+//        hop::sort_and_output_to_file(global_al2, "2021_al2.txt");
+//        hop::sort_and_output_to_file(this->list, "increase_item_2021.txt");
+//        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_2021_infinite.txt");
         std::cout << "2021 algorithm al1Size is " << al1Size << " al2Size is " << al2Size << std::endl;
     };
 
@@ -477,11 +480,18 @@ namespace experiment::hop::algorithm2021::increase {
                                         std::cout << "overflow happen in maintain increase 2021 with hop pi22"
                                                   << std::endl;
                                     }
+                                    auto time3 = std::chrono::steady_clock::now();
                                     L_lock[nei.first].lock();
                                     auto [query_dis, query_hop, query_hub] =
                                             graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                                     (*L)[nei.first], Lxx, nei.first, it.second, it.hop + 1, shard);
                                     L_lock[nei.first].unlock();
+                                    auto time4 = std::chrono::steady_clock::now();
+                                    mtx_599_1.lock();
+                                    this->cost_inner3 += std::chrono::duration_cast<std::chrono::duration<double> >(
+                                            time4 - time3).
+                                            count();
+                                    mtx_599_1.unlock();
                                     if (query_dis > d_new) {
                                         L_lock[nei.first].lock();
                                         insert_sorted_hop_constrained_two_hop_label_with_csv(
