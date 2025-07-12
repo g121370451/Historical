@@ -1,4 +1,5 @@
 #pragma once
+
 #include <shared_mutex>
 #include <vector>
 #include <queue>
@@ -14,7 +15,7 @@ namespace experiment::hop {
 
     template<typename hop_weight_type>
     using hop_constrained_node_handle = typename boost::heap::fibonacci_heap<two_hop_label<
-        hop_weight_type> >::handle_type;
+            hop_weight_type> >::handle_type;
 
     inline PPR_TYPE::PPR_type PPR_599;
     /** std::pair<dis,hop> */
@@ -24,7 +25,7 @@ namespace experiment::hop {
     inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599;
     template<typename hop_weight_type>
     inline std::vector<std::vector<std::vector<std::pair<hop_constrained_node_handle<hop_weight_type>,
-        hop_weight_type> > > > Q_handle_priorities_599;
+            hop_weight_type> > > > Q_handle_priorities_599;
 #pragma endregion
 #pragma region hop maintain global variables
     inline std::mutex mtx_599_1;
@@ -53,9 +54,24 @@ namespace experiment::hop {
             dis = _dis;
         }
 
+        bool operator==(const hop_constrained_affected_label other) const {
+            return (first == other.first && second == other.second && hop == other.hop && dis == other.dis);
+        }
+
+        bool operator<(const hop_constrained_affected_label other) const {
+            // used to sort/search pair_label2 in set
+            if (second != other.second)
+                return second < other.second;
+            if (first != other.first)
+                return first < other.first;
+            if (hop != other.hop)
+                return hop < other.hop;
+            return dis < other.dis;
+        }
+
         friend std::ostream &operator<<(std::ostream &out, const hop_constrained_affected_label<hop_weight_type> &obj) {
             out << "hop_constrained_affected_label object: first = " << obj.first << ", second = " << obj.second <<
-                    ", hop = " << obj.hop << ", dis = " << obj.dis << std::endl;
+                ", hop = " << obj.hop << ", dis = " << obj.dis << std::endl;
             return out;
         }
     };
@@ -95,15 +111,41 @@ namespace experiment::hop {
         }
 
         fout << std::left << std::setw(10) << "First"
-                << std::setw(10) << "Second"
-                << std::setw(10) << "Hop" << "\n";
+             << std::setw(10) << "Second"
+             << std::setw(10) << "Hop" << "\n";
 
         fout << std::string(30, '-') << "\n";
 
         for (const auto &label: labels) {
             fout << std::left << std::setw(10) << label.first
-                    << std::setw(10) << label.second
-                    << std::setw(10) << label.hop << "\n";
+                 << std::setw(10) << label.second
+                 << std::setw(10) << label.hop << "\n";
+        }
+
+        fout.close();
+    }
+
+    template<typename hop_weight_type>
+    static void sort_and_output_to_file(std::vector<hop_constrained_affected_label<hop_weight_type>> &labels,
+                                        const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "First"
+             << std::setw(10) << "Second"
+             << std::setw(10) << "Hop" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (const auto &label: labels) {
+            fout << std::left << std::setw(10) << label.first
+                 << std::setw(10) << label.second
+                 << std::setw(10) << label.hop << "\n";
         }
 
         fout.close();
@@ -152,7 +194,7 @@ namespace experiment::hop {
     }; // define the node in the queue
     template<typename hop_weight_type>
     using hop_constrained_handle_t_for_DIFFUSE = boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<
-        hop_weight_type> >::handle_type;
+            hop_weight_type> >::handle_type;
 
     template<typename hop_weight_type>
     bool operator<(hop_constrained_node_for_DIFFUSE<hop_weight_type> const &x,
@@ -179,9 +221,9 @@ namespace experiment::hop {
         }
 
         record_in_increase_with_hop(
-            int _vertex, int _hub, int _hop,
-            hop_weight_type _distance, hop_weight_type _old_distance)
-            : vertex(_vertex), hub(_hub), hop(_hop), distance(_distance), old_distance(_old_distance) {
+                int _vertex, int _hub, int _hop,
+                hop_weight_type _distance, hop_weight_type _old_distance)
+                : vertex(_vertex), hub(_hub), hop(_hop), distance(_distance), old_distance(_old_distance) {
         }
 
         bool operator==(const record_in_increase_with_hop &other) const {
@@ -204,13 +246,15 @@ namespace experiment::hop {
 
         friend std::ostream &operator<<(std::ostream &out, const record_in_increase_with_hop<hop_weight_type> &obj) {
             out << "record_in_increase_with_hop object: vertex = " << obj.vertex << ", hub = " << obj.hub << ", hop = "
-                    << obj.hop <<
-            ", dis = " << obj.distance << ", old_distance = " << obj.old_distance << std::endl;
+                << obj.hop <<
+                ", dis = " << obj.distance << ", old_distance = " << obj.old_distance << std::endl;
             return out;
         }
     };
+
     template<typename hop_weight_type>
-    static void sort_and_output_to_file(std::vector<record_in_increase_with_hop<hop_weight_type>> &labels, const std::string &filename) {
+    static void sort_and_output_to_file(std::vector<record_in_increase_with_hop<hop_weight_type>> &labels,
+                                        const std::string &filename) {
         std::sort(labels.begin(), labels.end());
 
         std::ofstream fout(filename);
@@ -220,26 +264,27 @@ namespace experiment::hop {
         }
 
         fout << std::left << std::setw(10) << "vertex"
-                << std::setw(10) << "hub"
-                << std::setw(10) << "hop"
-                << std::setw(10) << "distance"
-                << std::setw(10) << "old_distance" << "\n";
+             << std::setw(10) << "hub"
+             << std::setw(10) << "hop"
+             << std::setw(10) << "distance"
+             << std::setw(10) << "old_distance" << "\n";
 
         fout << std::string(30, '-') << "\n";
 
         for (const auto &label: labels) {
             fout << std::left << std::setw(10) << label.vertex
-                    << std::setw(10) << label.hub
-                    << std::setw(10) << label.hop
-                    << std::setw(10) << label.distance
-//                    << std::setw(10) << label.old_distance
-                    << "\n";
+                 << std::setw(10) << label.hub
+                 << std::setw(10) << label.hop
+                 << std::setw(10) << label.distance
+                 //                    << std::setw(10) << label.old_distance
+                 << "\n";
         }
         fout.close();
     }
 
     template<typename hop_weight_type>
-    static void sort_and_output_to_file_unique(std::vector<record_in_increase_with_hop<hop_weight_type>> &labels, const std::string &filename) {
+    static void sort_and_output_to_file_unique(std::vector<record_in_increase_with_hop<hop_weight_type>> &labels,
+                                               const std::string &filename) {
         std::sort(labels.begin(), labels.end());
 
         std::ofstream fout(filename);
@@ -249,25 +294,26 @@ namespace experiment::hop {
         }
 
         fout << std::left << std::setw(10) << "vertex"
-                << std::setw(10) << "hub"
-                << std::setw(10) << "hop"
-                << std::setw(20) << "distance"
-                << std::setw(20) << "old_distance" << "\n";
+             << std::setw(10) << "hub"
+             << std::setw(10) << "hop"
+             << std::setw(20) << "distance"
+             << std::setw(20) << "old_distance" << "\n";
 
         fout << std::string(30, '-') << "\n";
 
         for (size_t index = 0; index < labels.size(); ++index) {
             if (index > 0 && labels[index] != labels[index - 1]) {
                 fout << std::left << std::setw(10) << labels[index].vertex
-                    << std::setw(10) << labels[index].hub
-                    << std::setw(10) << labels[index].hop
-                    << std::setw(20) << labels[index].distance
-                    << std::setw(20) << labels[index].old_distance
-                << "\n";
+                     << std::setw(10) << labels[index].hub
+                     << std::setw(10) << labels[index].hop
+                     << std::setw(20) << labels[index].distance
+                     << std::setw(20) << labels[index].old_distance
+                     << "\n";
             }
 
         }
         fout.close();
     }
+
 #pragma endregion
 }
