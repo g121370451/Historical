@@ -228,7 +228,7 @@ namespace experiment::hop {
 
         bool operator==(const record_in_increase_with_hop &other) const {
             return (vertex == other.vertex && hub == other.hub && hop == other.hop
-                    && distance == other.distance && old_distance == other.old_distance);
+                    && distance == other.distance);
         }
 
         bool operator<(const record_in_increase_with_hop &other) const {

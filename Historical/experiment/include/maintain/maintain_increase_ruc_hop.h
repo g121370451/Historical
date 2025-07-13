@@ -14,11 +14,11 @@ namespace experiment::hop::ruc::increase {
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
                         std::vector<std::pair<int, int> > v, std::vector<weight_type> w_old_vec,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
-
-    private:
         std::vector<record_in_increase_with_hop<hop_weight_type> > list;
-        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
+    private:
 
+        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
+        std::vector<hop_constrained_pair_label> global_al2;
         void HOP_maintain_SPREAD1_batch(graph<weight_type> &instance_graph,
                                         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                         std::vector<hop_constrained_affected_label<hop_weight_type> > &al1,
@@ -166,8 +166,9 @@ namespace experiment::hop::ruc::increase {
         auto cost2 = std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
         auto cost3 = std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
         std::cout << cost1 << " " << cost2 << " " << cost3 << std::endl;
-//        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
-//        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
+        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
+        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
+        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -461,11 +462,10 @@ namespace experiment::hop::ruc::increase {
                 al3_edge_map[label] = it.dis;
             }
         }
-//        std::vector<hop_constrained_pair_label> global_al2;
-//        for (const auto &item: al3_edge_map) {
-//            global_al2.push_back(item.first);
-//        }
-//        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
+
+        for (const auto &item: al3_edge_map) {
+            this->global_al2.push_back(item.first);
+        }
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
         // al3_map[v]=(u1,hop1,dis1),(u2,hop2,dis2)...

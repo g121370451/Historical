@@ -56,11 +56,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
+        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
         experiment::hop::ruc::decrease::Strategy2024HopDecrease<GraphType, HopType> decreaseItem;
-        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
     };
 
     template<typename GraphType, typename HopType>
@@ -96,11 +96,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
+        experiment::nonhop::ruc::increase::Strategy2024NonHopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
         experiment::nonhop::ruc::decrease::Strategy2024NonHopDecrease<GraphType, HopType> decreaseItem;
-        experiment::nonhop::ruc::increase::Strategy2024NonHopIncrease<GraphType, HopType> increaseItem;
     };
 
     template<typename GraphType, typename HopType>
@@ -137,11 +137,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
+        experiment::nonhop::algorithm2021::increase::StrategyA2021NonHopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
         experiment::nonhop::algorithm2021::decrease::StrategyA2021NonHopDecrease<GraphType, HopType> decreaseItem;
-        experiment::nonhop::algorithm2021::increase::StrategyA2021NonHopIncrease<GraphType, HopType> increaseItem;
     };
 
     template<typename GraphType, typename HopType>
@@ -177,12 +177,11 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
-
+        experiment::hop::algorithm2021::increase::StrategyA2021HopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
         experiment::hop::algorithm2021::decrease::StrategyA2021HopDecrease<GraphType, HopType> decreaseItem;
-        experiment::hop::algorithm2021::increase::StrategyA2021HopIncrease<GraphType, HopType> increaseItem;
     };
 
 
@@ -525,7 +524,7 @@ namespace experiment {
 
         // 动态维护
         void maintain() {
-            for (int time = 1; time <= iteration_count; time++) {
+            for (int time = 1; time <= 1; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
@@ -638,17 +637,38 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 5170);
-            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 5170);
+            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 7394);
+            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 7394);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
-            auto res1 = this->hop_info.query(5170, 4, 1, 1, 3);
-            auto res2 = this->hop_info_2021.query(5170, 4, 1, 1, 3);
-//            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 5170, 4, 1, 1, 3);
-            std::cout << "res1 : " << res1 << " res2: "<< res2 << " res3: " << res3 << std::endl;
+            auto iter1 = this->ruc_process.increaseItem.list.begin();
+            auto iter2 = this->a2021_process.increaseItem.list.begin();
+            while (iter1 != this->ruc_process.increaseItem.list.end() || iter2 != this->a2021_process.increaseItem.list.end()) {
+                if ((*iter1) != (*iter2)) {
+                    if (iter2 == this->a2021_process.increaseItem.list.end() || *iter1 < *iter2) {
+                        checkDisCorrectness(iter1->vertex,iter1->hub,1,1,iter1->hop);
+                        ++iter1;
+                    }else if (iter1 == this->ruc_process.increaseItem.list.end() || *iter2 < *iter1) {
+                        checkDisCorrectness(iter2->vertex,iter2->hub,1,1,iter2->hop);
+                        ++iter2;
+                    }
+                }else {
+                    ++iter1;
+                    ++iter2;
+                }
+            }
         }
 
+        void checkDisCorrectness(int v, int u, int t_s, int t_e, int hop) {
+            auto res1 = this->hop_info.query(v, u, t_s, t_e, hop);
+            auto res2 = this->hop_info_2021.query(v, u, t_s, t_e, hop);
+            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
+            if (res1 != res2 || res3 != res1 || res2 != res3) {
+                std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
+                        << std::endl;
+            }
+        }
         // 保存csv的值
         void save_csv() {
             experiment::result::global_csv_config.ruc_counter.merge_to(
