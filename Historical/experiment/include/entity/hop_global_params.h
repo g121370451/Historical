@@ -28,13 +28,25 @@ namespace experiment::hop {
             hop_weight_type> > > > Q_handle_priorities_599;
 #pragma endregion
 #pragma region hop maintain global variables
+    template<typename hop_weight_type>
+    struct Best_distance_with_hop_by_cover{
+        hop_weight_type first;
+        int second;
+        int hub;
+        Best_distance_with_hop_by_cover(hop_weight_type _distance,int _hop,int _hub){
+            this->hub = _hub;
+            this->first = _distance;
+            this->second = _hop;
+        };
+    };
     inline std::mutex mtx_599_1;
 
     inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_599);
 
     inline std::vector<std::mutex> ppr_lock(max_N_ID_for_mtx_599);
     template<typename hop_weight_type>
-    inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599_v2;
+//    inline std::vector<std::vector<std::pair<hop_weight_type, int> > > dist_hop_599_v2;
+    inline std::vector<std::vector<std::vector<hop_weight_type>>> dist_hop_599_v2;
     template<typename hop_weight_type>
     inline std::vector<std::vector<std::vector<hop_weight_type>>> Q_value;
 

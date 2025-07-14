@@ -677,7 +677,7 @@ namespace experiment {
             return {mindis, hop_val};
         }
 
-        /**result is <dis,hop> .if dont find effective result, method will return the <max,max>*/
+        /**result is <dis,hop> .if dont find effective result, method will return the <max,hop_k>*/
         template<typename hop_weight_type>
         std::pair<hop_weight_type, int>
         search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
@@ -690,7 +690,7 @@ namespace experiment {
             }
             int left = 0, right = static_cast<int>(input_vector.size()) - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
-            int hop_val = std::numeric_limits<int>::max();
+            int hop_val = hop_k;
             if (input_vector.empty()) {
                 return {mindis, hop_val};
             }
@@ -714,11 +714,6 @@ namespace experiment {
                 }
             }
             // current item is legal
-            if (input_vector[left].hub_vertex == key && input_vector[left].hop <= hop_k) {
-                mindis = input_vector[left].distance;
-                hop_val = input_vector[left].hop;
-                left++;
-            }
             while (left < input_vector.size() &&
                    input_vector[left].t_e == std::numeric_limits<int>::max() &&
                    input_vector[left].hub_vertex == key && input_vector[left].hop <= hop_k) {

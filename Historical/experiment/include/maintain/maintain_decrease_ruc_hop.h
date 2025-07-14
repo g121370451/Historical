@@ -165,8 +165,8 @@ namespace experiment::hop::ruc::decrease {
                         auto Lv = (*L)[v]; // to avoid interlocking
                         L_lock[v].unlock();
 
-                        std::vector<int> dist_hop_changes;
-                        auto &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
+                        std::vector<std::pair<int, int>> dist_hop_changes;
+                        std::vector<std::vector<hop_weight_type>> &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
                         boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type> > pq;
                         std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>,
                                 hop_weight_type> > Q_handle;
@@ -178,8 +178,8 @@ namespace experiment::hop::ruc::decrease {
                             int h_v = it.hop;
                             hop_weight_type du = it.distance;
 
-                            dist_hop[u] = {du, h_v}; //  {dis, hop}
-                            dist_hop_changes.push_back(u);
+                            dist_hop[u][h_v] = du; //  {dis, hop, hub}
+                            dist_hop_changes.emplace_back(u, h_v);
                             hop_constrained_node_for_DIFFUSE<hop_weight_type> tmp;
                             tmp.index = u;
                             tmp.hop = h_v;
@@ -222,23 +222,26 @@ namespace experiment::hop::ruc::decrease {
                                                   << dx << " nei.second is " << nei.second << std::endl;
                                     }
                                     hop_constrained_node_for_DIFFUSE<hop_weight_type> node = {xnei, hop_nei, d_new};
-                                    if (dist_hop[xnei].first == -1) {
+                                    if (dist_hop[xnei][hop_nei] == -1) {
                                         // Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                         // Q_VALUE[xnei][hop_nei] = d_new;
                                         L_lock[xnei].lock();
-                                        auto [query_dis, query_hop, query_hub] =
-                                                graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                                                        (*L)[xnei], Lv, xnei, v, xhv + 1, shard);
+                                        auto allDistances =
+                                                graph_weighted_two_hop_extract_all_distances_under_hop_limit(
+                                                        (*L)[xnei], Lv, xnei, v, upper_k, shard);
                                         //std::pair<int, int> temp_dis = hop_constrained_extract_distance_and_hop(*L, xnei, v, xhv + 1);
                                         L_lock[xnei].unlock();
-                                        hubs[xnei] = query_hub;
+                                        for (auto [query_dis, query_hop, query_hub]: allDistances) {
+                                            if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                                                hubs[xnei] = query_hub;
+                                            }
+                                            dist_hop[xnei][query_hop] = query_dis;
+                                            dist_hop_changes.emplace_back(xnei, query_hop);
+                                        }
 
-                                        dist_hop[xnei].first = query_dis;
-                                        dist_hop[xnei].second = query_hop;
-                                        dist_hop_changes.push_back(xnei);
                                     }
 
-                                    if (d_new < dist_hop[xnei].first) {
+                                    if (d_new < dist_hop[xnei][upper_k]) {
                                         //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
                                         if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
                                             if (Q_handle[{xnei, hop_nei}].second > d_new) {
@@ -248,11 +251,12 @@ namespace experiment::hop::ruc::decrease {
                                         } else {
                                             Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                         }
-                                        dist_hop[xnei].first = d_new;
-                                        dist_hop[xnei].second = hop_nei;
+                                        for(int index = hop_nei;index<=upper_k;index++){
+                                            dist_hop[xnei][hop_nei] = d_new;
+                                        }
                                         hubs[xnei] = v;
                                         Q_VALUE[xnei][hop_nei] = d_new;
-                                    } else if (hop_nei < dist_hop[xnei].second) {
+                                    } else if(d_new < dist_hop[xnei][hop_nei]){
                                         //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
                                         if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
                                             if (Q_handle[{xnei, hop_nei}].second > d_new) {
@@ -266,7 +270,7 @@ namespace experiment::hop::ruc::decrease {
                                     }
 
 
-                                    if (dist_hop[xnei].first < d_new) {
+                                    if (dist_hop[xnei][hop_nei] < d_new) {
                                         if (hubs[xnei] != -1 && hubs[xnei] != v) {
                                             ppr_lock[xnei].lock();
                                             PPR_TYPE::PPR_insert(PPR, xnei, hubs[xnei], v);
@@ -281,8 +285,8 @@ namespace experiment::hop::ruc::decrease {
                                 }
                             }
                         }
-                        for (int i: dist_hop_changes) {
-                            dist_hop[i] = {-1, 0};
+                        for (const auto& item: dist_hop_changes) {
+                            dist_hop[item.first][item.second] = {-1};
                         }
                         Q_VALUE.resize(Q_VALUE.size(),
                                        std::vector<hop_weight_type>(upper_k + 1,

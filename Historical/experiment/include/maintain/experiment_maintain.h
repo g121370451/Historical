@@ -177,6 +177,7 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
+
         experiment::hop::algorithm2021::increase::StrategyA2021HopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
@@ -402,6 +403,10 @@ namespace experiment {
                                     result::global_csv_config.old_data);
         }
 
+        void check_correctness(){
+
+        }
+
     private:
         ruc ruc_process;
         a2021 a2021_process;
@@ -516,7 +521,7 @@ namespace experiment {
             hop::Q_value<HopType>.resize(this->thread_num);
             std::queue<int>().swap(hop::Qid_599);
             for (int i = 0; i < this->thread_num; i++) {
-                hop::dist_hop_599_v2<HopType>[i].resize(N, {-1, 0});
+                hop::dist_hop_599_v2<HopType>[i].resize(N,std::vector<HopType>(upper_k + 1, -1));
                 hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, -1));
                 hop::Qid_599.push(i);
             }
@@ -641,38 +646,33 @@ namespace experiment {
             auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 7394);
             std::cout << "isRight : " << isRight << std::endl;
             std::cout << "isRight1 : " << isRight1 << std::endl;
+
+        }
+
+        void check_correctness(){
             auto iter1 = this->ruc_process.increaseItem.list.begin();
             auto iter2 = this->a2021_process.increaseItem.list.begin();
-            while (iter1 != this->ruc_process.increaseItem.list.end() || iter2 != this->a2021_process.increaseItem.list.end()) {
+            while (iter1 != this->ruc_process.increaseItem.list.end() ||
+                   iter2 != this->a2021_process.increaseItem.list.end()) {
                 if ((*iter1) != (*iter2)) {
                     if (iter2 == this->a2021_process.increaseItem.list.end() || *iter1 < *iter2) {
-                        checkDisCorrectness(iter1->vertex,iter1->hub,1,1,iter1->hop);
+                        checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1, iter1->hop);
                         ++iter1;
-                    }else if (iter1 == this->ruc_process.increaseItem.list.end() || *iter2 < *iter1) {
-                        checkDisCorrectness(iter2->vertex,iter2->hub,1,1,iter2->hop);
+                    } else if (iter1 == this->ruc_process.increaseItem.list.end() || *iter2 < *iter1) {
+                        checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1, iter2->hop);
                         ++iter2;
                     }
-                }else {
+                } else {
                     ++iter1;
                     ++iter2;
                 }
             }
         }
 
-        void checkDisCorrectness(int v, int u, int t_s, int t_e, int hop) {
-            auto res1 = this->hop_info.query(v, u, t_s, t_e, hop);
-            auto res2 = this->hop_info_2021.query(v, u, t_s, t_e, hop);
-            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
-            if (res1 != res2 || res3 != res1 || res2 != res3) {
-                std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
-                        << std::endl;
-            }
-        }
         // 保存csv的值
         void save_csv() {
             experiment::result::global_csv_config.ruc_counter.merge_to(
-                    static_cast<result ::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
+                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
             experiment::result::global_csv_config.old_counter.merge_to(
                     static_cast<result::MaintainShard &>(experiment::result::global_csv_config.old_data));
             csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
@@ -706,6 +706,16 @@ namespace experiment {
         void readData(Args &&...args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
+        }
+        void checkDisCorrectness(int v, int u, int t_s, int t_e, int hop) {
+            auto res1 = this->hop_info.query(v, u, t_s, t_e, hop);
+            auto res2 = this->hop_info_2021.query(v, u, t_s, t_e, hop);
+            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
+            if (res1 != res2 || res3 != res1 || res2 != res3) {
+                std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
+                          << std::endl;
+            }
         }
     };
 

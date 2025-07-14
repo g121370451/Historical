@@ -517,8 +517,8 @@ namespace experiment::hop::ruc::increase {
                         cost_inner_1 = std::chrono::duration_cast<std::chrono::duration<double> >(
                                 time2 - time1).
                                 count();
-                        std::vector<int> dist_hop_changes;
-                        auto &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
+                        std::vector<std::pair<int,int>> dist_hop_changes;
+                        std::vector<std::vector<hop_weight_type>> &dist_hop = dist_hop_599_v2<hop_weight_type>[current_tid];
                         boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<hop_weight_type> > pq;
                         std::map<std::pair<int, int>, std::pair<hop_constrained_handle_t_for_DIFFUSE<hop_weight_type>,
                                 hop_weight_type> > Q_handle;
@@ -615,23 +615,27 @@ namespace experiment::hop::ruc::increase {
                                 }
                                 hop_constrained_node_for_DIFFUSE node = {xnei, xhv + 1, d_new};
 
-                                if (dist_hop[xnei].first == -1) {
+                                if (dist_hop[xnei][hop_nei] == -1) {
                                     auto time05 = std::chrono::steady_clock::now();
                                     L_lock[xnei].lock();
-                                    auto [query_dis, query_hop, query_hub] =
-                                            graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                    auto allDistances =
+                                            graph_weighted_two_hop_extract_all_distances_under_hop_limit(
                                                     (*L)[xnei], Lv, xnei, v, upper_k, shard);
                                     L_lock[xnei].unlock();
                                     auto time06 = std::chrono::steady_clock::now();
                                     cost_inner_5 += std::chrono::duration_cast<std::chrono::duration<double> >(
                                             time06 - time05).
                                             count();
-                                    dist_hop[xnei].first = query_dis;
-                                    dist_hop[xnei].second = query_hop;
-                                    dist_hop_changes.push_back(xnei);
-                                    hubs[xnei] = query_hub;
+                                    for (int i = 1; i <= upper_k; ++i) {
+                                        auto [query_dis,query_hop,query_hub] = allDistances[i];
+                                        if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                                            hubs[xnei] = query_hub;
+                                        }
+                                        dist_hop[xnei][i] = query_dis;
+                                        dist_hop_changes.emplace_back(xnei, i);
+                                    }
                                 }
-                                if (d_new < dist_hop[xnei].first) {
+                                if (d_new < dist_hop[xnei][upper_k]) {
                                     auto time07 = std::chrono::steady_clock::now();
                                     if (Q_handle.contains({xnei, hop_nei})) {
                                         if (Q_handle[{xnei, hop_nei}].second > d_new) {
@@ -641,16 +645,22 @@ namespace experiment::hop::ruc::increase {
                                     } else {
                                         Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                     }
-                                    dist_hop[xnei].first = d_new;
-                                    dist_hop[xnei].second = hop_nei;
+                                    for(int index = hop_nei;index<=upper_k;index++){
+                                        dist_hop[xnei][hop_nei] = d_new;
+                                    }
                                     hubs[xnei] = v;
-                                    Q_VALUE[xnei][hop_nei] = d_new;
                                     auto time08 = std::chrono::steady_clock::now();
                                     cost_inner_6 += std::chrono::duration_cast<std::chrono::duration<double> >(
                                             time08 - time07).
                                             count();
-                                } else if (hop_nei < dist_hop[xnei].second) {
+                                }
+                                else if (d_new < dist_hop[xnei][hop_nei]) {
                                     auto time09 = std::chrono::steady_clock::now();
+                                    for(int index=hop_nei;index<=upper_k;index++){
+                                        if(dist_hop[xnei][index] > d_new){
+                                            dist_hop[xnei][index] = d_new;
+                                        }
+                                    }
                                     if (Q_VALUE[xnei][hop_nei] == -1) {
                                         L_lock[xnei].lock();
                                         // 查询当前的单侧值 如果更小则加入
@@ -682,7 +692,7 @@ namespace experiment::hop::ruc::increase {
                                 }
 
                                 auto time11 = std::chrono::steady_clock::now();
-                                if (dist_hop[xnei].first < d_new) {
+                                if (dist_hop[xnei][hop_nei] < d_new) {
                                     if (hubs[xnei] != -1 && hubs[xnei] != v) {
                                         ppr_lock[xnei].lock();
                                         PPR_TYPE::PPR_insert(PPR, xnei, hubs[xnei], v);
@@ -701,8 +711,8 @@ namespace experiment::hop::ruc::increase {
                             }
                         }
                         auto time4 = std::chrono::steady_clock::now();
-                        for (int i: dist_hop_changes) {
-                            dist_hop[i] = {-1, 0};
+                        for (const auto& item: dist_hop_changes) {
+                            dist_hop[item.first][item.second] = {-1};
                         }
                         for (auto &q_item: Q_VALUE) {
                             std::fill(q_item.begin(), q_item.end(), -1);
