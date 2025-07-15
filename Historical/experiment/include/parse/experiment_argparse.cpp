@@ -25,26 +25,39 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
 
     // maintain-label
     argparse::ArgumentParser maintain_label("maintain-label");
-    maintain_label.add_argument("-t", "--threads").required().scan<'i', int>();
-    maintain_label.add_argument("-f", "--data_source").required();
-    maintain_label.add_argument("-p", "--save_path").required();
-    maintain_label.add_argument("-k", "--hop_limit").required().scan<'i', int>();
-    maintain_label.add_argument("-m", "--iterations").required().scan<'i', int>();
-    maintain_label.add_argument("-c", "--change_count").required().scan<'i', int>();
-    maintain_label.add_argument("-max", "--max_value").required().scan<'i', int>();
-    maintain_label.add_argument("-min", "--min_value").required().scan<'i', int>();
-    maintain_label.add_argument("-n", "--dataset").required();
+    maintain_label.add_argument("-t", "--threads").required().scan<'i', int>().help("开启的线程数");
+    maintain_label.add_argument("-f", "--data_source").required().help("数据来源");
+    maintain_label.add_argument("-p", "--save_path").required().help("结果集的保存路径，包括统计数据、图、索引数据");
+    maintain_label.add_argument("-k", "--hop_limit").required().scan<'i', int>().help("k-hop限制，如果k等于0使用non-hop算法，反之使用with-hop算法");
+    maintain_label.add_argument("-m", "--iterations").required().scan<'i', int>().help("演化图的演化次数");
+    maintain_label.add_argument("-c", "--change_count").required().scan<'i', int>().help("每次演化的边变化次数");
+    maintain_label.add_argument("-max", "--max_value").required().scan<'i', int>().help("变变化的最大值");
+    maintain_label.add_argument("-min", "--min_value").required().scan<'i', int>().help("变变化的最小值 不为负数");
+    maintain_label.add_argument("-n", "--dataset").required().help("csv统计中的数据集记录值");
+    maintain_label.add_argument("--check")
+            .default_value(false)
+            .implicit_value(true)
+            .nargs(0)
+            .help("开启正确性检查");
+
+    maintain_label.add_argument("--read_old")
+            .default_value("")
+            .help("读取旧数据路径，若为空则不读取");
+
+    maintain_label.add_argument("--strategy")
+            .default_value("")
+            .help("边变化策略，如：high_high_increase, low_low_mixed 等");
 
     // query-result
-    argparse::ArgumentParser query_label("query-result");
-    query_label.add_argument("-f", "--data_source").required();
-    query_label.add_argument("-t", "--threads").required().scan<'i', int>();
-    query_label.add_argument("-c", "--search_count").required().scan<'i', int>();
-    query_label.add_argument("-k", "--hop_limit").required().scan<'i', int>();
+//    argparse::ArgumentParser query_label("query-result");
+//    query_label.add_argument("-f", "--data_source").required();
+//    query_label.add_argument("-t", "--threads").required().scan<'i', int>();
+//    query_label.add_argument("-c", "--search_count").required().scan<'i', int>();
+//    query_label.add_argument("-k", "--hop_limit").required().scan<'i', int>();
 
     program.add_subparser(generate_label);
     program.add_subparser(maintain_label);
-    program.add_subparser(query_label);
+//    program.add_subparser(query_label);
 
     try
     {
@@ -82,19 +95,28 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
         config->max_value = maintain_label.get<int>("-max");
         config->min_value = maintain_label.get<int>("-min");
         config->datasetName = maintain_label.get<std::string>("-n");
+        config->enableCorrectnessCheck = maintain_label.get<bool>("--check");
+        std::string readOldPath = maintain_label.get<std::string>("--read_old");
+        if (!readOldPath.empty()) {
+            config->generatedFilePath = readOldPath;
+        }
+        std::string strategyInput = maintain_label.get<std::string>("--strategy");
+        if (!strategyInput.empty()) {
+            config->changeStrategy = strategyInput;
+        }
         if (config->max_value <= 0 || config->min_value <= 0)
         {
             throw std::invalid_argument("Error: max_value and min_value must be greater than 0.");
         }
     }
-    else if (program.is_subcommand_used("query-result"))
-    {
-        config->mode = QUERY_RESULT;
-        config->data_source = query_label.get<std::string>("-f");
-        config->change_count = query_label.get<int>("-c");
-        config->hop_limit = query_label.get<int>("-k");
-        config->threads = query_label.get<int>("-t");
-    }
+//    else if (program.is_subcommand_used("query-result"))
+//    {
+//        config->mode = QUERY_RESULT;
+//        config->data_source = query_label.get<std::string>("-f");
+//        config->change_count = query_label.get<int>("-c");
+//        config->hop_limit = query_label.get<int>("-k");
+//        config->threads = query_label.get<int>("-t");
+//    }
     else
     {
         std::cerr << "Error: Unknown subcommand." <<std::endl;

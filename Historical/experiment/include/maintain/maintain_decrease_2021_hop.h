@@ -14,9 +14,10 @@ namespace experiment::hop::algorithm2021::decrease {
                         std::vector<std::pair<int, int> > v, std::vector<weight_type> w_new,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 
-    private:
         std::vector<record_in_increase_with_hop<hop_weight_type>> list;
-        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
+
+    private:
+//        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
         void ProDecreasep_batch(graph<weight_type> &instance_graph,
                                 std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                 PPR_TYPE::PPR_type *PPR,
@@ -83,7 +84,7 @@ namespace experiment::hop::algorithm2021::decrease {
                                                                                          shard);
                                     L_lock[vnei].unlock();
                                     mtx_599_1.lock();
-                                    this->list.emplace_back(vnei, u, hop_u + 1, query_dis, dnew);
+                                    this->list.emplace_back(vnei, u, hop_u + 1, dnew, query_dis, time);
                                     CL_next->push_back(
                                             hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                                     mtx_599_1.unlock();
@@ -194,6 +195,7 @@ namespace experiment::hop::algorithm2021::decrease {
                         if (query_dis > dis) {
                             insert_sorted_hop_constrained_two_hop_label_with_csv(L[v2], _v, hop_v + 1, dis, time,
                                                                                  shard);
+                            this->list.emplace_back(v2, _v, hop_v + 1, dis, query_dis, time);
                             CL_curr.push_back(hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                         } else {
                             auto [label_dis, label_hop] =
@@ -203,6 +205,7 @@ namespace experiment::hop::algorithm2021::decrease {
                             if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dis) {
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((L)[v2], _v, hop_v + 1, dis, time,
                                                                                      shard);
+                                this->list.emplace_back(v2, _v, hop_v + 1, dis, label_dis, time);
                                 CL_curr.push_back(
                                         hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                             }
@@ -219,15 +222,15 @@ namespace experiment::hop::algorithm2021::decrease {
         }
         long long int size = 0;
         while (!CL_curr.empty()) {
-            CL_globals.insert(CL_globals.end(), CL_curr.begin(), CL_curr.end());
+//            CL_globals.insert(CL_globals.end(), CL_curr.begin(), CL_curr.end());
             size += CL_curr.size();
             ProDecreasep_batch(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic,
                                mm.upper_k, time);
             CL_curr = CL_next;
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(CL_next);
         }
-        experiment::hop::sort_and_output_to_file(CL_globals,"decrease_2021_CL.txt");
-        experiment::hop::sort_and_output_to_file(this->list,"decrease_2021_insert.txt");
+//        experiment::hop::sort_and_output_to_file(CL_globals,"decrease_2021_CL.txt");
+//        experiment::hop::sort_and_output_to_file(this->list,"decrease_2021_insert.txt");
         std::cout << "2021 decrease size is " << size << std::endl;
     }
 }

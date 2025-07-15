@@ -55,11 +55,16 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
-
-        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getIncreaseList(){
+            return increaseItem.list;
+        };
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
+            return decreaseItem.list;
+        };
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
+        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
         experiment::hop::ruc::decrease::Strategy2024HopDecrease<GraphType, HopType> decreaseItem;
     };
 
@@ -177,11 +182,16 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
-
-        experiment::hop::algorithm2021::increase::StrategyA2021HopIncrease<GraphType, HopType> increaseItem;
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getIncreaseList(){
+            return increaseItem.list;
+        };
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
+            return decreaseItem.list;
+        };
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
+        experiment::hop::algorithm2021::increase::StrategyA2021HopIncrease<GraphType, HopType> increaseItem;
         experiment::hop::algorithm2021::decrease::StrategyA2021HopDecrease<GraphType, HopType> decreaseItem;
     };
 
@@ -403,7 +413,7 @@ namespace experiment {
                                     result::global_csv_config.old_data);
         }
 
-        void check_correctness(){
+        void check_correctness() {
 
         }
 
@@ -469,6 +479,9 @@ namespace experiment {
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
+            this->generatedFilePath = config->generatedFilePath;
+            this->changeStrategy = config->changeStrategy;
+            this->enableCorrectnessCheck = config->enableCorrectnessCheck;
             experiment::result::init_config(config->datasetName + "-x" + std::to_string(config->change_count) + "-k" +
                                             std::to_string(config->hop_limit) + "-t" + std::to_string(config->threads),
                                             config->threads);
@@ -481,8 +494,14 @@ namespace experiment {
             saveAll(hopPath, std::forward<Args>(args)...);
         }
 
-        // 获取变化的边的方法 这里要有两种模式 一种是读取旧值 一种是新生成
+        /**
+         * 获取变化的边的方法 这里要有两种模式 一种是读取旧值 一种是新生成
+         */
         void generateChangeEdge() {
+            if (this->generatedFilePath != std::nullopt) {
+                readChangeEdge(this->generatedFilePath.value());
+                return;
+            }
             auto [low, mid, high] = classify_vertices_by_log_degree(this->instance_graph);
             std::vector<int> low_ids, mid_ids, high_ids;
 
@@ -498,8 +517,9 @@ namespace experiment {
             low_ids = extract_ids(low);
             mid_ids = extract_ids(mid);
             high_ids = extract_ids(high);
+            const std::string strategy = this->changeStrategy.value();
             this->iterationChangeWeightInfo.build_change_by_strategy(high_ids, low_ids,
-                                                                     EdgeChangeStrategy::HIGH_HIGH_INCREASE);
+                                                                     parseEdgeChangeStrategy(strategy));
             // 持久化保存这个结果 结果可以用时间戳表示
             std::ofstream outfile(this->change_info_res_filename);
             experiment::result::global_csv_config.basic_data.changeName = this->change_info_res_filename;
@@ -521,7 +541,7 @@ namespace experiment {
             hop::Q_value<HopType>.resize(this->thread_num);
             std::queue<int>().swap(hop::Qid_599);
             for (int i = 0; i < this->thread_num; i++) {
-                hop::dist_hop_599_v2<HopType>[i].resize(N,std::vector<HopType>(upper_k + 1, -1));
+                hop::dist_hop_599_v2<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, -1));
                 hop::Q_value<HopType>[i].resize(N, std::vector<HopType>(upper_k + 1, -1));
                 hop::Qid_599.push(i);
             }
@@ -529,7 +549,7 @@ namespace experiment {
 
         // 动态维护
         void maintain() {
-            for (int time = 1; time <= 1; time++) {
+            for (int time = 1; time <= iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
@@ -642,29 +662,51 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            auto isRight = experiment::hop::check_correctness_vk(this->hop_info, 7394);
-            auto isRight1 = experiment::hop::check_correctness_vk(this->hop_info_2021, 7394);
-            std::cout << "isRight : " << isRight << std::endl;
-            std::cout << "isRight1 : " << isRight1 << std::endl;
-
         }
 
-        void check_correctness(){
-            auto iter1 = this->ruc_process.increaseItem.list.begin();
-            auto iter2 = this->a2021_process.increaseItem.list.begin();
-            while (iter1 != this->ruc_process.increaseItem.list.end() ||
-                   iter2 != this->a2021_process.increaseItem.list.end()) {
-                if ((*iter1) != (*iter2)) {
-                    if (iter2 == this->a2021_process.increaseItem.list.end() || *iter1 < *iter2) {
-                        checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1, iter1->hop);
-                        ++iter1;
-                    } else if (iter1 == this->ruc_process.increaseItem.list.end() || *iter2 < *iter1) {
-                        checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1, iter2->hop);
-                        ++iter2;
+        void check_correctness() {
+            if(this->enableCorrectnessCheck){
+                experiment::hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),"increase_item_ruc.txt");
+                experiment::hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
+                experiment::hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(), "decrease_ruc_insert.txt");
+                experiment::hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),"decrease_2021_insert.txt");
+                if(!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()){
+                    auto iter1 = this->ruc_process.getIncreaseList().begin();
+                    auto iter2 = this->a2021_process.getIncreaseList().begin();
+                    while (iter1 != this->ruc_process.getIncreaseList().end() ||
+                           iter2 != this->a2021_process.getIncreaseList().end()) {
+                        if ((*iter1) != (*iter2)) {
+                            if (iter2 == this->a2021_process.getIncreaseList().end() || *iter1 < *iter2) {
+                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1, iter1->hop);
+                                ++iter1;
+                            } else if (iter1 == this->ruc_process.getIncreaseList().end() || *iter2 < *iter1) {
+                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1, iter2->hop);
+                                ++iter2;
+                            }
+                        } else {
+                            ++iter1;
+                            ++iter2;
+                        }
                     }
-                } else {
-                    ++iter1;
-                    ++iter2;
+                }
+                if(!this->ruc_process.getDecreaseList().empty() || !this->a2021_process.getDecreaseList().empty()){
+                    auto iter1 = this->ruc_process.getDecreaseList().begin();
+                    auto iter2 = this->a2021_process.getDecreaseList().begin();
+                    while (iter1 != this->ruc_process.getDecreaseList().end() ||
+                           iter2 != this->a2021_process.getDecreaseList().end()) {
+                        if ((*iter1) != (*iter2)) {
+                            if (iter2 == this->a2021_process.getDecreaseList().end() || *iter1 < *iter2) {
+                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1, iter1->hop);
+                                ++iter1;
+                            } else if (iter1 == this->ruc_process.getDecreaseList().end() || *iter2 < *iter1) {
+                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1, iter2->hop);
+                                ++iter2;
+                            }
+                        } else {
+                            ++iter1;
+                            ++iter2;
+                        }
+                    }
                 }
             }
         }
@@ -700,13 +742,16 @@ namespace experiment {
         std::string graph_res_filename;
         std::string change_info_res_filename;
         std::string experiment_MAINTAIN_LABEL_res_filename;
-
+        std::optional<std::string> generatedFilePath = std::nullopt;
+        std::optional<std::string> changeStrategy = std::nullopt;
+        bool enableCorrectnessCheck = false;
         // 读取旧值的初始化方法
         template<typename... Args>
         void readData(Args &&...args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
         }
+
         void checkDisCorrectness(int v, int u, int t_s, int t_e, int hop) {
             auto res1 = this->hop_info.query(v, u, t_s, t_e, hop);
             auto res2 = this->hop_info_2021.query(v, u, t_s, t_e, hop);

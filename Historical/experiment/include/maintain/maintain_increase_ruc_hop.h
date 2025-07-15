@@ -16,9 +16,8 @@ namespace experiment::hop::ruc::increase {
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
         std::vector<record_in_increase_with_hop<hop_weight_type> > list;
     private:
-
-        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
-        std::vector<hop_constrained_pair_label> global_al2;
+//        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
+//        std::vector<hop_constrained_pair_label> global_al2;
         void HOP_maintain_SPREAD1_batch(graph<weight_type> &instance_graph,
                                         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                         std::vector<hop_constrained_affected_label<hop_weight_type> > &al1,
@@ -92,18 +91,18 @@ namespace experiment::hop::ruc::increase {
                         }
                         if (search_weight >= d_new &&
                             search_weight < std::numeric_limits<hop_weight_type>::max()) {
-                            if (search_weight > d_new) {
-                                std::cout << "judge the affected label :search_weight is " << search_weight
-                                          << " old_length is " << d_new << std::endl;
-                            }
+//                            if (search_weight > d_new) {
+//                                std::cout << "judge the affected label :search_weight is " << search_weight
+//                                          << " old_length is " << d_new << std::endl;
+//                            }
                             mtx_599_1.lock();
                             al1.push_back(
                                     hop_constrained_affected_label<hop_weight_type>{
                                             v2, it.hub_vertex, it.hop + 1, d_new
                                     });
-                            this->list_infinite.emplace_back(v2, it.hub_vertex, it.hop + 1,
-                                                             std::numeric_limits<hop_weight_type>::max(),
-                                                             search_weight);
+//                            this->list_infinite.emplace_back(v2, it.hub_vertex, it.hop + 1,
+//                                                             std::numeric_limits<hop_weight_type>::max(),
+//                                                             search_weight);
                             mtx_599_1.unlock();
                         }
                     }
@@ -121,18 +120,18 @@ namespace experiment::hop::ruc::increase {
                         }
                         if (search_weight >= d_new &&
                             search_weight < std::numeric_limits<hop_weight_type>::max()) {
-                            if (search_weight > d_new) {
-                                std::cout << "judge the affected label :search_weight is " << search_weight
-                                          << " old_length is " << d_new << std::endl;
-                            }
+//                            if (search_weight > d_new) {
+//                                std::cout << "judge the affected label :search_weight is " << search_weight
+//                                          << " old_length is " << d_new << std::endl;
+//                            }
                             mtx_599_1.lock();
                             al1.push_back(
                                     hop_constrained_affected_label<hop_weight_type>{
                                             v1, it.hub_vertex, it.hop + 1, d_new
                                     });
-                            this->list_infinite.emplace_back(v1, it.hub_vertex, it.hop + 1,
-                                                             std::numeric_limits<hop_weight_type>::max(),
-                                                             search_weight);
+//                            this->list_infinite.emplace_back(v1, it.hub_vertex, it.hop + 1,
+//                                                             std::numeric_limits<hop_weight_type>::max(),
+//                                                             search_weight);
                             mtx_599_1.unlock();
                         }
                     }
@@ -166,9 +165,6 @@ namespace experiment::hop::ruc::increase {
         auto cost2 = std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
         auto cost3 = std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
         std::cout << cost1 << " " << cost2 << " " << cost3 << std::endl;
-        hop::sort_and_output_to_file(global_al2, "ruc_al3.txt");
-        hop::sort_and_output_to_file(this->list, "increase_item_ruc.txt");
-        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_ruc_infinite.txt");
     }
 
     template<typename weight_type, typename hop_weight_type>
@@ -230,18 +226,18 @@ namespace experiment::hop::ruc::increase {
                                     }
                                     if (d_old <= search_weight &&
                                         search_weight < std::numeric_limits<hop_weight_type>::max()) {
-                                        if (search_weight > d_old) {
-                                            std::cout << "judge the affected label :search_weight is " << search_weight
-                                                      << " old_length is " << d_old << std::endl;
-                                        }
+//                                        if (search_weight > d_old) {
+//                                            std::cout << "judge the affected label :search_weight is " << search_weight
+//                                                      << " old_length is " << d_old << std::endl;
+//                                        }
                                         auto item = hop_constrained_node_for_DIFFUSE(nei.first, h_x + 1,
                                                                                      dx + nei.second);
                                         q.push(item);
-                                        mtx_599_1.lock();
-                                        this->list_infinite.emplace_back(item.index, v, item.hop,
-                                                                         std::numeric_limits<hop_weight_type>::max(),
-                                                                         item.disx);
-                                        mtx_599_1.unlock();
+//                                        mtx_599_1.lock();
+//                                        this->list_infinite.emplace_back(item.index, v, item.hop,
+//                                                                         std::numeric_limits<hop_weight_type>::max(),
+//                                                                         item.disx);
+//                                        mtx_599_1.unlock();
                                     }
                                 }
                             }
@@ -462,10 +458,9 @@ namespace experiment::hop::ruc::increase {
                 al3_edge_map[label] = it.dis;
             }
         }
-
-        for (const auto &item: al3_edge_map) {
-            this->global_al2.push_back(item.first);
-        }
+//        for (const auto &item: al3_edge_map) {
+//            this->global_al2.push_back(item.first);
+//        }
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<hop_constrained_label_v2<hop_weight_type> > > al3_map;
         // al3_map[v]=(u1,hop1,dis1),(u2,hop2,dis2)...
@@ -595,7 +590,7 @@ namespace experiment::hop::ruc::increase {
                                         time04 - time03).
                                         count();
                                 mtx_599_1.lock();
-                                this->list.emplace_back(x, v, xhv, dx, d_old.first);
+                                this->list.emplace_back(x, v, xhv, dx, d_old.first,time);
                                 mtx_599_1.unlock();
                             } else {
                                 continue;

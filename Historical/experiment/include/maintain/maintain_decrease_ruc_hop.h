@@ -14,8 +14,8 @@ namespace experiment::hop::ruc::decrease {
                         std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_new,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 
-    private:
         std::vector<record_in_increase_with_hop<hop_weight_type>> list;
+    private:
 
         void decrease_maintain_step1_batch(std::map<std::pair<int, int>, hop_weight_type> &v_map,
                                            std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
@@ -159,7 +159,7 @@ namespace experiment::hop::ruc::decrease {
                         auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                         int v = cl_item.first;
-                        std::vector<hop_constrained_label_v2<hop_weight_type> > vec_with_hub_v = cl_item.second;
+                        std::vector<hop_constrained_label_v2<hop_weight_type>> &vec_with_hub_v = cl_item.second;
 
                         L_lock[v].lock();
                         auto Lv = (*L)[v]; // to avoid interlocking
@@ -177,17 +177,33 @@ namespace experiment::hop::ruc::decrease {
                             int u = it.hub_vertex;
                             int h_v = it.hop;
                             hop_weight_type du = it.distance;
-
-                            dist_hop[u][h_v] = du; //  {dis, hop, hub}
-                            dist_hop_changes.emplace_back(u, h_v);
-                            hop_constrained_node_for_DIFFUSE<hop_weight_type> tmp;
-                            tmp.index = u;
-                            tmp.hop = h_v;
-                            tmp.disx = du;
-                            Q_handle[{u, h_v}] = {pq.push({tmp}), du}; //{node_for_DIFFUSE_v2,dis}
-                            // what the meaning of Q_VALUE? mark the data of pq
-                            if (h_v <= upper_k)
+                            L_lock[u].lock();
+                            auto [query_dis, query_hop, query_hub] =
+                                    graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
+                                            (*L)[u], Lv,
+                                            u, v,
+                                            h_v, shard);
+                            L_lock[u].unlock();
+                            if (query_dis <= du && query_dis != std::numeric_limits<hop_weight_type>::max()) {
+                                if (query_hub != -1 && query_hub != v) {
+                                    ppr_lock[u].lock();
+                                    PPR_TYPE::PPR_insert(PPR, u, query_hub, v);
+                                    ppr_lock[u].unlock();
+                                }
+                                if (query_hub != -1 && query_hub != u) {
+                                    ppr_lock[v].lock();
+                                    PPR_TYPE::PPR_insert(PPR, v, query_hub, u);
+                                    ppr_lock[v].unlock();
+                                }
+                            } else {
+                                hop_constrained_node_for_DIFFUSE<hop_weight_type> tmp;
+                                tmp.index = u;
+                                tmp.hop = h_v;
+                                tmp.disx = du;
+                                Q_handle[{u, h_v}] = {pq.push({tmp}), du};
                                 Q_VALUE[u][h_v] = du;
+                            }
+
                         }
                         while (!pq.empty()) {
                             int x = pq.top().index;
@@ -195,8 +211,9 @@ namespace experiment::hop::ruc::decrease {
                             hop_weight_type dx = pq.top().disx;
                             ++size;
                             pq.pop();
-                            if (xhv <= upper_k)
-                                Q_VALUE[x][xhv] = std::numeric_limits<hop_weight_type>::max();
+                            if (Q_VALUE[x][xhv - 1] != -1 && Q_VALUE[x][xhv - 1] <= dx) {
+                                continue;
+                            }
 
                             L_lock[x].lock();
                             auto [label_dis, label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
@@ -206,11 +223,16 @@ namespace experiment::hop::ruc::decrease {
                                 L_lock[x].lock();
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
                                 L_lock[x].unlock();
-                                this->list.emplace_back(x, v, xhv, label_dis, dx);
+                                Q_VALUE[x][xhv] = dx;
+                                mtx_599_1.lock();
+                                this->list.emplace_back(x, v, xhv, dx, label_dis, time);
+                                mtx_599_1.unlock();
+                            } else {
+                                continue;
                             }
-
                             if (xhv + 1 > upper_k)
                                 continue;
+
                             for (const auto &nei: instance_graph[x]) {
                                 int xnei = nei.first;
                                 if (v < xnei) {
@@ -231,19 +253,20 @@ namespace experiment::hop::ruc::decrease {
                                                         (*L)[xnei], Lv, xnei, v, upper_k, shard);
                                         //std::pair<int, int> temp_dis = hop_constrained_extract_distance_and_hop(*L, xnei, v, xhv + 1);
                                         L_lock[xnei].unlock();
-                                        for (auto [query_dis, query_hop, query_hub]: allDistances) {
+                                        for (int i = 1; i <= upper_k; ++i) {
+                                            auto [query_dis, query_hop, query_hub] = allDistances[i];
                                             if (query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                                 hubs[xnei] = query_hub;
                                             }
-                                            dist_hop[xnei][query_hop] = query_dis;
-                                            dist_hop_changes.emplace_back(xnei, query_hop);
+                                            dist_hop[xnei][i] = query_dis;
+                                            dist_hop_changes.emplace_back(xnei, i);
                                         }
 
                                     }
 
                                     if (d_new < dist_hop[xnei][upper_k]) {
                                         //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
-                                        if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
+                                        if (Q_handle.contains({xnei, hop_nei})) {
                                             if (Q_handle[{xnei, hop_nei}].second > d_new) {
                                                 pq.update(Q_handle[{xnei, hop_nei}].first, node);
                                                 Q_handle[{xnei, hop_nei}].second = d_new;
@@ -251,22 +274,40 @@ namespace experiment::hop::ruc::decrease {
                                         } else {
                                             Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                         }
-                                        for(int index = hop_nei;index<=upper_k;index++){
+                                        for (int index = hop_nei; index <= upper_k; index++) {
                                             dist_hop[xnei][hop_nei] = d_new;
                                         }
                                         hubs[xnei] = v;
-                                        Q_VALUE[xnei][hop_nei] = d_new;
-                                    } else if(d_new < dist_hop[xnei][hop_nei]){
-                                        //if (Q_handle.find({xnei, hop_nei}) != Q_handle.end())
-                                        if (Q_VALUE[xnei][hop_nei] < std::numeric_limits<hop_weight_type>::max()) {
-                                            if (Q_handle[{xnei, hop_nei}].second > d_new) {
-                                                pq.update(Q_handle[{xnei, hop_nei}].first, node);
-                                                Q_handle[{xnei, hop_nei}].second = d_new;
+                                    } else if (d_new < dist_hop[xnei][hop_nei]) {
+                                        for (int index = hop_nei; index <= upper_k; index++) {
+                                            if (dist_hop[xnei][index] > d_new) {
+                                                dist_hop[xnei][index] = d_new;
                                             }
-                                        } else {
-                                            Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
                                         }
-                                        Q_VALUE[xnei][hop_nei] = d_new;
+                                        if (Q_VALUE[xnei][hop_nei] == -1) {
+                                            L_lock[xnei].lock();
+                                            // 查询当前的单侧值 如果更小则加入
+                                            auto [best_dis, best_hop] =
+                                                    search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
+                                                            (*L)[xnei], v, hop_nei, shard);
+                                            L_lock[xnei].unlock();
+                                            for (int index = best_hop; index <= hop_nei; ++index) {
+                                                if (Q_VALUE[xnei][index] == -1) {
+                                                    Q_VALUE[xnei][index] = best_dis;
+                                                }
+                                            }
+                                        }
+                                        if (Q_VALUE[xnei][hop_nei] > d_new) {
+                                            if (Q_handle.contains({xnei, hop_nei})) {
+                                                if (Q_handle[{xnei, hop_nei}].second > d_new) {
+                                                    pq.update(Q_handle[{xnei, hop_nei}].first, node);
+                                                    Q_handle[{xnei, hop_nei}].second = d_new;
+                                                }
+                                            } else {
+                                                Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
+                                            }
+                                            Q_VALUE[xnei][hop_nei] = d_new;
+                                        }
                                     }
 
 
@@ -285,7 +326,7 @@ namespace experiment::hop::ruc::decrease {
                                 }
                             }
                         }
-                        for (const auto& item: dist_hop_changes) {
+                        for (const auto &item: dist_hop_changes) {
                             dist_hop[item.first][item.second] = {-1};
                         }
                         Q_VALUE.resize(Q_VALUE.size(),
@@ -325,9 +366,9 @@ namespace experiment::hop::ruc::decrease {
         std::vector<hop_constrained_affected_label<hop_weight_type> > CL;
         // 每次传入的要是和线程数大小相等
         decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
-        experiment::hop::sort_and_output_to_file(CL, "decrease_cl_ruc.txt");
+//        experiment::hop::sort_and_output_to_file(CL, "decrease_cl_ruc.txt");
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
-        experiment::hop::sort_and_output_to_file(this->list, "decrease_ruc_insert.txt");
+//        experiment::hop::sort_and_output_to_file(this->list, "decrease_ruc_insert.txt");
         // std::cout << "ruc L insert size is " << lInsertSize << std::endl;
     };
 }

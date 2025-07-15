@@ -139,7 +139,25 @@ namespace experiment {
         HIGH_LOW_DECREASE, //8
         HIGH_LOW_MIXED //9
     };
-
+    static const std::unordered_map<std::string, EdgeChangeStrategy> strategyMap = {
+            {"high_high_increase", EdgeChangeStrategy::HIGH_HIGH_INCREASE},
+            {"high_high_decrease", EdgeChangeStrategy::HIGH_HIGH_DECREASE},
+            {"high_high_mixed",    EdgeChangeStrategy::HIGH_HIGH_MIXED},
+            {"low_low_increase",   EdgeChangeStrategy::LOW_LOW_INCREASE},
+            {"low_low_decrease",   EdgeChangeStrategy::LOW_LOW_DECREASE},
+            {"low_low_mixed",      EdgeChangeStrategy::LOW_LOW_MIXED},
+            {"high_low_increase",  EdgeChangeStrategy::HIGH_LOW_INCREASE},
+            {"high_low_decrease",  EdgeChangeStrategy::HIGH_LOW_DECREASE},
+            {"high_low_mixed",     EdgeChangeStrategy::HIGH_LOW_MIXED}
+    };
+    EdgeChangeStrategy parseEdgeChangeStrategy(const std::string& input) {
+        auto it = strategyMap.find(input);
+        if (it != strategyMap.end()) {
+            return it->second;
+        } else {
+            throw std::invalid_argument("Invalid EdgeChangeStrategy: " + input);
+        }
+    }
     template<typename weight_type>
     class IterationChangeWeightInfo {
     private:

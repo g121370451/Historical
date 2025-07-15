@@ -6,9 +6,12 @@ set(CMAKE_CXX_STANDARD 20)
 option(DEBUG_MODE "Enable debugging" ON)
 # 修改编译选项部分
 if(DEBUG_MODE)
+    message(STATUS "Debug mode enabled")
     set(CMAKE_BUILD_TYPE Debug)
     add_compile_options(-g3 -O0 -ggdb -pthread)  # 更详细的调试信息
+    add_compile_definitions(_DEBUG)
 else()
+    message(STATUS "Release mode enabled")
     set(CMAKE_BUILD_TYPE Release)
     add_compile_options(-O2 -pthread)
 endif()

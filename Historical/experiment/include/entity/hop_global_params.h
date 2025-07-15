@@ -28,17 +28,20 @@ namespace experiment::hop {
             hop_weight_type> > > > Q_handle_priorities_599;
 #pragma endregion
 #pragma region hop maintain global variables
+
     template<typename hop_weight_type>
-    struct Best_distance_with_hop_by_cover{
+    struct Best_distance_with_hop_by_cover {
         hop_weight_type first;
         int second;
         int hub;
-        Best_distance_with_hop_by_cover(hop_weight_type _distance,int _hop,int _hub){
+
+        Best_distance_with_hop_by_cover(hop_weight_type _distance, int _hop, int _hub) {
             this->hub = _hub;
             this->first = _distance;
             this->second = _hop;
         };
     };
+
     inline std::mutex mtx_599_1;
 
     inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_599);
@@ -228,23 +231,26 @@ namespace experiment::hop {
         int hop;
         hop_weight_type distance;
         hop_weight_type old_distance;
+        int time;
 
         record_in_increase_with_hop() {
         }
 
         record_in_increase_with_hop(
                 int _vertex, int _hub, int _hop,
-                hop_weight_type _distance, hop_weight_type _old_distance)
-                : vertex(_vertex), hub(_hub), hop(_hop), distance(_distance), old_distance(_old_distance) {
+                hop_weight_type _distance, hop_weight_type _old_distance, int _time)
+                : vertex(_vertex), hub(_hub), hop(_hop), distance(_distance), old_distance(_old_distance), time(_time) {
         }
 
         bool operator==(const record_in_increase_with_hop &other) const {
             return (vertex == other.vertex && hub == other.hub && hop == other.hop
-                    && distance == other.distance);
+                    && distance == other.distance && time == other.time);
         }
 
         bool operator<(const record_in_increase_with_hop &other) const {
             // used to sort/search pair_label2 in set
+            if(time != other.time)
+                return time<other.time;
             if (hub != other.hub)
                 return hub < other.hub;
             if (vertex != other.vertex)
@@ -257,9 +263,12 @@ namespace experiment::hop {
         }
 
         friend std::ostream &operator<<(std::ostream &out, const record_in_increase_with_hop<hop_weight_type> &obj) {
-            out << "record_in_increase_with_hop object: vertex = " << obj.vertex << ", hub = " << obj.hub << ", hop = "
-                << obj.hop <<
-                ", dis = " << obj.distance << ", old_distance = " << obj.old_distance << std::endl;
+            out << "record_in_increase_with_hop object: vertex = " << obj.vertex <<
+                ", hub = " << obj.hub <<
+                ", hop = " << obj.hop <<
+                ", dis = " << obj.distance <<
+                ", old_distance = " << obj.old_distance <<
+                ", time = " << obj.time << std::endl;
             return out;
         }
     };
@@ -279,7 +288,7 @@ namespace experiment::hop {
              << std::setw(10) << "hub"
              << std::setw(10) << "hop"
              << std::setw(10) << "distance"
-             << std::setw(10) << "old_distance" << "\n";
+             << std::setw(10) << "time" << "\n";
 
         fout << std::string(30, '-') << "\n";
 
@@ -288,6 +297,7 @@ namespace experiment::hop {
                  << std::setw(10) << label.hub
                  << std::setw(10) << label.hop
                  << std::setw(10) << label.distance
+                 << std::setw(10) << label.time
                  //                    << std::setw(10) << label.old_distance
                  << "\n";
         }
