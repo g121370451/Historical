@@ -16,14 +16,13 @@ namespace experiment::hop::algorithm2021::increase {
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
                         std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_old_vec,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
-
+#ifdef _DEBUG
+        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
+        std::vector<hop_constrained_pair_label> global_al2;
         std::vector<record_in_increase_with_hop<hop_weight_type> > list;
+#endif
 
     private:
-        double cost_inner3 = 0;
-
-//        std::vector<record_in_increase_with_hop<hop_weight_type> > list_infinite;
-
         void PI11(graph<int> &instance_graph, std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                   std::vector<hop_constrained_affected_label<hop_weight_type> > &al1_curr,
                   std::vector<hop_constrained_affected_label<hop_weight_type> > *al1_next,
@@ -66,7 +65,7 @@ namespace experiment::hop::algorithm2021::increase {
 
         std::vector<hop_constrained_affected_label<hop_weight_type> > al1_curr, al1_next;
         std::vector<hop_constrained_pair_label> al2_curr, al2_next;
-//        std::vector<hop_constrained_pair_label> global_al2;
+
         for (auto &iter: w_old_map) {
             int v1 = iter.first.first;
             int v2 = iter.first.second;
@@ -76,19 +75,17 @@ namespace experiment::hop::algorithm2021::increase {
                     continue;
                 }
                 hop_weight_type d_new = it.distance + w_old;
+#ifdef _DEBUG
                 if (d_new < 0) {
                     std::cout << "overflow happen in increase 2021 with hop" << std::endl;
                 }
+#endif
                 if (it.hub_vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                         mm.L[v2], it.hub_vertex,
                         it.hop + 1, shard).first;
                     if (search_weight >= d_new &&
                         search_weight < std::numeric_limits<hop_weight_type>::max()) {
-//                        if (search_weight > d_new) {
-//                            std::cout << "judge the affected label :search_weight is " << search_weight
-//                                    << " old_length is " << d_new << std::endl;
-//                        }
                         al1_curr.push_back(
                             hop_constrained_affected_label<hop_weight_type>(v2, it.hub_vertex, it.hop + 1,
                                                                             d_new));
@@ -100,19 +97,17 @@ namespace experiment::hop::algorithm2021::increase {
                     continue;
                 }
                 hop_weight_type d_new = it.distance + w_old;
+#ifdef _DEBUG
                 if (d_new < 0) {
                     std::cout << "overflow happen in increase 2021 with hop" << std::endl;
                 }
+#endif
                 if (it.hub_vertex <= v1 && it.t_e == std::numeric_limits<int>::max()) {
                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
                         mm.L[v1], it.hub_vertex,
                         it.hop + 1, shard).first;
                     if (search_weight >= d_new &&
                         search_weight < std::numeric_limits<hop_weight_type>::max()) {
-//                        if (search_weight > d_new) {
-//                            std::cout << "judge the affected label :search_weight is " << search_weight
-//                                    << " old_length is " << d_new << std::endl;
-//                        }
                         al1_curr.push_back(
                             hop_constrained_affected_label<hop_weight_type>(v1, it.hub_vertex, it.hop + 1,
                                                                             d_new));
@@ -122,36 +117,46 @@ namespace experiment::hop::algorithm2021::increase {
         }
         unsigned long long int al1Size = 0;
         unsigned long long int al2Size = 0;
+#ifdef _DEBUG
         double cost1 = 0;
         double cost2 = 0;
         double cost3 = 0;
-        double cost33 = 0;
+#endif
         while (!al1_curr.empty() || !al2_curr.empty()) {
             std::cout << " al1 size is " << al1_curr.size() << " al2_size is " << al2_curr.size() << std::endl;
             al1Size += al1_curr.size();
             al2Size += al2_curr.size();
+#ifdef _DEBUG
             auto time1 = std::chrono::steady_clock::now();
+#endif
             PI11(instance_graph, &mm.L, al1_curr, &al1_next, w_old_map, pool_dynamic, results_dynamic, time);
+#ifdef _DEBUG
             auto time2 = std::chrono::steady_clock::now();
+#endif
             PI12(instance_graph, &mm.L, &mm.PPR, al1_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
+#ifdef _DEBUG
             auto time3 = std::chrono::steady_clock::now();
-
+#endif
             PI22(instance_graph, &mm.L, &mm.PPR, al2_curr, &al2_next, pool_dynamic, results_dynamic, mm.upper_k, time);
+#ifdef _DEBUG
             auto time4 = std::chrono::steady_clock::now();
             cost1 += std::chrono::duration_cast<std::chrono::duration<double> >(time2 - time1).count();
             cost2 += std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
             cost3 += std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
+#endif
             al1_curr = al1_next;
             al2_curr = al2_next;
-//            global_al2.insert(global_al2.end(),
-//                              std::make_move_iterator(al2_next.begin()),
-//                              std::make_move_iterator(al2_next.end()));
+            this->global_al2.insert(this->global_al2.end(),
+                              std::make_move_iterator(al2_next.begin()),
+                              std::make_move_iterator(al2_next.end()));
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(al1_next);
             std::vector<hop_constrained_pair_label>().swap(al2_next);
         }
-        std::cout << "2021 " << cost1 << " " << cost2 << " " << cost3 << " " << this->cost_inner3 << std::endl;
-//        hop::sort_and_output_to_file(global_al2, "2021_al2.txt");
-//        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_2021_infinite.txt");
+#ifdef _DEBUG
+        std::cout << "2021 " << cost1 << " " << cost2 << " " << cost3  << std::endl;
+#endif
+        //        hop::sort_and_output_to_file(global_al2, "2021_al2.txt");
+        //        hop::sort_and_output_to_file_unique(this->list_infinite, "increase_item_2021_infinite.txt");
         std::cout << "2021 algorithm al1Size is " << al1Size << " al2Size is " << al2Size << std::endl;
     };
 
@@ -168,11 +173,11 @@ namespace experiment::hop::algorithm2021::increase {
                                                                       ThreadPool &pool_dynamic,
                                                                       std::vector<std::future<int> > &results_dynamic,
                                                                       int time) {
-//        for (auto &it: al1_curr) {
-//            this->list_infinite.emplace_back(it.first, it.second, it.hop,
-//                                             std::numeric_limits<hop_weight_type>::max(), it.dis);
-//            this->list.emplace_back(it.first, it.second, it.hop, std::numeric_limits<hop_weight_type>::max(), it.dis);
-//        }
+        //        for (auto &it: al1_curr) {
+        //            this->list_infinite.emplace_back(it.first, it.second, it.hop,
+        //                                             std::numeric_limits<hop_weight_type>::max(), it.dis);
+        //            this->list.emplace_back(it.first, it.second, it.hop, std::numeric_limits<hop_weight_type>::max(), it.dis);
+        //        }
         for (auto it: al1_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue(
                 [time, it, L, al1_next, &instance_graph, &w_old_map, this] {
@@ -337,7 +342,9 @@ namespace experiment::hop::algorithm2021::increase {
                                     shard);
                                 L_lock[diffuseVertex].unlock();
                                 mtx_599_1.lock();
-                                this->list.emplace_back(diffuseVertex, targetVertex, hop_i, di, query_dis,time);
+#ifdef _DEBUG
+                                this->list.emplace_back(diffuseVertex, targetVertex, hop_i, di, query_dis, time);
+#endif
                                 al2_next->emplace_back(diffuseVertex, targetVertex, hop_i);
                                 mtx_599_1.unlock();
                             } else if (query_dis != std::numeric_limits<hop_weight_type>::max() && query_dis <=
@@ -354,79 +361,6 @@ namespace experiment::hop::algorithm2021::increase {
                                 }
                             }
                         }
-                        // }
-                        // if (t < v) {
-                        //     hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
-                        //     int hop_vn = 0;
-                        //     for (auto nei: instance_graph[v]) {
-                        //         L_lock[nei.first].lock();
-                        //         std::pair<hop_weight_type, int> dis_hop = search_sorted_two_hop_label_in_current_with_csv(
-                        //                 (*L)[nei.first], t, shard);
-                        //         L_lock[nei.first].unlock();
-                        //         if(dis_hop.first == std::numeric_limits<hop_weight_type>::max()){
-                        //             continue;
-                        //         }
-                        //         hop_weight_type d_new = dis_hop.first + nei.second;
-                        //         if (d_new < 0) {
-                        //             std::cout << "overflow happen in pi12 maintain increase 2021 with hop3" << std::endl;
-                        //         }
-                        //         if (d1 > d_new) {
-                        //             d1 = d_new;
-                        //             hop_vn = dis_hop.second;
-                        //         }
-                        //     }
-                        //
-                        //     for (int hop_i = 1; hop_i <= hop_vn + 1; hop_i++) {
-                        //         if (hop_i > upper_k)
-                        //             break;
-                        //         hop_weight_type di = std::numeric_limits<hop_weight_type>::max();
-                        //         for (auto nei: instance_graph[v]) {
-                        //             L_lock[nei.first].lock();
-                        //             hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_equal_k_limit_with_csv(
-                        //                     (*L)[nei.first], t,
-                        //                     hop_i - 1, shard).first;
-                        //             if(search_result == std::numeric_limits<hop_weight_type>::max()){
-                        //                 continue;
-                        //             }
-                        //             hop_weight_type d_new = search_result + nei.second;
-                        //             if(d_new < 0){
-                        //                 std::cout << "overflow happen in pil2 maintain increase 2021 with hop4" << std::endl;
-                        //             }
-                        //             di = std::min(
-                        //                     di, d_new);
-                        //             L_lock[nei.first].unlock();
-                        //         }
-                        //         L_lock[t].lock();
-                        //         auto [query_dis, query_hop, query_hub] =
-                        //                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
-                        //                         (*L)[t], Lv,
-                        //                         t, v,
-                        //                         hop_i, shard);
-                        //         L_lock[t].unlock();
-                        //
-                        //         if (query_dis > di) {
-                        //             L_lock[v].lock();
-                        //             insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[v], t, hop_i, di, time,
-                        //                                                                  shard);
-                        //             L_lock[v].unlock();
-                        //             mtx_599_1.lock();
-                        //             al2_next->emplace_back(v, t, hop_i);
-                        //             mtx_599_1.unlock();
-                        //         } else if(query_dis != std::numeric_limits<hop_weight_type>::max() && query_dis <=
-                        //                di){
-                        //             if (query_hub != -1 && query_hub != v) {
-                        //                 ppr_lock[t].lock();
-                        //                 PPR_TYPE::PPR_insert(PPR, t, query_hub, v);
-                        //                 ppr_lock[t].unlock();
-                        //             }
-                        //             if (query_hub != -1 && query_hub != t) {
-                        //                 ppr_lock[v].lock();
-                        //                 PPR_TYPE::PPR_insert(PPR, v, query_hub, t);
-                        //                 ppr_lock[v].unlock();
-                        //             }
-                        //         }
-                        //     }
-                        // }
                     }
                     mtx_599_1.lock();
                     Qid_599.push(current_tid);
@@ -486,18 +420,11 @@ namespace experiment::hop::algorithm2021::increase {
                                     std::cout << "overflow happen in maintain increase 2021 with hop pi22"
                                             << std::endl;
                                 }
-                                auto time3 = std::chrono::steady_clock::now();
                                 L_lock[nei.first].lock();
                                 auto [query_dis, query_hop, query_hub] =
                                         graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                             (*L)[nei.first], Lxx, nei.first, it.second, it.hop + 1, shard);
                                 L_lock[nei.first].unlock();
-                                auto time4 = std::chrono::steady_clock::now();
-                                mtx_599_1.lock();
-                                this->cost_inner3 += std::chrono::duration_cast<std::chrono::duration<double> >(
-                                            time4 - time3).
-                                        count();
-                                mtx_599_1.unlock();
                                 if (query_dis > d_new) {
                                     L_lock[nei.first].lock();
                                     insert_sorted_hop_constrained_two_hop_label_with_csv(
@@ -505,7 +432,7 @@ namespace experiment::hop::algorithm2021::increase {
                                         d_new, time, shard);
                                     L_lock[nei.first].unlock();
                                     mtx_599_1.lock();
-                                    this->list.emplace_back(nei.first, it.second, it.hop + 1, d_new, query_dis,time);
+                                    this->list.emplace_back(nei.first, it.second, it.hop + 1, d_new, query_dis, time);
                                     al2_next->emplace_back(nei.first, it.second, it.hop + 1);
                                     mtx_599_1.unlock();
                                 } else {

@@ -14,10 +14,11 @@ namespace experiment::hop::algorithm2021::decrease {
                         std::vector<std::pair<int, int> > v, std::vector<weight_type> w_new,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 
+#ifdef _DEBUG
         std::vector<record_in_increase_with_hop<hop_weight_type>> list;
-
+        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
+#endif
     private:
-//        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
         void ProDecreasep_batch(graph<weight_type> &instance_graph,
                                 std::vector<std::vector<two_hop_label<hop_weight_type> > > *L,
                                 PPR_TYPE::PPR_type *PPR,
@@ -64,12 +65,13 @@ namespace experiment::hop::algorithm2021::decrease {
                             int vnei = nei.first;
                             int hop_u = it.hop;
                             hop_weight_type dnew = it.dis + nei.second;
+#ifdef _DEBUG
                             if (dnew < 0) {
                                 std::cout << "overflow happen in maintain decrease 2021 with hop" << " it_dis is "
                                           << it.dis
                                           << " nei.second is " << nei.second << std::endl;
-                                exit(0);
                             }
+#endif
                             if (u < vnei) {
                                 L_lock[vnei].lock();
                                 auto [query_dis, query_hop, query_hub] = graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
@@ -84,7 +86,9 @@ namespace experiment::hop::algorithm2021::decrease {
                                                                                          shard);
                                     L_lock[vnei].unlock();
                                     mtx_599_1.lock();
+#ifdef _DEBUG
                                     this->list.emplace_back(vnei, u, hop_u + 1, dnew, query_dis, time);
+#endif
                                     CL_next->push_back(
                                             hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                                     mtx_599_1.unlock();
@@ -178,12 +182,13 @@ namespace experiment::hop::algorithm2021::decrease {
                     if (it.distance == std::numeric_limits<weight_type>::max()) {
                         continue;
                     }
+#ifdef
                     if (dis < 0) {
-                        mm.print_L_vk(v1);
-                        std::cout << it << std::endl;
                         std::cout << "overflow happen in 2021 maintain decrease step1 it dis is " << it.distance
                                   << " _w_new is " << _w_new << std::endl;
                     }
+#endif
+
                     if (_v <= v2 && hop_v + 1 < mm.upper_k && it.t_e == std::numeric_limits<int>::max()) {
                         auto [query_dis, query_hop, query_hub] =
                                 graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
@@ -195,7 +200,9 @@ namespace experiment::hop::algorithm2021::decrease {
                         if (query_dis > dis) {
                             insert_sorted_hop_constrained_two_hop_label_with_csv(L[v2], _v, hop_v + 1, dis, time,
                                                                                  shard);
+#ifdef _DEBUG
                             this->list.emplace_back(v2, _v, hop_v + 1, dis, query_dis, time);
+#endif
                             CL_curr.push_back(hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                         } else {
                             auto [label_dis, label_hop] =
@@ -205,7 +212,9 @@ namespace experiment::hop::algorithm2021::decrease {
                             if (label_dis < std::numeric_limits<hop_weight_type>::max() && label_dis > dis) {
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((L)[v2], _v, hop_v + 1, dis, time,
                                                                                      shard);
+#ifdef _DEBUG
                                 this->list.emplace_back(v2, _v, hop_v + 1, dis, label_dis, time);
+#endif
                                 CL_curr.push_back(
                                         hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
                             }
@@ -222,7 +231,10 @@ namespace experiment::hop::algorithm2021::decrease {
         }
         long long int size = 0;
         while (!CL_curr.empty()) {
-//            CL_globals.insert(CL_globals.end(), CL_curr.begin(), CL_curr.end());
+#ifdef _DEBUG
+            CL_globals.insert(CL_globals.end(), CL_curr.begin(), CL_curr.end());
+#endif
+
             size += CL_curr.size();
             ProDecreasep_batch(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic,
                                mm.upper_k, time);
@@ -230,7 +242,6 @@ namespace experiment::hop::algorithm2021::decrease {
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(CL_next);
         }
 //        experiment::hop::sort_and_output_to_file(CL_globals,"decrease_2021_CL.txt");
-//        experiment::hop::sort_and_output_to_file(this->list,"decrease_2021_insert.txt");
         std::cout << "2021 decrease size is " << size << std::endl;
     }
 }

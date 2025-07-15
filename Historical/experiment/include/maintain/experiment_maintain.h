@@ -55,12 +55,20 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
+#ifdef _DEBUG
         std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getIncreaseList(){
             return increaseItem.list;
         };
         std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
             return decreaseItem.list;
         };
+        std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
+            return decreaseItem.CL_globals;
+        }
+        std::vector<hop::hop_constrained_pair_label> &getIncreaseListAL2() {
+            return increaseItem.global_al2;
+        }
+#endif
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -188,6 +196,9 @@ namespace experiment {
         std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
             return decreaseItem.list;
         };
+        std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
+            return decreaseItem.CL_globals;
+        }
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -666,10 +677,13 @@ namespace experiment {
 
         void check_correctness() {
             if(this->enableCorrectnessCheck){
-                experiment::hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),"increase_item_ruc.txt");
-                experiment::hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
-                experiment::hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(), "decrease_ruc_insert.txt");
-                experiment::hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),"decrease_2021_insert.txt");
+#ifdef _DEBUG
+                hop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(), "decrease_cl_ruc.txt");
+#endif
+                hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),"increase_item_ruc.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(), "decrease_ruc_insert.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),"decrease_2021_insert.txt");
                 if(!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()){
                     auto iter1 = this->ruc_process.getIncreaseList().begin();
                     auto iter2 = this->a2021_process.getIncreaseList().begin();

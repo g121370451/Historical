@@ -13,8 +13,10 @@ namespace experiment::hop::ruc::decrease {
         void operator()(graph<weight_type> &instance_graph, two_hop_case_info<hop_weight_type> &mm,
                         std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_new,
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
-
+#ifdef _DEBUG
+        std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
         std::vector<record_in_increase_with_hop<hop_weight_type>> list;
+#endif
     private:
 
         void decrease_maintain_step1_batch(std::map<std::pair<int, int>, hop_weight_type> &v_map,
@@ -58,9 +60,11 @@ namespace experiment::hop::ruc::decrease {
                             it.hop + 1 < upper_k
                             && it.t_e == std::numeric_limits<int>::max()) {
                             hop_weight_type dnew = it.distance + w_new;
+#ifdef _DEBUG
                             if (dnew < 0) {
                                 std::cout << "overflow happen in maintain decrease ruc with hop" << std::endl;
                             }
+#endif
                             auto [query_dis, query_hop, query_hub] =
                                     graph_weighted_two_hop_extract_distance_and_hop_and_hub_in_current_with_csv(
                                             (*L)[it.hub_vertex], (*L)[v2], it.hub_vertex, v2, it.hop + 1,
@@ -122,7 +126,7 @@ namespace experiment::hop::ruc::decrease {
                                                                               int upper_k, int time) {
         std::map<hop_constrained_pair_label, hop_weight_type> CL_edge_map;
         for (auto &it: CL) {
-            if (CL_edge_map.count({it.first, it.second, it.hop}) == 0 ||
+            if (!CL_edge_map.contains({it.first, it.second, it.hop}) ||
                 CL_edge_map[{it.first, it.second, it.hop}] > it.dis) {
                 CL_edge_map[{it.first, it.second, it.hop}] = it.dis;
             }
@@ -135,7 +139,7 @@ namespace experiment::hop::ruc::decrease {
             int v = it.first.second;
             int hop = it.first.hop;
             hop_weight_type dis = it.second;
-            if (CL_map.count(v) == 0) {
+            if (!CL_map.contains(v)) {
                 std::vector<hop_constrained_label_v2<hop_weight_type> > vec_with_hub_v;
                 hop_constrained_label_v2 tmp(u, hop, dis);
                 vec_with_hub_v.emplace_back(tmp);
@@ -224,9 +228,11 @@ namespace experiment::hop::ruc::decrease {
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
                                 L_lock[x].unlock();
                                 Q_VALUE[x][xhv] = dx;
+#ifdef _DEBUG
                                 mtx_599_1.lock();
                                 this->list.emplace_back(x, v, xhv, dx, label_dis, time);
                                 mtx_599_1.unlock();
+#endif
                             } else {
                                 continue;
                             }
@@ -238,11 +244,14 @@ namespace experiment::hop::ruc::decrease {
                                 if (v < xnei) {
                                     int hop_nei = xhv + 1;
                                     hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
+#ifdef _DEBUG
                                     if (d_new < 0) {
                                         std::cout << "overflow happen in maintain decrease ruc diffuse with hop"
                                                   << " dx is "
                                                   << dx << " nei.second is " << nei.second << std::endl;
                                     }
+#endif
+
                                     hop_constrained_node_for_DIFFUSE<hop_weight_type> node = {xnei, hop_nei, d_new};
                                     if (dist_hop[xnei][hop_nei] == -1) {
                                         // Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
@@ -326,8 +335,8 @@ namespace experiment::hop::ruc::decrease {
                                 }
                             }
                         }
-                        for (const auto &item: dist_hop_changes) {
-                            dist_hop[item.first][item.second] = {-1};
+                        for (const auto &[fst, snd]: dist_hop_changes) {
+                            dist_hop[fst][snd] = {-1};
                         }
                         Q_VALUE.resize(Q_VALUE.size(),
                                        std::vector<hop_weight_type>(upper_k + 1,
@@ -366,9 +375,9 @@ namespace experiment::hop::ruc::decrease {
         std::vector<hop_constrained_affected_label<hop_weight_type> > CL;
         // 每次传入的要是和线程数大小相等
         decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
-//        experiment::hop::sort_and_output_to_file(CL, "decrease_cl_ruc.txt");
+#ifdef _DEBUG
+        CL_globals.insert(CL_globals.end(), CL.begin(), CL.end());
+#endif
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
-//        experiment::hop::sort_and_output_to_file(this->list, "decrease_ruc_insert.txt");
-        // std::cout << "ruc L insert size is " << lInsertSize << std::endl;
     };
 }

@@ -3,7 +3,6 @@ project(HistoricalHopHL)
 
 set(CMAKE_CXX_STANDARD 20)
 # 在顶部添加调试模式配置
-option(DEBUG_MODE "Enable debugging" ON)
 # 修改编译选项部分
 if(DEBUG_MODE)
     message(STATUS "Debug mode enabled")
