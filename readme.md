@@ -17,8 +17,8 @@
     - Debug 模式下的检查输出（如标签正确性验证日志）；
     - 其他辅助输出信息（如中间状态、运行摘要等）。
 
-- `scripts/` 用于项目构建和运行的脚本
-    - `windows/` 用于存储windows构建脚本
-    - `linux/` 用于存储linux构建脚本
+- `scripts/` 用于项目运行的脚本
+    - `windows/` 用于存储windows脚本
+    - `linux/` 用于存储linux脚本
 
 ## 项目构建与运行

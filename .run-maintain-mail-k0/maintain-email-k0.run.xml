@@ -1,7 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="maintain-email-k0" type="CMakeRunConfiguration" factoryName="Application" PROGRAM_PARAMS="maintain-label -t 1 -f $PROJECT_DIR$/experiment/email-enron/basic/ -p $PROJECT_DIR$/experiment/email-enron/email-x100 -m 10 -c 100 -max 100 -min 1 -k 0 -n Enron-Email" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HistoricalHopHL" TARGET_NAME="experiment" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="HistoricalHopHL" RUN_TARGET_NAME="experiment">
-    <method v="2">
-      <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
-    </method>
-  </configuration>
-</component>

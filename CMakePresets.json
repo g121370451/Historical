@@ -1,0 +1,37 @@
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 27,
+    "patch": 9
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+      }
+    },
+    {
+      "name": "debug",
+      "inherits": "base",
+      "description": "Debug build with DEBUG_MODE=ON",
+      "binaryDir": "cmake-build-debug-preset",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "DEBUG_MODE": "ON"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base",
+      "description": "Release build with DEBUG_MODE=OFF",
+      "binaryDir": "cmake-build-release-preset",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "DEBUG_MODE": "OFF"
+      }
+    }
+  ]
+}
