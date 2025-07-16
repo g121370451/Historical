@@ -15,8 +15,8 @@ namespace experiment::hop::ruc::decrease {
                         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time);
 #ifdef _DEBUG
         std::vector<hop_constrained_affected_label<hop_weight_type>> CL_globals;
-        std::vector<record_in_increase_with_hop<hop_weight_type>> list;
 #endif
+        std::vector<record_in_increase_with_hop<hop_weight_type>> list;
     private:
 
         void decrease_maintain_step1_batch(std::map<std::pair<int, int>, hop_weight_type> &v_map,
@@ -228,11 +228,9 @@ namespace experiment::hop::ruc::decrease {
                                 insert_sorted_hop_constrained_two_hop_label_with_csv((*L)[x], v, xhv, dx, time, shard);
                                 L_lock[x].unlock();
                                 Q_VALUE[x][xhv] = dx;
-#ifdef _DEBUG
-                                mtx_599_1.lock();
+                                mtx_list_check.lock();
                                 this->list.emplace_back(x, v, xhv, dx, label_dis, time);
-                                mtx_599_1.unlock();
-#endif
+                                mtx_list_check.unlock();
                             } else {
                                 continue;
                             }

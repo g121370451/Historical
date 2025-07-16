@@ -688,7 +688,7 @@ namespace experiment {
             } else {
                 ++maintain_shard.label_count_slot2;
             }
-            int left = 0, right = static_cast<int>(input_vector.size()) - 1;
+            size_t left = 0, right = input_vector.size() - 1;
             hop_weight_type mindis = std::numeric_limits<hop_weight_type>::max();
             int hop_val = hop_k;
             if (input_vector.empty()) {
@@ -696,7 +696,7 @@ namespace experiment {
             }
 
             while (left < right) {
-                int mid = (right - left) / 2 + left;
+                size_t mid = (right - left) / 2 + left;
                 if (input_vector[mid].t_e != std::numeric_limits<int>::max()) {
                     right = mid - 1;
                 } else {

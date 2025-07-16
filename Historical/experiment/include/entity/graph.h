@@ -380,7 +380,6 @@ namespace experiment {
     Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
                            int hop) {
         weight_type res = std::numeric_limits<weight_type>::max();
-        auto start_time = std::chrono::high_resolution_clock::now();
 
         for (int index = t_s; index <= t_e; index++) {
             auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target, hop);
@@ -394,8 +393,6 @@ namespace experiment {
                 res = std::min(res, item_res.weight);
             }
         }
-
-        auto endTime = std::chrono::high_resolution_clock::now();
 
         if (res == std::numeric_limits<weight_type>::max()) {
             return -1; // 表示无解

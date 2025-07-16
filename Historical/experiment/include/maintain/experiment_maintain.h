@@ -23,63 +23,11 @@ namespace experiment {
     template<experiment::status::HopMode H, typename GraphType, typename HopType>
     class MaintainStrategySelector;
 
-    template<typename GraphType, typename HopType>
-    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType, HopType> {
-    public:
-        MaintainStrategyAlgorithmSelector() : maintain_timer(), decreaseItem(), increaseItem() {
-            this->maintain_timer.startTask("Maintain hop 2024");
-        };
-
-        ~MaintainStrategyAlgorithmSelector() = default;
-
-        void decrease(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
-                      int time) {
-            this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2024 Decrease" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
-            this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
-            this->maintain_timer.endSubtask();
-        };
-
-        void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
-                      int time) {
-            this->maintainTimes++;
-            this->maintain_timer.startSubtask("Maintain hop 2024 Increase" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
-            this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
-            this->maintain_timer.endSubtask();
-        };
-
-        [[nodiscard]] double getDuringTime() const {
-            return this->maintain_timer.getTaskDuration();
-        }
-#ifdef _DEBUG
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getIncreaseList(){
-            return increaseItem.list;
-        };
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
-            return decreaseItem.list;
-        };
-        std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
-            return decreaseItem.CL_globals;
-        }
-        std::vector<hop::hop_constrained_pair_label> &getIncreaseListAL2() {
-            return increaseItem.global_al2;
-        }
-#endif
-    private:
-        int maintainTimes = 0;
-        experiment::ExecutionTimer maintain_timer;
-        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
-        experiment::hop::ruc::decrease::Strategy2024HopDecrease<GraphType, HopType> decreaseItem;
-    };
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
-        MaintainStrategyAlgorithmSelector() : maintain_timer(), decreaseItem(), increaseItem() {
+        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2024");
         };
 
@@ -109,10 +57,10 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        experiment::nonhop::ruc::increase::Strategy2024NonHopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
+        experiment::nonhop::ruc::increase::Strategy2024NonHopIncrease<GraphType, HopType> increaseItem;
         experiment::nonhop::ruc::decrease::Strategy2024NonHopDecrease<GraphType, HopType> decreaseItem;
     };
 
@@ -120,7 +68,7 @@ namespace experiment {
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
 
-        MaintainStrategyAlgorithmSelector() : maintain_timer(), decreaseItem(), increaseItem() {
+        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2021");
         };
 
@@ -150,18 +98,80 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        experiment::nonhop::algorithm2021::increase::StrategyA2021NonHopIncrease<GraphType, HopType> increaseItem;
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
+        experiment::nonhop::algorithm2021::increase::StrategyA2021NonHopIncrease<GraphType, HopType> increaseItem;
         experiment::nonhop::algorithm2021::decrease::StrategyA2021NonHopDecrease<GraphType, HopType> decreaseItem;
+    };
+
+    template<typename GraphType, typename HopType>
+    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType, HopType> {
+    public:
+        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
+            this->maintain_timer.startTask("Maintain hop 2024");
+        };
+
+        ~MaintainStrategyAlgorithmSelector() = default;
+
+        void decrease(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
+                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
+                      int time) {
+            this->maintainTimes++;
+            this->maintain_timer.startSubtask("Maintain hop 2024 Decrease" + std::to_string(this->maintainTimes));
+            std::vector<std::future<int>> results_dynamic;
+            this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
+            this->maintain_timer.endSubtask();
+        };
+
+        void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
+                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
+                      int time) {
+            this->maintainTimes++;
+            this->maintain_timer.startSubtask("Maintain hop 2024 Increase" + std::to_string(this->maintainTimes));
+            std::vector<std::future<int>> results_dynamic;
+            this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
+            this->maintain_timer.endSubtask();
+        };
+
+        [[nodiscard]] double getDuringTime() const {
+            return this->maintain_timer.getTaskDuration();
+        }
+
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getDecreaseList() {
+            return decreaseItem.list;
+        };
+
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getIncreaseList() {
+            return increaseItem.list;
+        };
+
+#ifdef _DEBUG
+        std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
+            return decreaseItem.CL_globals;
+        }
+
+
+        std::vector<hop::hop_constrained_pair_label> &getIncreaseListAL2() {
+            return increaseItem.global_al2;
+        }
+
+        std::vector<hop::record_in_increase_with_hop<HopType>> &getIncreaseInfiniteList() {
+            return increaseItem.list_infinite;
+        }
+#endif
+    private:
+        int maintainTimes = 0;
+        experiment::ExecutionTimer maintain_timer;
+        experiment::hop::ruc::increase::Strategy2024HopIncrease<GraphType, HopType> increaseItem;
+        experiment::hop::ruc::decrease::Strategy2024HopDecrease<GraphType, HopType> decreaseItem;
     };
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
 
-        MaintainStrategyAlgorithmSelector() : maintain_timer(), decreaseItem(), increaseItem() {
+        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(),decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2021");
         };
 
@@ -190,15 +200,30 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getIncreaseList(){
+
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getIncreaseList() {
             return increaseItem.list;
         };
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>>& getDecreaseList(){
+
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getDecreaseList() {
             return decreaseItem.list;
         };
+#ifdef _DEBUG
+
+
         std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
             return decreaseItem.CL_globals;
         }
+
+        std::vector<hop::hop_constrained_pair_label> &getIncreaseListAL2() {
+            return increaseItem.global_al2;
+        }
+
+        std::vector<hop::record_in_increase_with_hop<HopType>> &getIncreaseInfiniteList() {
+            return increaseItem.list_infinite;
+        }
+
+#endif
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -676,15 +701,21 @@ namespace experiment {
         }
 
         void check_correctness() {
-            if(this->enableCorrectnessCheck){
+            if (this->enableCorrectnessCheck) {
 #ifdef _DEBUG
                 hop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(), "decrease_cl_ruc.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getDecreaseCList(), "decrease_2021_CL.txt");
+
+                hop::sort_and_output_to_file_unique(this->ruc_process.getIncreaseInfiniteList(), "increase_item_ruc_infinite.txt");
+                hop::sort_and_output_to_file_unique(this->a2021_process.getIncreaseInfiniteList(), "increase_item_2021_infinite.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getIncreaseListAL2(), "ruc_al2.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), "2021_al2.txt");
 #endif
-                hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),"increase_item_ruc.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
                 hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(), "decrease_ruc_insert.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),"decrease_2021_insert.txt");
-                if(!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()){
+                hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(), "decrease_2021_insert.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(), "increase_item_ruc.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
+                if (!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()) {
                     auto iter1 = this->ruc_process.getIncreaseList().begin();
                     auto iter2 = this->a2021_process.getIncreaseList().begin();
                     while (iter1 != this->ruc_process.getIncreaseList().end() ||
@@ -703,7 +734,7 @@ namespace experiment {
                         }
                     }
                 }
-                if(!this->ruc_process.getDecreaseList().empty() || !this->a2021_process.getDecreaseList().empty()){
+                if (!this->ruc_process.getDecreaseList().empty() || !this->a2021_process.getDecreaseList().empty()) {
                     auto iter1 = this->ruc_process.getDecreaseList().begin();
                     auto iter2 = this->a2021_process.getDecreaseList().begin();
                     while (iter1 != this->ruc_process.getDecreaseList().end() ||
@@ -759,6 +790,7 @@ namespace experiment {
         std::optional<std::string> generatedFilePath = std::nullopt;
         std::optional<std::string> changeStrategy = std::nullopt;
         bool enableCorrectnessCheck = false;
+
         // 读取旧值的初始化方法
         template<typename... Args>
         void readData(Args &&...args) {

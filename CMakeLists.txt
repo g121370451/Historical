@@ -40,7 +40,7 @@ else()
     message(STATUS "  No include directories found")
 endif()
 #查找Python 3
-add_executable(experiment
+add_executable(experiment_program
         ${PROJECT_SOURCE_DIR}/Historical/experiment/main.cpp  # 主入口文件
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/entity/two_hop_label.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/parse/experiment_argparse.cpp  # 头文件的实现
@@ -49,12 +49,11 @@ add_executable(experiment
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/global.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/CSVWriter.cpp
 )
-target_compile_options(experiment PRIVATE
-        $<$<CONFIG:Debug>:-DDEBUG>  # 定义DEBUG宏
+target_compile_options(experiment_program PRIVATE
         -Wall -Wextra -Wpedantic    # 更严格的警告
 )
 # 链接库
-target_link_libraries(experiment
+target_link_libraries(experiment_program
         ${Boost_LIBRARIES}
         pthread
 )

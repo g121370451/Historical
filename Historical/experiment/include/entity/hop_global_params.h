@@ -43,6 +43,7 @@ namespace experiment::hop {
     };
 
     inline std::mutex mtx_599_1;
+    inline std::mutex mtx_list_check;
 
     inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_599);
 
