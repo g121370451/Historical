@@ -46,6 +46,7 @@ int main(const int argc, char *argv[])
                 Generator generator(config);
                 experiment::hop::two_hop_case_info<int> hop_info;
                 hop_info.upper_k = config->hop_limit;
+                generator.refreshDir();
                 generator.pll(instance_graph, hop_info);
                 // hop_info.print_L();
                 export_degree_distribution_and_plot(instance_graph,saveDir.string());
