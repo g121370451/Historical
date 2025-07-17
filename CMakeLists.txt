@@ -14,7 +14,7 @@ else()
     set(CMAKE_BUILD_TYPE Release)
     add_compile_options(-O2 -pthread)
 endif()
-find_package(Boost REQUIRED COMPONENTS random filesystem)
+find_package(Boost REQUIRED COMPONENTS random filesystem system)
 
 if(Boost_FOUND)
     message(STATUS "Boost found: ${Boost_VERSION}")

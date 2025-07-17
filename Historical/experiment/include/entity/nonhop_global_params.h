@@ -11,7 +11,7 @@ namespace experiment::nonhop {
 
     inline int max_N_ID_for_mtx_595 = 1e7;
     inline std::vector<std::mutex> mtx_595(max_N_ID_for_mtx_595);
-    inline std::vector<std::shared_mutex> ppr_595(max_N_ID_for_mtx_595);
+    inline std::vector<std::mutex> ppr_595(max_N_ID_for_mtx_595);
 
     template<typename hop_weight_type>
     inline std::vector<std::vector<two_hop_label<hop_weight_type>>> L_temp_595;

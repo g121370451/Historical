@@ -94,7 +94,7 @@ namespace experiment::nonhop {
         mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
 
         std::vector<int> P_changed_vertices, T_changed_vertices;
-        std::vector<hop_weight_type> &T_dij = T_dij_595<hop_weight_type>[used_id], P_dij = P_dij_595<hop_weight_type>[
+        std::vector<hop_weight_type> &T_dij = T_dij_595<hop_weight_type>[used_id], &P_dij = P_dij_595<hop_weight_type>[
             used_id];
 
         std::vector<PLL_handle_t_for_sp<hop_weight_type> > &Q_handles = Q_handles_595<hop_weight_type>[used_id];
@@ -160,13 +160,18 @@ namespace experiment::nonhop {
                     if (P_dij[adj_v] == std::numeric_limits<hop_weight_type>::max()) {
                         node.vertex = adj_v;
                         node.distance = P_u + ec;
-
+                        if (node.distance < 0) {
+                            std::cout << "overflow happen in generation with nonhop2" << std::endl;
+                        }
                         Q_handles[adj_v] = Q.push(node);
                         P_dij[adj_v] = node.distance;
                         P_changed_vertices.push_back(adj_v);
                     } else if (P_dij[adj_v] > P_u + ec) {
                         node.vertex = adj_v;
                         node.distance = P_u + ec;
+                        if (node.distance < 0) {
+                            std::cout << "overflow happen in generation with nonhop3" << std::endl;
+                        }
                         Q.update(Q_handles[adj_v], node);
                         P_dij[adj_v] = node.distance;
                     }

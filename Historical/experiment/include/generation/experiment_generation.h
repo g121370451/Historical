@@ -46,24 +46,24 @@ namespace experiment
             saveAll(graphPath, std::forward<Args>(args)...);
         }
         void refreshDir(){
-//            try {
-//                boost::filesystem::path dirPath = this->savePath;
-//
-//                if (dirPath.empty()) {
-//                    std::cerr << "Error: savePath is empty!" << std::endl;
-//                    return;
-//                }
-//
-//                if (boost::filesystem::exists(dirPath)) {
-//                    boost::filesystem::remove_all(dirPath);
-//                }
-//
-//                boost::filesystem::create_directories(dirPath);
-//            } catch (const boost::filesystem::filesystem_error& e) {
-//                std::cerr << "Filesystem error: " << e.what() << std::endl;
-//            } catch (const std::exception& e) {
-//                std::cerr << "Other error: " << e.what() << std::endl;
-//            }
+            try {
+                boost::filesystem::path dirPath = this->savePath;
+
+                if (dirPath.empty()) {
+                    std::cerr << "Error: savePath is empty!" << std::endl;
+                    return;
+                }
+
+                if (boost::filesystem::exists(dirPath)) {
+                    boost::filesystem::remove_all(dirPath);
+                }
+
+                boost::filesystem::create_directories(dirPath);
+            } catch (const boost::filesystem::filesystem_error& e) {
+                std::cerr << "Filesystem error: " << e.what() << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Other error: " << e.what() << std::endl;
+            }
         }
     private:
         std::string savePath;
@@ -84,22 +84,20 @@ namespace experiment
             this->thread_num = config->threads;
         };
 
-        void refreshDir(){
+        void refreshDir() const {
             try {
-                boost::filesystem::path dirPath = "123";
-//
-//                if (dirPath.empty()) {
-//                    std::cerr << "Error: savePath is empty!" << std::endl;
-//                    return;
-//                }
-//
-//                if (boost::filesystem::exists(dirPath)) {
-//                    boost::filesystem::remove_all(dirPath);
-//                }
-//
-//                boost::filesystem::create_directories(dirPath);
+                boost::filesystem::path dirPath = savePath;
+                if (dirPath.empty()) {
+                    std::cerr << "Error: savePath is empty!" << std::endl;
+                    return;
+                }
+
+                if (boost::filesystem::exists(dirPath)) {
+                    boost::filesystem::remove_all(dirPath);
+                }
+                boost::filesystem::create_directories(dirPath);
             } catch (const boost::filesystem::filesystem_error& e) {
-//                std::cerr << "Filesystem error: " << e.what() << std::endl;
+                std::cerr << "Filesystem error: " << e.what() << std::endl;
             } catch (const std::exception& e) {
                 std::cerr << "Other error: " << e.what() << std::endl;
             }

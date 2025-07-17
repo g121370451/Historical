@@ -83,7 +83,7 @@ namespace experiment {
     }
 
     template<typename weight_type>
-    void export_degree_distribution_and_plot(graph<weight_type> &g, std::string saveDirectory = "basic/") {
+    void export_degree_distribution_and_plot(graph<weight_type> &g, std::string saveDirectory = "raw/") {
         auto [low, mid, high] = classify_vertices_by_log_degree(g); // 返回 pair<int,int>
 
         if (saveDirectory.back() != '/')
@@ -101,13 +101,13 @@ namespace experiment {
         write_group(mid, "mid");
         write_group(high, "high");
 
-        // 调用 Python 绘图脚本
-        std::system("which python");
-        std::string command = "python plot_degree.py " + saveDirectory;
-        int status = std::system(command.c_str());
-        if (status != 0) {
-            std::cerr << "Failed to execute plot_degree.py" << std::endl;
-        }
+        // // 调用 Python 绘图脚本
+        // std::system("which python");
+        // std::string command = "python plot_degree.py " + saveDirectory;
+        // int status = std::system(command.c_str());
+        // if (status != 0) {
+        //     std::cout << "Failed to execute plot_degree.py" << std::endl;
+        // }
     };
 
     template<typename weight_type>

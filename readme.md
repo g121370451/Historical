@@ -17,8 +17,8 @@
     - Debug 模式下的检查输出（如标签正确性验证日志）；
     - 其他辅助输出信息（如中间状态、运行摘要等）。
 
-- `scripts/` 用于项目运行的脚本
-    - `windows/` 用于存储windows脚本
-    - `linux/` 用于存储linux脚本
+- `build-*.bat/build-*.sh` 用于调用cmake构建项目
+- `run-generator.bat/run-generator.sh` 用于调用generator生成原始图的初始2hop标签
+- 
 
 ## 项目构建与运行

@@ -36,7 +36,7 @@ int main(const int argc, char *argv[])
                 using Generator = experiment::GenerateStrategySelector<experiment::status::HopMode::NoHop, int, int>;
                 Generator generator(config);
                 experiment::nonhop::two_hop_case_info<int> hop_info;
-                hop_info.PPR.resize(instance_graph.size());
+                generator.refreshDir();
                 generator.pll(instance_graph, hop_info);
                 // hop_info.print_L();
                 export_degree_distribution_and_plot(instance_graph,saveDir.string());
