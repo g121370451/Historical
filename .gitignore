@@ -2,4 +2,5 @@
 .idea/
 !bin/plot_degree.py
 bin/
+!data/*/raw
 data/
