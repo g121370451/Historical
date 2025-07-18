@@ -57,11 +57,7 @@ int main(const int argc, char *argv[])
             if(config->hop_limit >0){
                 using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::WithHop, int, int>;
                 Maintain maintain(config);
-                  maintain.generateChangeEdge();
-                //home
-//                maintain.readChangeEdge("changeinfo_res_2025-07-13-14-35-50.txt");
-//                // jsfs
-//                 maintain.readChangeEdge("changeinfo_res_2025-07-08-09-37-40.txt");
+                maintain.generateChangeEdge();
                 std::cout <<"finish generateChangeEdge" << std::endl;
                 maintain.initialize_experiment_global_values_dynamic();
                 maintain.maintain();
@@ -71,7 +67,6 @@ int main(const int argc, char *argv[])
                 using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::NoHop, int, int>;
                 Maintain maintain(config);
                 maintain.generateChangeEdge();
-//            maintain.readChangeEdge("changeinfo_res_2025-06-20-13-47-18.txt");
                 std::cout <<"finish generateChangeEdge" << std::endl;
                 maintain.initialize_experiment_global_values_dynamic();
                 maintain.maintain();

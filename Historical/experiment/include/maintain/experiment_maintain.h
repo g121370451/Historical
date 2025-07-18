@@ -147,6 +147,7 @@ namespace experiment {
         };
 
 #ifdef _DEBUG
+
         std::vector<hop::hop_constrained_affected_label<HopType>> &getDecreaseCList() {
             return decreaseItem.CL_globals;
         }
@@ -159,6 +160,7 @@ namespace experiment {
         std::vector<hop::record_in_increase_with_hop<HopType>> &getIncreaseInfiniteList() {
             return increaseItem.list_infinite;
         }
+
 #endif
     private:
         int maintainTimes = 0;
@@ -171,7 +173,7 @@ namespace experiment {
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
 
-        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(),decreaseItem() {
+        MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2021");
         };
 
@@ -238,13 +240,13 @@ namespace experiment {
         using ruc = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType, HopType>;
         using a2021 = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType, HopType>;
 
-        explicit MaintainStrategySelector(experiment::ExperimentConfig *config)
-                : ruc_process(),
-                  a2021_process(),
-                  thread_num(config->threads),
-                  iteration_count(config->iterations),
-                  pool_dynamic(config->threads),
-                  csvWriter(config->save_path.string() + "/" + "maintain_result.csv", "1.0", true) {
+        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) :
+                ruc_process(),
+                a2021_process(),
+                thread_num(config->threads),
+                iteration_count(config->iterations),
+                pool_dynamic(config->threads),
+                csvWriter(config->save_path.string() + "/" + "maintain_result.csv", "1.0", true) {
             this->graph_res_filename = config->data_source.string() + "/" + "binary_nonhop_constrained_0_graph";
             this->change_info_res_filename =
                     config->save_path.string() + "/" + "changeinfo_res_" + get_current_time_string() + ".txt";
@@ -487,37 +489,32 @@ namespace experiment {
         using ruc = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType, HopType>;
         using a2021 = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType, HopType>;
 
-        explicit MaintainStrategySelector(experiment::ExperimentConfig *config)
-                : ruc_process(),
-                  a2021_process(),
-                  thread_num(config->threads),
-                  upper_k(config->hop_limit),
-                  iteration_count(config->iterations),
-                  pool_dynamic(config->threads),
-                  csvWriter(config->save_path.string() + "/" + "maintain_result_withhop.csv", "1.0", true) {
-            this->graph_res_filename =
-                    config->data_source.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +
-                    "_graph";
-            this->change_info_res_filename =
-                    config->save_path.string() + "/" + "changeinfo_res_" + get_current_time_string() + ".txt";
-            this->savePath = config->save_path.string();
-            this->hop_label_res_filename =
-                    config->save_path.string() + "/" + "binary_hop_constrained_" + std::to_string(config->hop_limit) +
-                    "_2_hop_label_info";
-            this->experiment_MAINTAIN_LABEL_res_filename =
-                    config->save_path.string() + "/" + "MAINTAIN_LABEL_hop_constrained_" +
-                    std::to_string(config->hop_limit) + "_" +
-                    std::to_string(config->threads) + "_threads_result.txt";
+        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) :
+                savePath(config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
+                sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
+                graph_res_filename(sourcePath + "binary_graph"),
+                change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
+                hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+
+                ruc_process(),
+                a2021_process(),
+
+                thread_num(config->threads),
+                upper_k(config->hop_limit),
+                iteration_count(config->iterations),
+                pool_dynamic(config->threads),
+                csvWriter(this->savePath + "maintain_result_withhop.csv", "1.0", true),
+                generatedFilePath(config->generatedFilePath),
+                changeStrategy(config->changeStrategy),
+                enableCorrectnessCheck(config->enableCorrectnessCheck) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
+
             this->instance_graph_list.push_back(this->instance_graph);
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
-            this->generatedFilePath = config->generatedFilePath;
-            this->changeStrategy = config->changeStrategy;
-            this->enableCorrectnessCheck = config->enableCorrectnessCheck;
             experiment::result::init_config(config->datasetName + "-x" + std::to_string(config->change_count) + "-k" +
                                             std::to_string(config->hop_limit) + "-t" + std::to_string(config->threads),
                                             config->threads);
@@ -703,18 +700,26 @@ namespace experiment {
         void check_correctness() {
             if (this->enableCorrectnessCheck) {
 #ifdef _DEBUG
-                hop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(), "decrease_cl_ruc.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getDecreaseCList(), "decrease_2021_CL.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(),
+                                             this->savePath + "decrease_cl_ruc.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getDecreaseCList(),
+                                             this->savePath + "decrease_2021_CL.txt");
 
-                hop::sort_and_output_to_file_unique(this->ruc_process.getIncreaseInfiniteList(), "increase_item_ruc_infinite.txt");
-                hop::sort_and_output_to_file_unique(this->a2021_process.getIncreaseInfiniteList(), "increase_item_2021_infinite.txt");
-                hop::sort_and_output_to_file(this->ruc_process.getIncreaseListAL2(), "ruc_al2.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), "2021_al2.txt");
+                hop::sort_and_output_to_file_unique(this->ruc_process.getIncreaseInfiniteList(),
+                                                    this->savePath + "increase_item_ruc_infinite.txt");
+                hop::sort_and_output_to_file_unique(this->a2021_process.getIncreaseInfiniteList(),
+                                                    this->savePath + "increase_item_2021_infinite.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getIncreaseListAL2(), this->savePath + "ruc_al2.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), this->savePath + "2021_al2.txt");
 #endif
-                hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(), "decrease_ruc_insert.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(), "decrease_2021_insert.txt");
-                hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(), "increase_item_ruc.txt");
-                hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(), "increase_item_2021.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getDecreaseList(),
+                                             this->savePath + "decrease_ruc_insert.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),
+                                             this->savePath + "decrease_2021_insert.txt");
+                hop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),
+                                             this->savePath + "increase_item_ruc.txt");
+                hop::sort_and_output_to_file(this->a2021_process.getIncreaseList(),
+                                             this->savePath + "increase_item_2021.txt");
                 if (!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()) {
                     auto iter1 = this->ruc_process.getIncreaseList().begin();
                     auto iter2 = this->a2021_process.getIncreaseList().begin();
@@ -768,8 +773,15 @@ namespace experiment {
         }
 
     private:
+        std::string savePath;
+        std::string sourcePath;
+        std::string graph_res_filename;
+        std::string change_info_res_filename;
+        std::string hop_label_res_filename;
+
         ruc ruc_process;
         a2021 a2021_process;
+
         int thread_num;
         int upper_k;
         int iteration_count;
@@ -782,11 +794,6 @@ namespace experiment {
         graph_with_time_span<GraphType> graph_time;
         hop::two_hop_case_info<HopType> hop_info;
         hop::two_hop_case_info<HopType> hop_info_2021;
-        std::string savePath;
-        std::string hop_label_res_filename;
-        std::string graph_res_filename;
-        std::string change_info_res_filename;
-        std::string experiment_MAINTAIN_LABEL_res_filename;
         std::optional<std::string> generatedFilePath = std::nullopt;
         std::optional<std::string> changeStrategy = std::nullopt;
         bool enableCorrectnessCheck = false;
