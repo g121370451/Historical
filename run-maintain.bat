@@ -76,6 +76,10 @@ if "%found%"=="0" (
     goto usage
 )
 
+if /I "%check%"=="check" (
+    set check=--%check%
+)
+
 rem ==== 根据数据集设置路径 ====
 if /I "%dataset%"=="enron-email" (
     set file=%DATA_DIR%/enron-email/processed/
@@ -88,19 +92,14 @@ if /I "%dataset%"=="enron-email" (
 rem ==== 执行程序 ====
 echo.
 echo [INFO] Running label maintain...
-echo %EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -max %max% -min %min% --strategy %strategy% %check%
-"%EXEC%" maintain-label -t %t% -f %file% -p %out% -k %k% -max %max% -min %min% --strategy %strategy% %check%
-
-echo.
-echo [INFO] Plotting degree distribution with Python...
-python "%BIN_DIR%\plot_degree.py" "%out%"
-
+echo %EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c "%c%" -m "%m%" -max %max% -min %min% --strategy %strategy% %check% -n "%dataset%"
+%EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c %c% -m %m% -max %max% -min %min% --strategy %strategy% %check% -n "%dataset%"
 goto :eof
 
 :usage
 echo.
-echo usage: %~nx0 [dataset] [k-limit] [thread] [max-weight] [min-weight] [strategy] [--check]
-echo e.g : %~nx0 enron-email 3 8 100 1 high_high_increase --check
+echo usage: %~nx0 [dataset] [k-limit] [thread] [max-weight] [min-weight] [iteration_count] [edge_change_count] [strategy] [check]
+echo e.g : %~nx0 enron-email 3 8 100 1 10 500 high_high_increase check
 echo.
 echo dataset supported:
 echo    - enron-email
