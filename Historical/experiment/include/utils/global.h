@@ -12,6 +12,10 @@ namespace experiment {
     namespace result {
         struct basicData {
             std::string dataset;
+            int thread_count;
+            int iteration_count;
+            int change_count;
+            int hop_limit;
             std::string changeName;
             double ruc_time_slot1 = 0;
             double ruc_time_slot2 = 0;
@@ -115,7 +119,7 @@ namespace experiment {
         extern CSVConfig global_csv_config;
 
         // Initialization function
-        void init_config(const std::string &dataset, int threadNum);
+        void init_config(const std::string &dataset,int thread_count,int iteration_count,int change_count,int hop_limit);
 
     } // namespace config
     namespace status {

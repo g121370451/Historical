@@ -6,13 +6,18 @@ experiment::status::HopMode experiment::status::currentHopMode = experiment::sta
 experiment::status::MaintainAlgorithmMode experiment::status::currentAlgorithmMode = experiment::status::MaintainAlgorithmMode::Algorithm2024;
 experiment::status::MaintainMode experiment::status::currentMaintainMode = experiment::status::MaintainMode::DECREASE;
 boost::random::mt19937 experiment::status::boost_random_time_seed{static_cast<std::uint32_t>(std::time(0))};
-void experiment::result::init_config(const std::string &dataset, const int threadNum)
+void experiment::result::init_config(const std::string &dataset,int thread_count,int iteration_count,int change_count,int hop_limit)
 {
     global_csv_config.basic_data = {
-        dataset,"",
+        dataset,
+        thread_count,
+        iteration_count,
+        change_count,
+        hop_limit,
+        "",
         0, 0};
-    global_csv_config.ruc_counter.initialize(threadNum);
-    global_csv_config.old_counter.initialize(threadNum);
+    global_csv_config.ruc_counter.initialize(thread_count);
+    global_csv_config.old_counter.initialize(thread_count);
     // Initialize with default values (can be modified later)
     global_csv_config.ruc_data = {0, 0, 0, 0, 0, 0, 0, 0};
     global_csv_config.old_data = {0, 0, 0, 0, 0, 0, 0, 0};

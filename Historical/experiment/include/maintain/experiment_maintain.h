@@ -263,9 +263,8 @@ namespace experiment {
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
-            experiment::result::init_config(config->datasetName + "-x" + std::to_string(config->change_count) + "-k" +
-                                            std::to_string(config->hop_limit) + "-t" + std::to_string(config->threads),
-                                            config->threads);
+            experiment::result::init_config(config->datasetName, config->threads, config->iterations,
+                                            config->change_count, config->hop_limit);
         };
 
         // 持久化的方法
@@ -503,7 +502,7 @@ namespace experiment {
                 upper_k(config->hop_limit),
                 iteration_count(config->iterations),
                 pool_dynamic(config->threads),
-                csvWriter(this->savePath + "maintain_result_withhop.csv", "1.0", true),
+                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", "1.0", true),
                 generatedFilePath(config->generatedFilePath),
                 changeStrategy(config->changeStrategy),
                 enableCorrectnessCheck(config->enableCorrectnessCheck) {
@@ -515,9 +514,8 @@ namespace experiment {
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
-            experiment::result::init_config(config->datasetName + "-x" + std::to_string(config->change_count) + "-k" +
-                                            std::to_string(config->hop_limit) + "-t" + std::to_string(config->threads),
-                                            config->threads);
+            experiment::result::init_config(config->datasetName, config->threads, config->iterations,
+                                            config->change_count, config->hop_limit);
         };
 
         // 持久化的方法

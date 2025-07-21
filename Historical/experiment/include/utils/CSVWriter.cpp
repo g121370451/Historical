@@ -51,7 +51,7 @@ namespace experiment::csv {
     void CSVWriter::write_csv_header() {
         if (!out_stream)
             return;
-        *out_stream << "timestamp,version,dataset,changeFileName,"
+        *out_stream << "timestamp,version,dataset,hop_limit,thread_num,change_count,iteration_count,changeFileName,"
                     // RUC 数据列
                     << "ruc_time_slot1,ruc_time_slot2,a2021_time_slot1,a2021_time_slot2,"
                     << "ruc_label_count_slot1,ruc_label_count_slot2,ruc_total_label_count,"
@@ -69,7 +69,7 @@ namespace experiment::csv {
                     << "old_diffuse_count_slot1,old_diffuse_count_slot2,old_total_diffuse_count,"
                     // 加速比列
                     << "time_speedup,label_count_speedup,label_inc_insert_speedup,"
-                    << "label_dec_insert_speedup,cover_speedup,ppr_speedup,diffuse_speedup" <<std::endl;
+                    << "label_dec_insert_speedup,cover_speedup,ppr_speedup,diffuse_speedup" << std::endl;
 
         header_written_ = true;
     }
@@ -89,7 +89,10 @@ namespace experiment::csv {
 
         oss << get_current_time() << "," << version_ << ",";
 
-        oss << data.dataset <<","<< data.changeName << "," << data.ruc_time_slot1 << "," << data.ruc_time_slot2 << ",";
+        oss << data.dataset << "," << data.thread_count << "," << data.iteration_count << "," << data
+                .change_count << "," << data.hop_limit << "," << data.changeName << "," << data.ruc_time_slot1 << ","
+            << data.ruc_time_slot2
+            << ",";
 
         oss << data.a2021_time_slot1 << "," << data.a2021_time_slot2 << ",";
 
@@ -136,8 +139,9 @@ namespace experiment::csv {
             << (double) old.total_cover_count() / ruc.total_cover_count() << ","
             << (double) old.total_ppr_insert_count() / ruc.total_ppr_insert_count() << ","
             << (double) old.total_diffuse_count() / ruc.total_diffuse_count();
-        std::cout << "old cover total " << old.total_cover_count() << "," <<" ruc cover total is " << ruc.total_cover_count()
-            <<"speed up is " << old.total_cover_count() / ruc.total_cover_count() <<std::endl;
+        std::cout << "old cover total " << old.total_cover_count() << "," << " ruc cover total is "
+                  << ruc.total_cover_count()
+                  << "speed up is " << old.total_cover_count() / ruc.total_cover_count() << std::endl;
         (*out_stream) << oss.str() << std::endl;
     }
 }
