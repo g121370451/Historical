@@ -303,7 +303,7 @@ namespace experiment::hop::ruc::increase {
                 }
         );
         auto timePre02 = std::chrono::steady_clock::now();
-        double costPre0 = std::chrono::duration_cast<std::chrono::duration<double> >(timePre02 - timePre01).count();
+        double costPre0 = std::chrono::duration_cast<std::chrono::duration<double>>(timePre02 - timePre01).count();
 #endif
         for (const auto &item: newMap) {
             results_dynamic.emplace_back(pool_dynamic.enqueue(

@@ -32,7 +32,32 @@ namespace experiment::hop::ruc::decrease {
                            ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int upper_k,
                            int time);
     };
-
+    template<typename weight_type, typename hop_weight_type>
+    void Strategy2024HopDecrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
+                                                                           two_hop_case_info<hop_weight_type> &mm,
+                                                                           std::vector<std::pair<int, int> > &v,
+                                                                           std::vector<weight_type> &w_new,
+                                                                           ThreadPool &pool_dynamic,
+                                                                           std::vector<std::future<int> > &
+                                                                           results_dynamic, int time) {
+        std::map<std::pair<int, int>, hop_weight_type> w_new_map;
+        const size_t batch_size = v.size();
+        for (size_t i = 0; i < batch_size; i++) {
+            if (v[i].first > v[i].second) {
+                std::swap(v[i].first, v[i].second);
+            }
+            if (!w_new_map.contains(v[i]) || w_new_map[v[i]] > w_new[i]) {
+                w_new_map[v[i]] = w_new[i];
+            }
+        }
+        std::vector<hop_constrained_affected_label<hop_weight_type> > CL;
+        // 每次传入的要是和线程数大小相等
+        decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
+#ifdef _DEBUG
+        CL_globals.insert(CL_globals.end(), CL.begin(), CL.end());
+#endif
+        DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
+    }
     template<typename weight_type, typename hop_weight_type>
     void Strategy2024HopDecrease<weight_type, hop_weight_type>::decrease_maintain_step1_batch(
             std::map<std::pair<int, int>, hop_weight_type> &v_map,
@@ -56,8 +81,9 @@ namespace experiment::hop::ruc::decrease {
                         std::swap(v1, v2);
                     }
                     for (auto &it: (*L)[v1]) {
-                        if (it.distance != std::numeric_limits<hop_weight_type>::max() && it.hub_vertex <= v2 &&
-                            it.hop + 1 < upper_k
+                        if (it.distance != std::numeric_limits<hop_weight_type>::max()
+                            && it.hub_vertex <= v2
+                            && it.hop + 1 < upper_k
                             && it.t_e == std::numeric_limits<int>::max()) {
                             hop_weight_type dnew = it.distance + w_new;
 #ifdef _DEBUG
@@ -74,6 +100,11 @@ namespace experiment::hop::ruc::decrease {
                                 CL->push_back(hop_constrained_affected_label<hop_weight_type>{
                                         v2, it.hub_vertex, it.hop + 1, dnew
                                 });
+                                if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                    shard.diffuse_count_slot1++;
+                                } else {
+                                    shard.diffuse_count_slot2++;
+                                }
                                 mtx_599_1.unlock();
                             } else {
                                 auto [label_dis, label_hop] =
@@ -84,16 +115,21 @@ namespace experiment::hop::ruc::decrease {
                                     CL->push_back(hop_constrained_affected_label<hop_weight_type>{
                                             v2, it.hub_vertex, it.hop + 1, dnew
                                     });
+                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                        shard.diffuse_count_slot1++;
+                                    } else {
+                                        shard.diffuse_count_slot2++;
+                                    }
                                     mtx_599_1.unlock();
                                 }
                                 if (query_hub != -1 && query_hub != it.hub_vertex) {
                                     ppr_lock[v2].lock();
-                                    PPR_TYPE::PPR_insert(PPR, v2, query_hub, it.hub_vertex);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_hub, it.hub_vertex);
                                     ppr_lock[v2].unlock();
                                 }
                                 if (query_hub != -1 && query_hub != v2) {
                                     ppr_lock[it.hub_vertex].lock();
-                                    PPR_TYPE::PPR_insert(PPR, it.hub_vertex, query_hub, v2);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, it.hub_vertex, query_hub, v2);
                                     ppr_lock[it.hub_vertex].unlock();
                                 }
                             }
@@ -111,7 +147,7 @@ namespace experiment::hop::ruc::decrease {
             result.get();
         }
         std::vector<std::future<int> >().swap(results_dynamic);
-    };
+    }
 
     template<typename weight_type, typename hop_weight_type>
     void Strategy2024HopDecrease<weight_type, hop_weight_type>::DIFFUSE_batch(graph<weight_type> &instance_graph,
@@ -350,32 +386,5 @@ namespace experiment::hop::ruc::decrease {
         }
         std::cout << "ruc size is " << size << std::endl;
         std::vector<std::future<int> >().swap(results_dynamic);
-    };
-
-    template<typename weight_type, typename hop_weight_type>
-    void Strategy2024HopDecrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
-                                                                           two_hop_case_info<hop_weight_type> &mm,
-                                                                           std::vector<std::pair<int, int> > &v,
-                                                                           std::vector<weight_type> &w_new,
-                                                                           ThreadPool &pool_dynamic,
-                                                                           std::vector<std::future<int> > &
-                                                                           results_dynamic, int time) {
-        std::map<std::pair<int, int>, hop_weight_type> w_new_map;
-        const size_t batch_size = v.size();
-        for (size_t i = 0; i < batch_size; i++) {
-            if (v[i].first > v[i].second) {
-                std::swap(v[i].first, v[i].second);
-            }
-            if (!w_new_map.contains(v[i]) || w_new_map[v[i]] > w_new[i]) {
-                w_new_map[v[i]] = w_new[i];
-            }
-        }
-        std::vector<hop_constrained_affected_label<hop_weight_type> > CL;
-        // 每次传入的要是和线程数大小相等
-        decrease_maintain_step1_batch(w_new_map, &mm.L, &mm.PPR, &CL, pool_dynamic, results_dynamic, mm.upper_k);
-#ifdef _DEBUG
-        CL_globals.insert(CL_globals.end(), CL.begin(), CL.end());
-#endif
-        DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, mm.upper_k, time);
-    };
+    }
 }

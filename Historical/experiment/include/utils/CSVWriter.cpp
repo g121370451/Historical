@@ -51,7 +51,7 @@ namespace experiment::csv {
     void CSVWriter::write_csv_header() {
         if (!out_stream)
             return;
-        *out_stream << "timestamp,version,dataset,hop_limit,thread_num,change_count,iteration_count,changeFileName,"
+        *out_stream << "timestamp,version,dataset,thread_num,iteration_count,change_count,hop_limit,changeFileName,"
                     // RUC 数据列
                     << "ruc_time_slot1,ruc_time_slot2,a2021_time_slot1,a2021_time_slot2,"
                     << "ruc_label_count_slot1,ruc_label_count_slot2,ruc_total_label_count,"

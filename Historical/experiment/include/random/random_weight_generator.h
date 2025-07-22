@@ -297,6 +297,17 @@ namespace experiment {
                                     << u.weight << " at " << u.time << std::endl;
                         }
                     }
+                    if(static_cast<int>(strategy_type) % 3 == 2){
+                        //decrease
+                        if(edge_values[pair] > u.weight){
+                            edge_values[pair] = u.weight;
+                        }else{
+                            std::cout << u << std::endl;
+                            std::cout << "error generate random weight from" << pair.first << " to" << pair.second <<
+                                      " and weight is "
+                                      << u.weight << " at " << u.time << std::endl;
+                        }
+                    }
                 }
             }
         }

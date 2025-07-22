@@ -92,6 +92,11 @@ namespace experiment::hop::algorithm2021::decrease {
                                     CL_next->push_back(
                                             hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1, dnew});
                                     mtx_599_1.unlock();
+                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                        shard.diffuse_count_slot1++;
+                                    } else {
+                                        shard.diffuse_count_slot2++;
+                                    }
                                 } else {
                                     L_lock[vnei].lock();
                                     auto [label_dis, label_hop] = search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(
@@ -105,20 +110,28 @@ namespace experiment::hop::algorithm2021::decrease {
                                                                                              time,
                                                                                              shard);
                                         L_lock[vnei].unlock();
+                                        mtx_list_check.lock();
+                                        this->list.emplace_back(vnei, u, hop_u + 1, dnew, query_dis, time);
+                                        mtx_list_check.unlock();
                                         mtx_599_1.lock();
                                         CL_next->push_back(
                                                 hop_constrained_affected_label<hop_weight_type>{vnei, u, hop_u + 1,
                                                                                                 dnew});
                                         mtx_599_1.unlock();
+                                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                            shard.diffuse_count_slot1++;
+                                        } else {
+                                            shard.diffuse_count_slot2++;
+                                        }
                                     }
-                                    if (query_hub != u) {
+                                    if (query_hub != -1 && query_hub != u) {
                                         ppr_lock[vnei].lock();
-                                        PPR_TYPE::PPR_insert(PPR, vnei, query_hub, u);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub, u);
                                         ppr_lock[vnei].unlock();
                                     }
-                                    if (query_hub != vnei) {
+                                    if (query_hub != -1 && query_hub != vnei) {
                                         ppr_lock[u].lock();
-                                        PPR_TYPE::PPR_insert(PPR, u, query_hub, vnei);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, vnei);
                                         ppr_lock[u].unlock();
                                     }
                                 }
@@ -201,6 +214,11 @@ namespace experiment::hop::algorithm2021::decrease {
                                                                                  shard);
                             this->list.emplace_back(v2, _v, hop_v + 1, dis, query_dis, time);
                             CL_curr.push_back(hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
+                            if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                shard.diffuse_count_slot1++;
+                            } else {
+                                shard.diffuse_count_slot2++;
+                            }
                         } else {
                             auto [label_dis, label_hop] =
                                     search_sorted_two_hop_label_in_current_with_less_than_k_limit_with_csv(L[v2], _v,
@@ -212,29 +230,31 @@ namespace experiment::hop::algorithm2021::decrease {
                                 this->list.emplace_back(v2, _v, hop_v + 1, dis, label_dis, time);
                                 CL_curr.push_back(
                                         hop_constrained_affected_label<hop_weight_type>(v2, _v, hop_v + 1, dis));
+                                if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                    shard.diffuse_count_slot1++;
+                                } else {
+                                    shard.diffuse_count_slot2++;
+                                }
                             }
-                            if (query_hub != _v) {
-                                PPR_TYPE::PPR_insert(&(mm.PPR), v2, query_hub, _v);
+                            if (query_hub != -1 && query_hub != _v) {
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), v2, query_hub, _v);
                             }
-                            if (query_hub != v2) {
-                                PPR_TYPE::PPR_insert(&(mm.PPR), _v, query_hub, v2);
+                            if (query_hub != -1 && query_hub != v2) {
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), _v, query_hub, v2);
                             }
                         }
                     }
                 }
             }
         }
-        long long int size = 0;
         while (!CL_curr.empty()) {
 #ifdef _DEBUG
             CL_globals.insert(CL_globals.end(), CL_curr.begin(), CL_curr.end());
 #endif
-            size += CL_curr.size();
             ProDecreasep_batch(instance_graph, &mm.L, &mm.PPR, CL_curr, &CL_next, pool_dynamic, results_dynamic,
                                mm.upper_k, time);
             CL_curr = CL_next;
             std::vector<hop_constrained_affected_label<hop_weight_type> >().swap(CL_next);
         }
-        std::cout << "2021 decrease size is " << size << std::endl;
     }
 }

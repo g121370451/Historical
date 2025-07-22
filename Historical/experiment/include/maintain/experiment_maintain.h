@@ -241,24 +241,25 @@ namespace experiment {
         using a2021 = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType, HopType>;
 
         explicit MaintainStrategySelector(experiment::ExperimentConfig *config) :
+                savePath(config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
+                sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
+                graph_res_filename(sourcePath + "binary_graph"),
+                change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
+                hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+
                 ruc_process(),
                 a2021_process(),
                 thread_num(config->threads),
                 iteration_count(config->iterations),
                 pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "/" + "maintain_result.csv", "1.0", true) {
-            this->graph_res_filename = config->data_source.string() + "/" + "binary_nonhop_constrained_0_graph";
-            this->change_info_res_filename =
-                    config->save_path.string() + "/" + "changeinfo_res_" + get_current_time_string() + ".txt";
-            this->savePath = config->save_path.string();
-            this->hop_label_res_filename =
-                    config->save_path.string() + "/" + "binary_hop_constrained_0_2_hop_label_info";
-            this->experiment_MAINTAIN_LABEL_res_filename =
-                    config->save_path.string() + "/" + "MAINTAIN_LABEL_nonhop_constrained_0_" +
-                    std::to_string(config->threads) + "_threads_result.txt";
+                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", "1.0", true),
+                generatedFilePath(config->generatedFilePath),
+                changeStrategy(config->changeStrategy),
+                enableCorrectnessCheck(config->enableCorrectnessCheck) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
+
             this->instance_graph_list.push_back(this->instance_graph);
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
@@ -266,7 +267,6 @@ namespace experiment {
             experiment::result::init_config(config->datasetName, config->threads, config->iterations,
                                             config->change_count, config->hop_limit);
         };
-
         // 持久化的方法
         template<typename... Args>
         void persistData(Args &&...args) const {
@@ -274,8 +274,11 @@ namespace experiment {
             saveAll(hopPath, std::forward<Args>(args)...);
         }
 
-        // 获取变化的边的方法 这里要有两种模式 一种是读取旧值 一种是新生成
         void generateChangeEdge() {
+            if (this->generatedFilePath != std::nullopt) {
+                readChangeEdge(this->generatedFilePath.value());
+                return;
+            }
             auto [low, mid, high] = classify_vertices_by_log_degree(this->instance_graph);
             std::vector<int> low_ids, mid_ids, high_ids;
 
@@ -291,8 +294,9 @@ namespace experiment {
             low_ids = extract_ids(low);
             mid_ids = extract_ids(mid);
             high_ids = extract_ids(high);
+            const std::string strategy = this->changeStrategy.value();
             this->iterationChangeWeightInfo.build_change_by_strategy(high_ids, low_ids,
-                                                                     EdgeChangeStrategy::HIGH_LOW_MIXED);
+                                                                     parseEdgeChangeStrategy(strategy));
             // 持久化保存这个结果 结果可以用时间戳表示
             std::ofstream outfile(this->change_info_res_filename);
             experiment::result::global_csv_config.basic_data.changeName = this->change_info_res_filename;
@@ -455,8 +459,15 @@ namespace experiment {
         }
 
     private:
+        std::string savePath;
+        std::string sourcePath;
+        std::string graph_res_filename;
+        std::string change_info_res_filename;
+        std::string hop_label_res_filename;
+
         ruc ruc_process;
         a2021 a2021_process;
+
         int thread_num;
         int iteration_count;
         ThreadPool pool_dynamic;
@@ -468,11 +479,9 @@ namespace experiment {
         graph_with_time_span<GraphType> graph_time;
         nonhop::two_hop_case_info<HopType> hop_info;
         nonhop::two_hop_case_info<HopType> hop_info_2021;
-        std::string savePath;
-        std::string hop_label_res_filename;
-        std::string graph_res_filename;
-        std::string change_info_res_filename;
-        std::string experiment_MAINTAIN_LABEL_res_filename;
+        std::optional<std::string> generatedFilePath = std::nullopt;
+        std::optional<std::string> changeStrategy = std::nullopt;
+        bool enableCorrectnessCheck = false;
 
         // 读取旧值的初始化方法
         template<typename... Args>

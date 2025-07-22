@@ -68,6 +68,7 @@ namespace experiment::nonhop {
     // {
     // 	return x.disx > y.disx; // < is the max-heap; > is the min heap
     // }
+    template<typename hop_weight_type>
     class affected_label {
     public:
         int first, second;
@@ -92,6 +93,51 @@ namespace experiment::nonhop {
     inline std::vector<std::vector<handle_t_for_DIFFUSE> > Q_handles;
 
     inline std::mutex mtx_595_1;
+    inline std::mutex mtx_list_check;
     inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
+    template<typename hop_weight_type>
+    struct record_in_increase_with_hop {
+        int vertex;
+        int hub;
+        hop_weight_type distance;
+        hop_weight_type old_distance;
+        int time;
+
+        record_in_increase_with_hop() {
+        }
+
+        record_in_increase_with_hop(
+                int _vertex, int _hub, int _hop,
+                hop_weight_type _distance, hop_weight_type _old_distance, int _time)
+                : vertex(_vertex), hub(_hub), distance(_distance), old_distance(_old_distance), time(_time) {
+        }
+
+        bool operator==(const record_in_increase_with_hop &other) const {
+            return (vertex == other.vertex && hub == other.hub
+                    && distance == other.distance && time == other.time);
+        }
+
+        bool operator<(const record_in_increase_with_hop &other) const {
+            // used to sort/search pair_label2 in set
+            if(time != other.time)
+                return time<other.time;
+            if (hub != other.hub)
+                return hub < other.hub;
+            if (vertex != other.vertex)
+                return vertex < other.vertex;
+            if (distance != other.distance)
+                return distance < other.distance;
+            return old_distance < other.old_distance;
+        }
+
+        friend std::ostream &operator<<(std::ostream &out, const record_in_increase_with_hop<hop_weight_type> &obj) {
+            out << "record_in_increase_with_hop object: vertex = " << obj.vertex <<
+                ", hub = " << obj.hub <<
+                ", dis = " << obj.distance <<
+                ", old_distance = " << obj.old_distance <<
+                ", time = " << obj.time << std::endl;
+            return out;
+        }
+    };
 #pragma endregion
 }
