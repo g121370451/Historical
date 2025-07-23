@@ -56,7 +56,7 @@ namespace experiment::nonhop::algorithm2021::increase {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
             }
-            if (w_old_map.count(v[i]) == 0) {
+            if (!w_old_map.contains(v[i])) {
                 w_old_map[v[i]] = w_old_vec[i];
             }
         }
@@ -64,7 +64,7 @@ namespace experiment::nonhop::algorithm2021::increase {
         std::vector<affected_label<hop_weight_type>> al1_curr, al1_next;
         std::vector<pair_label> al2_curr, al2_next;
 
-        for (const std::pair<std::pair<int, int>, weight_type> &iter: w_old_map) {
+        for (const std::pair<const std::pair<int, int>, weight_type> &iter: w_old_map) {
             int v1 = iter.first.first;
             int v2 = iter.first.second;
             weight_type w_old = iter.second;

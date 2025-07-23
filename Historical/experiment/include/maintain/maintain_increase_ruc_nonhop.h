@@ -318,13 +318,13 @@ namespace experiment::nonhop::ruc::increase {
             }
         }
 #ifdef _DEBUG
-        for (const std::pair<pair_label, weight_type> &item: al3_edge_map) {
+        for (const std::pair<const pair_label, weight_type> &item: al3_edge_map) {
             this->global_al2.push_back(item.first);
         }
 #endif
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<std::pair<int, weight_type>>> al3_map; // al3_map[v]=(u1,dis1),(u2,dis2)...
-        for (const std::pair<pair_label, weight_type> &it: al3_edge_map) {
+        for (const std::pair<const pair_label, weight_type> &it: al3_edge_map) {
             int u = it.first.first;
             int v = it.first.second;
             weight_type dis = it.second;
