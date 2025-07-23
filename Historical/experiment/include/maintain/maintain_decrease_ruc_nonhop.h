@@ -21,7 +21,7 @@ namespace experiment::nonhop::ruc::decrease {
 #ifdef _DEBUG
         std::vector<affected_label<hop_weight_type>> CL_globals;
 #endif
-        std::vector<record_in_increase_with_hop<hop_weight_type>> list;
+        std::vector<record_in_increase<hop_weight_type>> list;
     private:
         void decrease_maintain_step1_batch(std::map<std::pair<int, int>, weight_type> &v_map,
                                            std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
@@ -61,7 +61,7 @@ namespace experiment::nonhop::ruc::decrease {
         CL_globals.insert(CL_globals.end(), CL.begin(), CL.end());
 #endif
         DIFFUSE_batch(instance_graph, &mm.L, &mm.PPR, CL, pool_dynamic, results_dynamic, time);
-    };
+    }
 
     template<typename weight_type, typename hop_weight_type>
     inline void Strategy2024NonHopDecrease<weight_type, hop_weight_type>::decrease_maintain_step1_batch(
@@ -88,7 +88,7 @@ namespace experiment::nonhop::ruc::decrease {
                     }
                     for (auto &it: (*L)[v1]) {
                         if (it.distance != std::numeric_limits<hop_weight_type>::max()
-                            && it.hub_vertex <= v2
+                            && it.vertex <= v2
                             && it.t_e == std::numeric_limits<int>::max()) {
                             hop_weight_type dnew = it.distance + w_new;
 #ifdef _DEBUG
@@ -149,7 +149,7 @@ namespace experiment::nonhop::ruc::decrease {
             result.get();
         }
         std::vector<std::future<int>>().swap(results_dynamic);
-    };
+    }
 
     template<typename weight_type, typename hop_weight_type>
     inline void Strategy2024NonHopDecrease<weight_type, hop_weight_type>::DIFFUSE_batch(
@@ -186,24 +186,25 @@ namespace experiment::nonhop::ruc::decrease {
              [](const std::pair<int, std::vector<std::pair<int, int>>> &a,
                 const std::pair<int, std::vector<std::pair<int, int>>> &b) { return a.first < b.first; });
         // each thread processes one unique hub
-        for (auto &it: CL_map_vec) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([t, it, L, &instance_graph, PPR] {
+        for (auto &cl_item: CL_map_vec) {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([t, cl_item, L, &instance_graph, PPR, this] {
                 mtx_595_1.lock();
                 int current_tid = Qid_595.front();
                 Qid_595.pop();
                 mtx_595_1.unlock();
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
-                int v = it.first;
-                std::vector<std::pair<int, int>> vec_with_hub_v = it.second;
+
+                int v = cl_item.first;
+                std::vector<std::pair<int, int>> vec_with_hub_v = cl_item.second;
 
                 mtx_595[v].lock();
                 auto Lv = (*L)[v]; // to avoid interlocking
                 mtx_595[v].unlock();
 
                 std::vector<int> Dis_changed;
-                auto &DIS = Dis<hop_weight_type>[current_tid];
-                auto &Q_HANDLES = Q_handles[current_tid];
+                std::vector<std::pair<hop_weight_type, int>> &DIS = Dis<hop_weight_type>[current_tid];
+                std::vector<handle_t_for_DIFFUSE> &Q_HANDLES = Q_handles[current_tid];
                 auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
                 boost::heap::fibonacci_heap<node_for_DIFFUSE> Q;
@@ -233,16 +234,24 @@ namespace experiment::nonhop::ruc::decrease {
                         mtx_595[x].lock();
                         insert_sorted_two_hop_label_with_csv((*L)[x], v, dx, t, shard);
                         mtx_595[x].unlock();
+                        mtx_list_check.lock();
+                        this->list.emplace_back(x, v, dx, d_old, time);
+                        mtx_list_check.unlock();
                     } else {
                         continue;
-                        //dx=d_old;
                     }
 
                     for (auto &nei: instance_graph[x]) {
                         int xnei = nei.first;
                         int d_new = dx + nei.second;
-
-                        if (v < xnei && d_new < 2e6) {
+#ifdef _DEBUG
+                        if (d_new < 0) {
+                            std::cout << "overflow happen in maintain decrease ruc diffuse with nonhop"
+                                      << " dx is "
+                                      << dx << " nei.second is " << nei.second << std::endl;
+                        }
+#endif
+                        if (v < xnei) {
                             if (DIS[xnei].first == -1) {
                                 mtx_595[xnei].lock();
                                 DIS[xnei] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
@@ -313,7 +322,7 @@ namespace experiment::nonhop::ruc::decrease {
             result.get();
         }
         std::vector<std::future<int>>().swap(results_dynamic);
-    };
+    }
 
 }
 

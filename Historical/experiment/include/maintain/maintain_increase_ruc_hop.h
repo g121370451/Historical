@@ -351,6 +351,10 @@ namespace experiment::hop::ruc::increase {
                                     hop_vn = dis_hop.second + 1;
                                 }
                             }
+                            if(d1 == std::numeric_limits<hop_weight_type>::max()) {
+                                std::cout << "prune increase with hop ruc" << std::endl;
+                                continue;
+                            }
 #ifdef _DEBUG
                             auto time2 = std::chrono::steady_clock::now();
                             cost11 = std::chrono::duration_cast<std::chrono::duration<double> >(time2 - time1).count();
@@ -431,12 +435,12 @@ namespace experiment::hop::ruc::increase {
 #endif
                                     if (query_hub != -1 && query_hub != targetVertex) {
                                         ppr_lock[diffuseVertex].lock();
-                                        PPR_TYPE::PPR_insert(PPR, diffuseVertex, query_hub, targetVertex);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, diffuseVertex, query_hub, targetVertex,shard);
                                         ppr_lock[diffuseVertex].unlock();
                                     }
                                     if (query_hub != -1 && query_hub != diffuseVertex) {
                                         ppr_lock[targetVertex].lock();
-                                        PPR_TYPE::PPR_insert(PPR, targetVertex, query_hub, diffuseVertex);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, targetVertex, query_hub, diffuseVertex,shard);
                                         ppr_lock[targetVertex].unlock();
                                     }
 #ifdef _DEBUG
@@ -592,12 +596,12 @@ namespace experiment::hop::ruc::increase {
                             if (query_dis <= du && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                                 if (query_hub != -1 && query_hub != v) {
                                     ppr_lock[u].lock();
-                                    PPR_TYPE::PPR_insert(PPR, u, query_hub, v);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, v,shard);
                                     ppr_lock[u].unlock();
                                 }
                                 if (query_hub != -1 && query_hub != u) {
                                     ppr_lock[v].lock();
-                                    PPR_TYPE::PPR_insert(PPR, v, query_hub, u);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, u,shard);
                                     ppr_lock[v].unlock();
                                 }
                             } else {
@@ -609,6 +613,11 @@ namespace experiment::hop::ruc::increase {
                                 tmp.disx = du;
                                 Q_handle[{u, h_v}] = {pq.push({tmp}), du}; //{hop_constrained_node_for_DIFFUSE,dis}
                                 Q_VALUE[u][h_v] = du;
+                                if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                    shard.diffuse_count_slot1++;
+                                } else {
+                                    shard.diffuse_count_slot2++;
+                                }
                             }
                         }
 #ifdef _DEBUG
@@ -712,6 +721,11 @@ namespace experiment::hop::ruc::increase {
                                         }
                                     } else {
                                         Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
+                                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                            shard.diffuse_count_slot1++;
+                                        } else {
+                                            shard.diffuse_count_slot2++;
+                                        }
                                     }
                                     for (int index = hop_nei; index <= upper_k; index++) {
                                         dist_hop[xnei][hop_nei] = d_new;
@@ -753,6 +767,11 @@ namespace experiment::hop::ruc::increase {
                                             }
                                         } else {
                                             Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
+                                            if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                                shard.diffuse_count_slot1++;
+                                            } else {
+                                                shard.diffuse_count_slot2++;
+                                            }
                                         }
                                         Q_VALUE[xnei][hop_nei] = d_new;
                                     }
@@ -769,12 +788,12 @@ namespace experiment::hop::ruc::increase {
                                 if (dist_hop[xnei][hop_nei] < d_new) {
                                     if (hubs[xnei] != -1 && hubs[xnei] != v) {
                                         ppr_lock[xnei].lock();
-                                        PPR_TYPE::PPR_insert(PPR, xnei, hubs[xnei], v);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, xnei, hubs[xnei], v,shard);
                                         ppr_lock[xnei].unlock();
                                     }
                                     if (hubs[xnei] != -1 && hubs[xnei] != xnei) {
                                         ppr_lock[v].lock();
-                                        PPR_TYPE::PPR_insert(PPR, v, hubs[xnei], xnei);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, v, hubs[xnei], xnei,shard);
                                         ppr_lock[v].unlock();
                                     }
                                 }

@@ -126,12 +126,12 @@ namespace experiment::hop::algorithm2021::decrease {
                                     }
                                     if (query_hub != -1 && query_hub != u) {
                                         ppr_lock[vnei].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub, u);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub, u,shard);
                                         ppr_lock[vnei].unlock();
                                     }
                                     if (query_hub != -1 && query_hub != vnei) {
                                         ppr_lock[u].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, vnei);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, vnei,shard);
                                         ppr_lock[u].unlock();
                                     }
                                 }
@@ -237,10 +237,10 @@ namespace experiment::hop::algorithm2021::decrease {
                                 }
                             }
                             if (query_hub != -1 && query_hub != _v) {
-                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), v2, query_hub, _v);
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), v2, query_hub, _v,shard);
                             }
                             if (query_hub != -1 && query_hub != v2) {
-                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), _v, query_hub, v2);
+                                PPR_TYPE::PPR_insert_with_csv(&(mm.PPR), _v, query_hub, v2,shard);
                             }
                         }
                     }

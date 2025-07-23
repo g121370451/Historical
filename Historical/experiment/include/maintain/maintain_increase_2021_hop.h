@@ -159,7 +159,7 @@ namespace experiment::hop::algorithm2021::increase {
         std::cout << "2021 " << cost1 << " " << cost2 << " " << cost3 << std::endl;
 #endif
         std::cout << "2021 algorithm al1Size is " << al1Size << " al2Size is " << al2Size << std::endl;
-    };
+    }
 
     template<typename weight_type, typename hop_weight_type>
     void StrategyA2021HopIncrease<weight_type, hop_weight_type>::PI11(graph<int> &instance_graph,
@@ -349,16 +349,21 @@ namespace experiment::hop::algorithm2021::increase {
                                     mtx_599_1.lock();
                                     al2_next->emplace_back(diffuseVertex, targetVertex, hop_i);
                                     mtx_599_1.unlock();
+                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                        shard.diffuse_count_slot1++;
+                                    } else {
+                                        shard.diffuse_count_slot2++;
+                                    }
                                 } else if (query_dis != std::numeric_limits<hop_weight_type>::max() && query_dis <=
                                                                                                        di) {
                                     if (query_hub != -1 && query_hub != targetVertex) {
                                         ppr_lock[diffuseVertex].lock();
-                                        PPR_TYPE::PPR_insert(PPR, diffuseVertex, query_hub, targetVertex);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, diffuseVertex, query_hub, targetVertex,shard);
                                         ppr_lock[diffuseVertex].unlock();
                                     }
                                     if (query_hub != -1 && query_hub != diffuseVertex) {
                                         ppr_lock[targetVertex].lock();
-                                        PPR_TYPE::PPR_insert(PPR, targetVertex, query_hub, diffuseVertex);
+                                        PPR_TYPE::PPR_insert_with_csv(PPR, targetVertex, query_hub, diffuseVertex,shard);
                                         ppr_lock[targetVertex].unlock();
                                     }
                                 }
@@ -442,15 +447,20 @@ namespace experiment::hop::algorithm2021::increase {
                                         mtx_599_1.lock();
                                         al2_next->emplace_back(nei.first, it.second, it.hop + 1);
                                         mtx_599_1.unlock();
+                                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                            shard.diffuse_count_slot1++;
+                                        } else {
+                                            shard.diffuse_count_slot2++;
+                                        }
                                     } else {
                                         if (query_hub != -1 && query_hub != it.second) {
                                             ppr_lock[nei.first].lock();
-                                            PPR_TYPE::PPR_insert(PPR, nei.first, query_hub, it.second);
+                                            PPR_TYPE::PPR_insert_with_csv(PPR, nei.first, query_hub, it.second,shard);
                                             ppr_lock[nei.first].unlock();
                                         }
                                         if (query_hub != -1 && query_hub != nei.first) {
                                             ppr_lock[it.second].lock();
-                                            PPR_TYPE::PPR_insert(PPR, it.second, query_hub, nei.first);
+                                            PPR_TYPE::PPR_insert_with_csv(PPR, it.second, query_hub, nei.first,shard);
                                             ppr_lock[it.second].unlock();
                                         }
                                     }

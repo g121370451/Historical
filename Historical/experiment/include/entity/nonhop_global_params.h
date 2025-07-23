@@ -72,13 +72,13 @@ namespace experiment::nonhop {
     class affected_label {
     public:
         int first, second;
-        long long int dis;
+        hop_weight_type dis;
         int t_s, t_e;
 
         affected_label() {
         }
 
-        affected_label(int _first, int _second, long long int _dis) {
+        affected_label(int _first, int _second, hop_weight_type _dis) {
             first = _first;
             second = _second;
             dis = _dis;
@@ -96,28 +96,28 @@ namespace experiment::nonhop {
     inline std::mutex mtx_list_check;
     inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
     template<typename hop_weight_type>
-    struct record_in_increase_with_hop {
+    struct record_in_increase {
         int vertex;
         int hub;
         hop_weight_type distance;
         hop_weight_type old_distance;
         int time;
 
-        record_in_increase_with_hop() {
+        record_in_increase() {
         }
 
-        record_in_increase_with_hop(
+        record_in_increase(
                 int _vertex, int _hub, int _hop,
                 hop_weight_type _distance, hop_weight_type _old_distance, int _time)
                 : vertex(_vertex), hub(_hub), distance(_distance), old_distance(_old_distance), time(_time) {
         }
 
-        bool operator==(const record_in_increase_with_hop &other) const {
+        bool operator==(const record_in_increase &other) const {
             return (vertex == other.vertex && hub == other.hub
                     && distance == other.distance && time == other.time);
         }
 
-        bool operator<(const record_in_increase_with_hop &other) const {
+        bool operator<(const record_in_increase &other) const {
             // used to sort/search pair_label2 in set
             if(time != other.time)
                 return time<other.time;
@@ -130,7 +130,7 @@ namespace experiment::nonhop {
             return old_distance < other.old_distance;
         }
 
-        friend std::ostream &operator<<(std::ostream &out, const record_in_increase_with_hop<hop_weight_type> &obj) {
+        friend std::ostream &operator<<(std::ostream &out, const record_in_increase<hop_weight_type> &obj) {
             out << "record_in_increase_with_hop object: vertex = " << obj.vertex <<
                 ", hub = " << obj.hub <<
                 ", dis = " << obj.distance <<

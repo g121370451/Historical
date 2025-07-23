@@ -19,7 +19,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
 #ifdef _DEBUG
         std::vector<affected_label<hop_weight_type>> CL_globals;
 #endif
-        std::vector<record_in_increase_with_hop<hop_weight_type>> list;
+        std::vector<record_in_increase<hop_weight_type>> list;
     private:
         void ProDecreasep_batch(graph<weight_type> &instance_graph,
                                 std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
@@ -104,14 +104,14 @@ namespace experiment::nonhop::algorithm2021::decrease {
                                 }
                                 mtx_595_1.unlock();
                             }
-                            if (query_hub.second != -1 && query_hub.second != u) {
+                            if (query_hub != -1 && query_hub != u) {
                                 mtx_5952[vnei].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub.second, u, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub, u, shard);
                                 mtx_5952[vnei].unlock();
                             }
-                            if (query_hub.second != -1 && query_hub.second != vnei) {
+                            if (query_hub != -1 && query_hub != vnei) {
                                 mtx_5952[u].lock();
-                                PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub.second, vnei, shard);
+                                PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, vnei, shard);
                                 mtx_5952[u].unlock();
                             }
                         }

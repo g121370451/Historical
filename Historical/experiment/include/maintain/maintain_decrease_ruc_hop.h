@@ -124,12 +124,12 @@ namespace experiment::hop::ruc::decrease {
                                 }
                                 if (query_hub != -1 && query_hub != it.hub_vertex) {
                                     ppr_lock[v2].lock();
-                                    PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_hub, it.hub_vertex);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_hub, it.hub_vertex,shard);
                                     ppr_lock[v2].unlock();
                                 }
                                 if (query_hub != -1 && query_hub != v2) {
                                     ppr_lock[it.hub_vertex].lock();
-                                    PPR_TYPE::PPR_insert_with_csv(PPR, it.hub_vertex, query_hub, v2);
+                                    PPR_TYPE::PPR_insert_with_csv(PPR, it.hub_vertex, query_hub, v2,shard);
                                     ppr_lock[it.hub_vertex].unlock();
                                 }
                             }
@@ -316,6 +316,11 @@ namespace experiment::hop::ruc::decrease {
                                             }
                                         } else {
                                             Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
+                                            if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                                shard.diffuse_count_slot1++;
+                                            } else {
+                                                shard.diffuse_count_slot2++;
+                                            }
                                         }
                                         for (int index = hop_nei; index <= upper_k; index++) {
                                             dist_hop[xnei][hop_nei] = d_new;
@@ -348,6 +353,11 @@ namespace experiment::hop::ruc::decrease {
                                                 }
                                             } else {
                                                 Q_handle[{xnei, hop_nei}] = {pq.push(node), d_new};
+                                                if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                                    shard.diffuse_count_slot1++;
+                                                } else {
+                                                    shard.diffuse_count_slot2++;
+                                                }
                                             }
                                             Q_VALUE[xnei][hop_nei] = d_new;
                                         }
