@@ -117,7 +117,7 @@ namespace experiment::nonhop::ruc::increase {
                             mtx_595_1.lock();
                             al1.emplace_back(v1, label.vertex, label.distance + w_old);
 #ifdef _DEBUG
-                            this->list_infinite.emplace_back(v1, label.hub_vertex,
+                            this->list_infinite.emplace_back(v1, label.vertex,
                                                              std::numeric_limits<hop_weight_type>::max(),
                                                              search_weight, time);
 #endif
@@ -318,13 +318,13 @@ namespace experiment::nonhop::ruc::increase {
             }
         }
 #ifdef _DEBUG
-        for (const std::pair<affected_label<hop_weight_type>, weight_type> &item: al3_edge_map) {
+        for (const std::pair<pair_label, weight_type> &item: al3_edge_map) {
             this->global_al2.push_back(item.first);
         }
 #endif
         // extract each unique hub v and its (u,dis) list
         std::map<int, std::vector<std::pair<int, weight_type>>> al3_map; // al3_map[v]=(u1,dis1),(u2,dis2)...
-        for (std::pair<pair_label, weight_type> &it: al3_edge_map) {
+        for (const std::pair<pair_label, weight_type> &it: al3_edge_map) {
             int u = it.first.first;
             int v = it.first.second;
             weight_type dis = it.second;
@@ -366,9 +366,9 @@ namespace experiment::nonhop::ruc::increase {
 
                 std::vector<int> Dis_changed;
                 auto &DIS = Dis<hop_weight_type>[current_tid];
-                std::map<int, handle_t_for_DIFFUSE> Q_handle;
+                std::map<int, handle_t_for_DIFFUSE<hop_weight_type>> Q_handle;
 
-                boost::heap::fibonacci_heap<node_for_DIFFUSE> pq;
+                boost::heap::fibonacci_heap<node_for_DIFFUSE<hop_weight_type>> pq;
 
                 for (auto &diffuseLabel: vec_with_hub_v) {
                     int u = diffuseLabel.first;
@@ -422,7 +422,7 @@ namespace experiment::nonhop::ruc::increase {
 
                     for (auto nei: instance_graph[x]) {
                         int xnei = nei.first;
-                        if (v > xnei) {
+                        if (v >= xnei) {
                             continue;
                         }
                         weight_type d_new = dx + nei.second;

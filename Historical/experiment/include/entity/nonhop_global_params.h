@@ -48,26 +48,23 @@ namespace experiment::nonhop {
         }
     };
 
+    template<typename hop_weight_type>
     struct node_for_DIFFUSE {
         int index;
-        int disx;
+        hop_weight_type disx;
 
         node_for_DIFFUSE() {
         }
 
-        node_for_DIFFUSE(int _u, int _dis) {
+        node_for_DIFFUSE(int _u, hop_weight_type _dis) {
             index = _u;
             disx = _dis;
         }
 
         bool operator<(node_for_DIFFUSE const &other) const {
-            return disx > other.disx; // < is the max-heap; > is the min heap
-        };
-    }; // define the node in the queue
-    // bool operator<(node_for_DIFFUSE const &x, node_for_DIFFUSE const &y)
-    // {
-    // 	return x.disx > y.disx; // < is the max-heap; > is the min heap
-    // }
+            return disx > other.disx;
+        }
+    };
     template<typename hop_weight_type>
     class affected_label {
     public:
@@ -85,12 +82,11 @@ namespace experiment::nonhop {
         }
     };
 
-    typedef boost::heap::fibonacci_heap<node_for_DIFFUSE>::handle_type handle_t_for_DIFFUSE;
+    template<typename hop_weight_type>
+    using handle_t_for_DIFFUSE = typename boost::heap::fibonacci_heap<node_for_DIFFUSE<hop_weight_type>>::handle_type;
+
     template <typename hop_weight_type>
     inline std::vector<std::vector<std::pair<hop_weight_type, int>>> Dis;
-    template <typename hop_weight_type>
-    inline std::vector<std::vector<hop_weight_type>> Q_value;
-    inline std::vector<std::vector<handle_t_for_DIFFUSE> > Q_handles;
 
     inline std::mutex mtx_595_1;
     inline std::mutex mtx_list_check;
@@ -107,7 +103,7 @@ namespace experiment::nonhop {
         }
 
         record_in_increase(
-                int _vertex, int _hub, int _hop,
+                int _vertex, int _hub,
                 hop_weight_type _distance, hop_weight_type _old_distance, int _time)
                 : vertex(_vertex), hub(_hub), distance(_distance), old_distance(_old_distance), time(_time) {
         }

@@ -209,7 +209,7 @@ namespace experiment::hop {
         }
     }; // define the node in the queue
     template<typename hop_weight_type>
-    using hop_constrained_handle_t_for_DIFFUSE = boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<
+    using hop_constrained_handle_t_for_DIFFUSE = typename boost::heap::fibonacci_heap<hop_constrained_node_for_DIFFUSE<
             hop_weight_type> >::handle_type;
 
     template<typename hop_weight_type>

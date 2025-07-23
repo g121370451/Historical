@@ -741,7 +741,7 @@ namespace experiment::hop::ruc::increase {
 #ifdef _DEBUG
                                     auto time09 = std::chrono::steady_clock::now();
 #endif
-                                    for (int index = hop_nei; index <= upper_k; index++) {
+                                    for (int index = hop_nei; index <= upper_k; ++index) {
                                         if (dist_hop[xnei][index] > d_new) {
                                             dist_hop[xnei][index] = d_new;
                                         }
