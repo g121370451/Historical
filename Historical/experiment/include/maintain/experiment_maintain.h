@@ -57,6 +57,30 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
+        std::vector<nonhop::record_in_increase<HopType>> &getDecreaseList() {
+            return decreaseItem.list;
+        };
+
+        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseList() {
+            return increaseItem.list;
+        };
+
+#ifdef _DEBUG
+
+        std::vector<nonhop::affected_label<HopType>> &getDecreaseCList() {
+            return decreaseItem.CL_globals;
+        }
+
+
+        std::vector<nonhop::pair_label> &getIncreaseListAL2() {
+            return increaseItem.global_al2;
+        }
+
+        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseInfiniteList() {
+            return increaseItem.list_infinite;
+        }
+
+#endif
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -97,7 +121,29 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
+        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseList() {
+            return increaseItem.list;
+        };
 
+        std::vector<nonhop::record_in_increase<HopType>> &getDecreaseList() {
+            return decreaseItem.list;
+        };
+#ifdef _DEBUG
+
+
+        std::vector<nonhop::affected_label<HopType>> &getDecreaseCList() {
+            return decreaseItem.CL_globals;
+        }
+
+        std::vector<nonhop::pair_label> &getIncreaseListAL2() {
+            return increaseItem.global_al2;
+        }
+
+        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseInfiniteList() {
+            return increaseItem.list_infinite;
+        }
+
+#endif
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -267,6 +313,7 @@ namespace experiment {
             experiment::result::init_config(config->datasetName, config->threads, config->iterations,
                                             config->change_count, config->hop_limit);
         };
+
         // 持久化的方法
         template<typename... Args>
         void persistData(Args &&...args) const {
@@ -451,7 +498,67 @@ namespace experiment {
         }
 
         void check_correctness() {
+            if (this->enableCorrectnessCheck) {
+#ifdef _DEBUG
+                nonhop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(),
+                                             this->savePath + "decrease_cl_ruc.txt");
+                nonhop::sort_and_output_to_file(this->a2021_process.getDecreaseCList(),
+                                             this->savePath + "decrease_2021_CL.txt");
 
+                nonhop::sort_and_output_to_file_unique(this->ruc_process.getIncreaseInfiniteList(),
+                                                    this->savePath + "increase_item_ruc_infinite.txt");
+                nonhop::sort_and_output_to_file_unique(this->a2021_process.getIncreaseInfiniteList(),
+                                                    this->savePath + "increase_item_2021_infinite.txt");
+                nonhop::sort_and_output_to_file(this->ruc_process.getIncreaseListAL2(), this->savePath + "ruc_al2.txt");
+                nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), this->savePath + "2021_al2.txt");
+#endif
+                nonhop::sort_and_output_to_file(this->ruc_process.getDecreaseList(),
+                                             this->savePath + "decrease_ruc_insert.txt");
+                nonhop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),
+                                             this->savePath + "decrease_2021_insert.txt");
+                nonhop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),
+                                             this->savePath + "increase_item_ruc.txt");
+                nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseList(),
+                                             this->savePath + "increase_item_2021.txt");
+                if (!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()) {
+                    auto iter1 = this->ruc_process.getIncreaseList().begin();
+                    auto iter2 = this->a2021_process.getIncreaseList().begin();
+                    while (iter1 != this->ruc_process.getIncreaseList().end() ||
+                           iter2 != this->a2021_process.getIncreaseList().end()) {
+                        if ((*iter1) != (*iter2)) {
+                            if (iter2 == this->a2021_process.getIncreaseList().end() || *iter1 < *iter2) {
+                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1);
+                                ++iter1;
+                            } else if (iter1 == this->ruc_process.getIncreaseList().end() || *iter2 < *iter1) {
+                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1);
+                                ++iter2;
+                            }
+                        } else {
+                            ++iter1;
+                            ++iter2;
+                        }
+                    }
+                }
+                if (!this->ruc_process.getDecreaseList().empty() || !this->a2021_process.getDecreaseList().empty()) {
+                    auto iter1 = this->ruc_process.getDecreaseList().begin();
+                    auto iter2 = this->a2021_process.getDecreaseList().begin();
+                    while (iter1 != this->ruc_process.getDecreaseList().end() ||
+                           iter2 != this->a2021_process.getDecreaseList().end()) {
+                        if ((*iter1) != (*iter2)) {
+                            if (iter2 == this->a2021_process.getDecreaseList().end() || *iter1 < *iter2) {
+                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1);
+                                ++iter1;
+                            } else if (iter1 == this->ruc_process.getDecreaseList().end() || *iter2 < *iter1) {
+                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1);
+                                ++iter2;
+                            }
+                        } else {
+                            ++iter1;
+                            ++iter2;
+                        }
+                    }
+                }
+            }
         }
 
     private:
@@ -484,6 +591,17 @@ namespace experiment {
         void readData(Args &&...args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
+        }
+
+        void checkDisCorrectness(int v, int u, int t_s, int t_e) {
+            auto res1 = this->hop_info.query(v, u, t_s, t_e);
+            auto res2 = this->hop_info_2021.query(v, u, t_s, t_e);
+            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
+            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e);
+            if (res1 != res2 || res3 != res1 || res2 != res3) {
+                std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
+                          << std::endl;
+            }
         }
     };
 

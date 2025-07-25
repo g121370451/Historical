@@ -29,19 +29,6 @@ namespace experiment::hop {
 #pragma endregion
 #pragma region hop maintain global variables
 
-    template<typename hop_weight_type>
-    struct Best_distance_with_hop_by_cover {
-        hop_weight_type first;
-        int second;
-        int hub;
-
-        Best_distance_with_hop_by_cover(hop_weight_type _distance, int _hop, int _hub) {
-            this->hub = _hub;
-            this->first = _distance;
-            this->second = _hop;
-        };
-    };
-
     inline std::mutex mtx_599_1;
     inline std::mutex mtx_list_check;
 

@@ -351,10 +351,6 @@ namespace experiment::hop::ruc::increase {
                                     hop_vn = dis_hop.second + 1;
                                 }
                             }
-                            if(d1 == std::numeric_limits<hop_weight_type>::max()) {
-                                std::cout << "prune increase with hop ruc" << std::endl;
-                                continue;
-                            }
 #ifdef _DEBUG
                             auto time2 = std::chrono::steady_clock::now();
                             cost11 = std::chrono::duration_cast<std::chrono::duration<double> >(time2 - time1).count();
@@ -468,7 +464,7 @@ namespace experiment::hop::ruc::increase {
                         return 1;
                     }
             ));
-        };
+        }
         for (auto &i: results_dynamic) {
             i.get();
         }
@@ -631,6 +627,7 @@ namespace experiment::hop::ruc::increase {
                             int xhv = pq.top().hop;
                             hop_weight_type dx = pq.top().disx;
                             pq.pop();
+                            Q_handle.erase(std::make_pair(x,xhv));
 
                             if (Q_VALUE[x][xhv - 1] != -1 && Q_VALUE[x][xhv - 1] <= dx) {
                                 continue;

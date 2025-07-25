@@ -80,6 +80,25 @@ namespace experiment::nonhop {
             second = _second;
             dis = _dis;
         }
+
+        bool operator==(const affected_label other) const {
+            return (first == other.first && second == other.second && dis == other.dis);
+        }
+
+        bool operator<(const affected_label other) const {
+            // used to sort/search pair_label2 in set
+            if (second != other.second)
+                return second < other.second;
+            if (first != other.first)
+                return first < other.first;
+            return dis < other.dis;
+        }
+
+        friend std::ostream &operator<<(std::ostream &out, const affected_label &obj) {
+            out << "hop_constrained_affected_label object: first = " << obj.first << ", second = " << obj.second <<
+               ", dis = " << obj.dis << std::endl;
+            return out;
+        }
     };
 
     template<typename hop_weight_type>
@@ -91,6 +110,55 @@ namespace experiment::nonhop {
     inline std::mutex mtx_595_1;
     inline std::mutex mtx_list_check;
     inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
+
+
+    static void sort_and_output_to_file(std::vector<pair_label> &labels, const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "First"
+             << std::setw(10) << "Second"
+             << std::setw(10) << "Hop" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (const auto &label: labels) {
+            fout << std::left << std::setw(10) << label.first
+                 << std::setw(10) << label.second << "\n";
+        }
+
+        fout.close();
+    }
+
+    template<typename hop_weight_type>
+    static void sort_and_output_to_file(std::vector<affected_label<hop_weight_type>> &labels,
+                                        const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "First"
+             << std::setw(10) << "Second" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (const auto &label: labels) {
+            fout << std::left << std::setw(10) << label.first
+                 << std::setw(10) << label.second << "\n";
+        }
+
+        fout.close();
+    }
+
     template<typename hop_weight_type>
     struct record_in_increase {
         int vertex;
@@ -135,5 +203,61 @@ namespace experiment::nonhop {
             return out;
         }
     };
+
+    template<typename hop_weight_type>
+    static void
+    sort_and_output_to_file(std::vector<record_in_increase<hop_weight_type>> &labels, const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "vertex"
+             << std::setw(10) << "hub"
+             << std::setw(10) << "distance"
+             << std::setw(10) << "time" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (const auto &label: labels) {
+            fout << std::left << std::setw(10) << label.vertex
+                 << std::setw(10) << label.hub
+                 << std::setw(10) << label.distance
+                 << std::setw(10) << label.time
+                 << "\n";
+        }
+        fout.close();
+    }
+
+    template<typename hop_weight_type>
+    static void sort_and_output_to_file_unique(std::vector<record_in_increase<hop_weight_type>> &labels, const std::string &filename) {
+        std::sort(labels.begin(), labels.end());
+
+        std::ofstream fout(filename);
+        if (!fout.is_open()) {
+            std::cerr << "Error opening file: " << filename << std::endl;
+            return;
+        }
+
+        fout << std::left << std::setw(10) << "vertex"
+             << std::setw(10) << "hub"
+             << std::setw(20) << "distance"
+             << std::setw(20) << "old_distance" << "\n";
+
+        fout << std::string(30, '-') << "\n";
+
+        for (size_t index = 0; index < labels.size(); ++index) {
+            if (index > 0 && labels[index] != labels[index - 1]) {
+                fout << std::left << std::setw(10) << labels[index].vertex
+                     << std::setw(10) << labels[index].hub
+                     << std::setw(20) << labels[index].distance
+                     << std::setw(20) << labels[index].old_distance << "\n";
+            }
+        }
+        fout.close();
+    }
 #pragma endregion
 }

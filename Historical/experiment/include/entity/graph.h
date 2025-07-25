@@ -291,6 +291,24 @@ namespace experiment {
     };
 
     template<typename weight_type>
+    struct dijkstra_nonHop {
+        int vertex_id;
+        weight_type weight;
+        std::vector<int> path;
+
+        dijkstra_nonHop(int vertex_id, weight_type weight, std::vector<int> path)
+                : vertex_id(vertex_id), weight(weight), path(std::move(path)) {
+        }
+    };
+
+    template<typename weight_type>
+    struct dijkstra_nonHop_compare {
+        bool operator()(const dijkstra_nonHop<weight_type> &lhs, const dijkstra_nonHop<weight_type> &rhs) const {
+            return lhs.weight > rhs.weight; // 优先选择权重更小的
+        }
+    };
+
+    template<typename weight_type>
     struct dijkstra_withHop {
         int vertex_id;
         weight_type weight;
@@ -306,7 +324,7 @@ namespace experiment {
     struct dijkstra_withHop_compare {
         bool operator()(const dijkstra_withHop<weight_type> &lhs, const dijkstra_withHop<weight_type> &rhs) const {
             if (lhs.weight == rhs.weight) {
-                return lhs.hop > rhs.hop; // 优先选择hop数更少的
+                return lhs.hop > rhs.hop;
             }
             return lhs.weight > rhs.weight; // 优先选择权重更小的
         }
@@ -376,6 +394,61 @@ namespace experiment {
     }
 
     template<typename weight_type>
+    static dijkstra_nonHop<weight_type>
+    GetSpecialGraphSPD(graph<weight_type> &graph, int source, int target) {
+        // 使用二维数组记录到达每个节点在不同hop数下的最短距离
+        std::vector<weight_type> dist(graph.size(), std::numeric_limits<weight_type>::max());
+
+        boost::heap::fibonacci_heap<dijkstra_nonHop<weight_type>,
+                boost::heap::compare<dijkstra_nonHop_compare<weight_type>>> queue;
+
+        // 初始化源节点
+        dist[source] = 0;
+        std::vector<int> initial_path = {source};
+        dijkstra_nonHop<weight_type> start(source, 0, initial_path);
+        queue.push(start);
+
+        // 初始化结果为无解状态
+        dijkstra_nonHop<weight_type> res(target, std::numeric_limits<weight_type>::max(), {});
+
+        while (!queue.empty()) {
+            auto item = queue.top();
+            queue.pop();
+
+            // 如果当前状态已经不是最优，跳过
+            if (item.weight > dist[item.vertex_id]) {
+                continue;
+            }
+
+            // 找到目标节点
+            if (item.vertex_id == target) {
+                if (res.weight > item.weight) {
+                    // 修正：找更小的权重
+                    res = item;
+                }
+                continue; // 找到目标后继续寻找可能的更优解
+            }
+
+            // 遍历邻居节点
+            for (const auto &edge: graph[item.vertex_id]) {
+                int next = edge.first;
+                weight_type weight = edge.second;
+                weight_type newDist = item.weight + weight;
+
+                // 只有在找到更好的路径时才更新
+                if (newDist < dist[next]) {
+                    dist[next] = newDist;
+                    auto newPath = item.path;
+                    newPath.push_back(next);
+                    queue.push({next, newDist, newPath});
+                }
+            }
+        }
+
+        return res;
+    }
+
+    template<typename weight_type>
     static long long int
     Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
                            int hop) {
@@ -383,6 +456,30 @@ namespace experiment {
 
         for (int index = t_s; index <= t_e; index++) {
             auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target, hop);
+
+            if (item_res.weight < std::numeric_limits<weight_type>::max()) {
+                std::cout << "Found path with weight " << item_res.weight << ": ";
+                for (int vertex: item_res.path) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << std::endl;
+                res = std::min(res, item_res.weight);
+            }
+        }
+
+        if (res == std::numeric_limits<weight_type>::max()) {
+            return -1; // 表示无解
+        }
+        return static_cast<long long int>(res);
+    }
+
+    template<typename weight_type>
+    static long long int
+    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e) {
+        weight_type res = std::numeric_limits<weight_type>::max();
+
+        for (int index = t_s; index <= t_e; index++) {
+            auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target);
 
             if (item_res.weight < std::numeric_limits<weight_type>::max()) {
                 std::cout << "Found path with weight " << item_res.weight << ": ";

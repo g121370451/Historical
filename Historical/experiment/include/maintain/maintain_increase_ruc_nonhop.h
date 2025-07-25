@@ -405,6 +405,8 @@ namespace experiment::nonhop::ruc::increase {
                     weight_type dx = pq.top().disx;
                     pq.pop();
 
+                    Q_handle.erase(x);
+
                     mtx_595[x].lock();
                     hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
                                                                                             shard);

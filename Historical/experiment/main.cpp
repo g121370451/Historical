@@ -71,6 +71,7 @@ int main(const int argc, char *argv[])
                 maintain.initialize_experiment_global_values_dynamic();
                 maintain.maintain();
                 maintain.save_csv();
+                maintain.check_correctness();
             }
         }
     }catch(const std::exception& e){
