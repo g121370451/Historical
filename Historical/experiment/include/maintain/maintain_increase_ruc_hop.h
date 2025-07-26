@@ -607,7 +607,7 @@ namespace experiment::hop::ruc::increase {
                                 tmp.index = u;
                                 tmp.hop = h_v;
                                 tmp.disx = du;
-                                Q_handle[{u, h_v}] = {pq.push({tmp}), du}; //{hop_constrained_node_for_DIFFUSE,dis}
+                                Q_handle[{u, h_v}] = {pq.push(tmp), du}; //{hop_constrained_node_for_DIFFUSE,dis}
                                 Q_VALUE[u][h_v] = du;
                                 if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
                                     shard.diffuse_count_slot1++;

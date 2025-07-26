@@ -388,9 +388,9 @@ namespace experiment::hop::ruc::decrease {
                         for (const auto &[fst, snd]: dist_hop_changes) {
                             dist_hop[fst][snd] = {-1};
                         }
-                        Q_VALUE.resize(Q_VALUE.size(),
-                                       std::vector<hop_weight_type>(upper_k + 1,
-                                                                    std::numeric_limits<hop_weight_type>::max()));
+                        for (auto &q_item: Q_VALUE) {
+                            std::fill(q_item.begin(), q_item.end(), -1);
+                        }
                         mtx_599_1.lock();
                         Qid_599.push(current_tid);
                         mtx_599_1.unlock();

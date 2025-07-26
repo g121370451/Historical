@@ -230,8 +230,8 @@ namespace experiment
             node.hub_vertex = v_k;
             node.hop = 0;
             node.distance = 0;
-            Q_handle_priorities[v_k][0] = {Q.push({node}), node.distance};
-            Q_handle_priorities_changes.push_back({v_k, 0});
+            Q_handle_priorities[v_k][0] = {Q.push(node), node.distance};
+            Q_handle_priorities_changes.emplace_back(v_k, 0);
             // size_t size = 0;
             /* Temp_L_vk_599 stores the label (dist and hop) of vertex v_k */
             mtx_599[v_k].lock();
@@ -322,8 +322,8 @@ namespace experiment
                         /* the vertex has not been visited*/
                         if (dist_hop[adj_v].first == std::numeric_limits<hop_weight_type>::max())
                         { // adj_v has not been reached
-                            yy = {Q.push({node}), node.distance};
-                            Q_handle_priorities_changes.push_back({adj_v, node.hop});
+                            yy = {Q.push(node), node.distance};
+                            Q_handle_priorities_changes.emplace_back(adj_v, node.hop);
                             dist_hop[adj_v].first = node.distance;
                             dist_hop[adj_v].second = node.hop;
                             dist_hop_changes.push_back(adj_v);
