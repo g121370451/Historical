@@ -181,6 +181,10 @@ namespace experiment::nonhop {
                     && distance == other.distance && time == other.time);
         }
 
+        bool operator!=(const record_in_increase &other) const {
+            return !(*this == other);
+        }
+
         bool operator<(const record_in_increase &other) const {
             // used to sort/search pair_label2 in set
             if(time != other.time)
