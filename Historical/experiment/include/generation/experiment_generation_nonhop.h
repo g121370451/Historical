@@ -220,8 +220,6 @@ namespace experiment::nonhop {
                     // pass const type value j to thread; [] can be empty
                     std::sort(L_temp_595<hop_weight_type>[v_k].begin(), L_temp_595<hop_weight_type>[v_k].end(),
                               experiment::nonhop::compare_two_hop_label_small_to_large<hop_weight_type>);
-                    std::vector<two_hop_label<hop_weight_type> >(L_temp_595<hop_weight_type>[v_k]).swap(
-                        L_temp_595<hop_weight_type>[v_k]);
                     output_L[v_k] = L_temp_595<hop_weight_type>[v_k];
                     std::vector<two_hop_label<hop_weight_type> >().swap(L_temp_595<hop_weight_type>[v_k]);
                     // clear new labels for RAM efficiency
