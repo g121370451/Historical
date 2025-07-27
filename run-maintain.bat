@@ -84,6 +84,10 @@ rem ==== 根据数据集设置路径 ====
 if /I "%dataset%"=="enron-email" (
     set file=%DATA_DIR%/enron-email/processed/
     set out=%DATA_DIR%/enron-email/processed/
+)
+else if /I "%dataset%"=="twitch" (
+      set file=%DATA_DIR%/twitch/processed/
+      set out=%DATA_DIR%/twitch/processed/
 ) else (
     echo [ERROR] Unknown dataset: %dataset%
     goto usage
@@ -103,6 +107,7 @@ echo e.g : %~nx0 enron-email 3 8 100 1 10 500 high_high_increase check
 echo.
 echo dataset supported:
 echo    - enron-email
+echo    - twitch
 echo strategy supported:
 echo    - high_high_increase
 echo    - high_high_decrease

@@ -94,6 +94,10 @@ case "$dataset" in
         file="$DATA_DIR/enron-email/processed/"
         out="$DATA_DIR/enron-email/processed/"
         ;;
+    twitch)
+        file="$DATA_DIR/twitch/processed/"
+        out="$DATA_DIR/twitch/processed/"
+        ;;
     *)
         echo "[ERROR] Unknown dataset: $dataset"
         echo_usage
