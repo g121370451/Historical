@@ -15,6 +15,7 @@ echo_usage() {
     echo
     echo "dataset supported:"
     echo "   - enron-email"
+    echo "   - twitch"
     echo "   - ...."
     echo
 }
