@@ -23,9 +23,9 @@ echo_usage() {
     echo "   - high_high_increase"
     echo "   - high_high_decrease"
     echo "   - high_high_mixed"
-    echo "   - mid_mid_increase"
-    echo "   - mid_mid_decrease"
-    echo "   - mid_mid_mixed"
+    echo "   - high_low_increase"
+    echo "   - high_low_decrease"
+    echo "   - high_low_mixed"
     echo "   - low_low_increase"
     echo "   - low_low_decrease"
     echo "   - low_low_mixed"
@@ -59,7 +59,7 @@ EXEC="$BIN_DIR/experiment_program"  # Linux 下建议使用无 .exe 后缀
 # ==== 支持的策略列表 ====
 STRATEGIES=(
     high_high_increase high_high_decrease high_high_mixed
-    mid_mid_increase mid_mid_decrease mid_mid_mixed
+    high_low_increase high_low_decrease high_low_mixed
     low_low_increase low_low_decrease low_low_mixed
 )
 
@@ -105,6 +105,6 @@ esac
 echo
 echo "[INFO] Running label maintain..."
 echo "$EXEC maintain-label -t $t -f $file -p $out -k $k -c $c -m $m -max $max -min $min --strategy $strategy $check -n $dataset"
-for ((i = 1; i <= 100; i++)); do
+for ((i = 1; i <= 10; i++)); do
 "$EXEC" maintain-label -t "$t" -f "$file" -p "$out" -k "$k" -c "$c" -m "$m" -max "$max" -min "$min" --strategy "$strategy" $check -n "$dataset"
 done
