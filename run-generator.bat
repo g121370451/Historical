@@ -43,8 +43,14 @@ if /I "%dataset%"=="enron-email" (
     set file=%data_DIR%/enron-email/raw/Email-Enron.txt
     set out=%data_DIR%/enron-email/processed/
 ) else if /I "%dataset%"=="twitch" (
-      set file=%data_DIR%/twitch/raw/large_twitch_edges.txt
-      set out=%data_DIR%/twitch/processed/
+    set file=%data_DIR%/twitch/raw/large_twitch_edges.txt
+    set out=%data_DIR%/twitch/processed/
+) else if /I "%dataset%"=="wiki" (
+    set file=%data_DIR%/wiki/raw/Wiki-Vote.txt
+    set out=%data_DIR%/wiki/processed/
+) else if /I "%dataset%"=="youtube" (
+    set file=%data_DIR%/youtube/raw/com-youtube.ungraph.txt
+    set out=%data_DIR%/youtube/processed/
 ) else (
     echo [ERROR] unknown dataset: %dataset%
     goto usage
@@ -69,4 +75,6 @@ echo.
 echo dataset supported:
 echo    - enron-email
 echo    - twitch
+echo    - wiki
+echo    - youtube
 echo    - ....

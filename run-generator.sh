@@ -16,6 +16,8 @@ echo_usage() {
     echo "dataset supported:"
     echo "   - enron-email"
     echo "   - twitch"
+    echo "   - wiki"
+    echo "   - youtube"
     echo "   - ...."
     echo
 }
@@ -71,6 +73,14 @@ case "$dataset" in
         file="$DATA_DIR/twitch/raw/large_twitch_edges.txt"
         out="$DATA_DIR/twitch/processed/"
         ;;
+    wiki)
+        file="$DATA_DIR/wiki/raw/Wiki-Vote.txt"
+        out="$DATA_DIR/wiki/processed/"
+        ;;
+    youtube)
+      file="$DATA_DIR/youtube/raw/com-youtube.ungraph.txt"
+      out="$DATA_DIR/youtube/processed/"
+      ;;
     *)
         echo "[ERROR] unknown dataset: $dataset"
         echo_usage

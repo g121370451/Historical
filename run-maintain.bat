@@ -86,8 +86,16 @@ if /I "%dataset%"=="enron-email" (
     set out=%DATA_DIR%/enron-email/processed/
 )
 else if /I "%dataset%"=="twitch" (
-      set file=%DATA_DIR%/twitch/processed/
-      set out=%DATA_DIR%/twitch/processed/
+    set file=%DATA_DIR%/twitch/processed/
+    set out=%DATA_DIR%/twitch/processed/
+)
+else if /I "%dataset%"=="wiki" (
+    set file=%DATA_DIR%/wiki/processed/
+    set out=%DATA_DIR%/wiki/processed/
+)
+else if /I "%dataset%"=="youtube" (
+    set file=%DATA_DIR%/youtube/processed/
+    set out=%DATA_DIR%/youtube/processed/
 ) else (
     echo [ERROR] Unknown dataset: %dataset%
     goto usage
@@ -108,6 +116,8 @@ echo.
 echo dataset supported:
 echo    - enron-email
 echo    - twitch
+echo    - wiki
+echo    - youtube
 echo strategy supported:
 echo    - high_high_increase
 echo    - high_high_decrease
