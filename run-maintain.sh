@@ -105,7 +105,7 @@ case "$dataset" in
         file="$DATA_DIR/wiki/processed/"
         out="$DATA_DIR/wiki/processed/"
         ;;
-    wiki)
+    youtube)
         file="$DATA_DIR/youtube/processed/"
         out="$DATA_DIR/youtube/processed/"
         ;;
