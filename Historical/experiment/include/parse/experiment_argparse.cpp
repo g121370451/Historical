@@ -11,7 +11,7 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
         config->mode = Mode::MODE_ERROR; // 或者其他默认模式;
         return;
     }
-    
+
     argparse::ArgumentParser program("experiment");
 
     // // generate-label
@@ -48,16 +48,17 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
             .default_value("")
             .help("边变化策略，如：high_high_increase, low_low_mixed 等");
 
-    // query-result
-//    argparse::ArgumentParser query_label("query-result");
-//    query_label.add_argument("-f", "--data_source").required();
-//    query_label.add_argument("-t", "--threads").required().scan<'i', int>();
-//    query_label.add_argument("-c", "--search_count").required().scan<'i', int>();
-//    query_label.add_argument("-k", "--hop_limit").required().scan<'i', int>();
+//  query-result
+    argparse::ArgumentParser query_label("query-result");
+    query_label.add_argument("-t", "--threads").required().scan<'i', int>().help("开启的线程数");
+    query_label.add_argument("-f", "--data_source").required().help("数据来源");
+    query_label.add_argument("-p", "--save_path").required().help("结果csv的保存路径 追加写");
+    query_label.add_argument("-k", "--hop_limit").required().scan<'i', int>().help("k-hop限制，查找不同hop目录下的二进制文件");
+    query_label.add_argument("-c", "--query_count").required().scan<'i', int>().help("每次演化的边变化次数");
 
     program.add_subparser(generate_label);
     program.add_subparser(maintain_label);
-//    program.add_subparser(query_label);
+    program.add_subparser(query_label);
 
     try
     {
@@ -67,7 +68,7 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
     {
         std::cerr << "Error: " << err.what() << std::endl;
         std::cerr << program;
-        return; 
+        return;
     }
     if (program.is_subcommand_used("generate-label"))
     {
@@ -96,11 +97,11 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
         config->min_value = maintain_label.get<int>("-min");
         config->datasetName = maintain_label.get<std::string>("-n");
         config->enableCorrectnessCheck = maintain_label.get<bool>("--check");
-        std::string readOldPath = maintain_label.get<std::string>("--read_old");
+        auto readOldPath = maintain_label.get<std::string>("--read_old");
         if (!readOldPath.empty()) {
             config->generatedFilePath = readOldPath;
         }
-        std::string strategyInput = maintain_label.get<std::string>("--strategy");
+        auto strategyInput = maintain_label.get<std::string>("--strategy");
         if (!strategyInput.empty()) {
             config->changeStrategy = strategyInput;
         }
@@ -109,14 +110,15 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
             throw std::invalid_argument("Error: max_value and min_value must be greater than 0.");
         }
     }
-//    else if (program.is_subcommand_used("query-result"))
-//    {
-//        config->mode = QUERY_RESULT;
-//        config->data_source = query_label.get<std::string>("-f");
-//        config->change_count = query_label.get<int>("-c");
-//        config->hop_limit = query_label.get<int>("-k");
-//        config->threads = query_label.get<int>("-t");
-//    }
+    else if (program.is_subcommand_used("query-result"))
+    {
+        config->mode = QUERY_RESULT;
+        config->threads = query_label.get<int>("-t");
+        config->data_source = query_label.get<std::string>("-f");
+        config->save_path = query_label.get<std::string>("-p");
+        config->hop_limit = query_label.get<int>("-k");
+        config->change_count = query_label.get<int>("-c");
+    }
     else
     {
         std::cerr << "Error: Unknown subcommand." <<std::endl;

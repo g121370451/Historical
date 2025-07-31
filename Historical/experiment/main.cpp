@@ -73,6 +73,8 @@ int main(const int argc, char *argv[])
                 maintain.save_csv();
                 maintain.check_correctness();
             }
+        }else if(config->mode == experiment::QUERY_RESULT){
+
         }
     }catch(const std::exception& e){
         std::cerr << e.what() << '\n';
