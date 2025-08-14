@@ -1,6 +1,4 @@
-#ifndef EXPERIMENT_CSV_H
-#define EXPERIMENT_CSV_H
-
+#pragma once
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -14,30 +12,18 @@
 namespace experiment::csv {
     class CSVWriter {
     public:
-        explicit CSVWriter(const std::string &path, std::string version = "1.0", bool append = false);
+        explicit CSVWriter(const std::string &path, char delimiter = ',');
 
         ~CSVWriter();
+        void write_csv_row(const std::vector<std::string>& columns); // 获取分隔符（delimiter_）
+        char getDelimiter() const;
 
-        void write_csv_row(const result::basicData &data, const result::MethodData &ruc, const result::MethodData &old);
-
-        void set_version(const std::string &version) { version_ = version; }
-
-        std::string get_version() const { return version_; }
-
+        // 获取文件路径（path_）
+        const std::string& getPath() const;
+        static bool file_exists(const std::string &path);
     private:
         std::unique_ptr<std::ofstream> out_stream;
-        std::string version_;
-        bool header_written_ = false;
-
-        static std::string get_current_time();
-
-        static bool file_exists(const std::string &path);
-
-        void write_fields(const std::vector<std::string> &fields) const;
-
-        void write_csv_header();
+        char delimiter_;
+        std::string path;
     };
 }
-
-
-#endif // EXPERIMENT_CSV_H

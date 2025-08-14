@@ -107,9 +107,9 @@ namespace experiment
             ADJs.resize(n);
         }
 
-        long long int computeSize() const
+        size_t computeSize() const
         {
-            long long int res = sizeof(ADJs);
+            size_t res = sizeof(ADJs);
             for (const std::vector<std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>>> &item_first : ADJs)
             {
                 res += sizeof(item_first);
@@ -123,7 +123,7 @@ namespace experiment
             return res;
         }
 
-        void txt_save(std::string save_name) const
+        void txt_save(const std::string& save_name) const
         {
             std::ofstream outputFile;
             outputFile.precision(10);

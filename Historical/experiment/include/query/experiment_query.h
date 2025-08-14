@@ -6,7 +6,7 @@
 #include "entity/graph.h"
 #include "entity/graph_with_time_span.h"
 #include "utils/ThreadPool.h"
-#include "utils/CSVWriter.h"
+#include "utils/MaintainCSVWriter.h"
 
 namespace experiment {
 
@@ -29,7 +29,7 @@ namespace experiment {
                 query_count(config->change_count),
 
                 pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "query_result_withhop.csv", "1.0", true) {
+                csvWriter(config->save_path.string(), ',') {
             this->readData(this->instance_graph_list, this->graph_time, this->hop_info, this->hop_info_2021);
             std::cout << "finish readData" << std::endl;
         };
@@ -42,7 +42,7 @@ namespace experiment {
         int upper_k;
         int query_count;
         ThreadPool pool_dynamic;
-        experiment::csv::CSVWriter csvWriter;
+        experiment::csv::CSVWriterMaintain csvWriter;
 
         std::vector<graph<GraphType>> instance_graph_list;
         graph_with_time_span<GraphType> graph_time;

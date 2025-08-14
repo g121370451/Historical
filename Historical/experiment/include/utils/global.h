@@ -11,6 +11,7 @@
 namespace experiment {
     namespace result {
         struct basicData {
+            std::string strategy;
             std::string dataset;
             int thread_count;
             int iteration_count;
@@ -21,6 +22,10 @@ namespace experiment {
             double ruc_time_slot2 = 0;
             double a2021_time_slot1 = 0;
             double a2021_time_slot2 = 0;
+            size_t baseline1Size = 0;
+            size_t baseline2Size = 0;
+            long long A2021Size = 0;
+            size_t ARucSize = 0;
         };
 
         // 对齐缓存行的分片数据单元
@@ -119,7 +124,8 @@ namespace experiment {
         extern CSVConfig global_csv_config;
 
         // Initialization function
-        void init_config(const std::string &dataset,int thread_count,int iteration_count,int change_count,int hop_limit);
+        void init_config(const std::string strategy, const std::string &dataset, int thread_count, int iteration_count,
+                         int change_count, int hop_limit);
 
     } // namespace config
     namespace status {

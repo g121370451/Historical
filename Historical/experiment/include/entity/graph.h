@@ -37,8 +37,8 @@ namespace experiment {
             return ADJs[i];
         }
 
-        long long int computeSize() const {
-            long long int res = 0;
+        size_t computeSize() const {
+            size_t res = 0;
             for (const auto &item_first: this->ADJs) {
                 for (const auto &item_second: item_first) {
                     res += sizeof(int);

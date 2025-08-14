@@ -263,8 +263,8 @@ namespace experiment {
                 experiment::loadBinary(in, PPR);
             }
 
-            long long int compute_L_size() {
-                long long int res = 0;
+            size_t compute_L_size() {
+                size_t res = 0;
                 for (const std::vector<experiment::nonhop::two_hop_label<hop_weight_type> > &L_info: L) {
                     for (const experiment::nonhop::two_hop_label<hop_weight_type> &inner: L_info) {
                         ++res;
@@ -280,8 +280,8 @@ namespace experiment {
             }
 
             /*compute label size; this should equal label_size_after_canonical_repair when use_canonical_repair==true*/
-            long long int compute_L_byte_size() {
-                long long int size = 0;
+            size_t compute_L_byte_size() {
+                size_t size = 0;
                 for (auto it = L.begin(); it != L.end(); it++) {
                     size = size + (*it).size() * sizeof(two_hop_label<hop_weight_type>); // 12 byte per two_hop_label
                 }
@@ -906,8 +906,8 @@ namespace experiment {
                 experiment::loadBinary(in, PPR);
             }
 
-            long long int compute_label_bit_size() {
-                long long int size = 0;
+            size_t compute_label_bit_size() {
+                size_t size = 0;
                 for (auto &xx: L) {
                     size = size + xx.size() * sizeof(two_hop_label<hop_weight_type>);
                 }

@@ -14,7 +14,8 @@
 #include "random/random_weight_generator.h"
 #include "entity/graph.h"
 #include "entity/graph_with_time_span.h"
-#include "utils/CSVWriter.h"
+#include "utils/MaintainCSVWriter.h"
+#include <ranges>
 
 namespace experiment {
     template<experiment::status::MaintainAlgorithmMode Y, experiment::status::HopMode H, typename GraphType, typename HopType>
@@ -121,6 +122,7 @@ namespace experiment {
         [[nodiscard]] double getDuringTime() const {
             return this->maintain_timer.getTaskDuration();
         }
+
         std::vector<nonhop::record_in_increase<HopType>> &getIncreaseList() {
             return increaseItem.list;
         };
@@ -298,7 +300,7 @@ namespace experiment {
                 thread_num(config->threads),
                 iteration_count(config->iterations),
                 pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", "1.0", true),
+                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
                 generatedFilePath(config->generatedFilePath),
                 changeStrategy(config->changeStrategy),
                 enableCorrectnessCheck(config->enableCorrectnessCheck) {
@@ -310,7 +312,9 @@ namespace experiment {
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
-            experiment::result::init_config(config->datasetName, config->threads, config->iterations,
+            experiment::result::init_config(config->changeStrategy == std::nullopt
+                                            ? "" : config->changeStrategy.value(), config->datasetName, config->threads,
+                                            config->iterations,
                                             config->change_count, config->hop_limit);
         };
 
@@ -484,6 +488,17 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
+            experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
+                    instance_graph_list.begin(),
+                    instance_graph_list.end(),
+                    size_t(0), // 初始值（0）
+                    [](size_t total, const graph<GraphType>& graph) {
+                        return total + graph.computeSize();
+                    }
+            );
+            experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
+            experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_L_byte_size();
+            experiment::result::global_csv_config.basic_data.ARucSize = hop_info.compute_L_byte_size();
         }
 
         // 保存csv的值
@@ -513,13 +528,13 @@ namespace experiment {
                 nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), this->savePath + "2021_al2.txt");
 #endif
                 nonhop::sort_and_output_to_file(this->ruc_process.getDecreaseList(),
-                                             this->savePath + "decrease_ruc_insert.txt");
+                                                this->savePath + "decrease_ruc_insert.txt");
                 nonhop::sort_and_output_to_file(this->a2021_process.getDecreaseList(),
-                                             this->savePath + "decrease_2021_insert.txt");
+                                                this->savePath + "decrease_2021_insert.txt");
                 nonhop::sort_and_output_to_file(this->ruc_process.getIncreaseList(),
-                                             this->savePath + "increase_item_ruc.txt");
+                                                this->savePath + "increase_item_ruc.txt");
                 nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseList(),
-                                             this->savePath + "increase_item_2021.txt");
+                                                this->savePath + "increase_item_2021.txt");
                 if (!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()) {
                     auto iter1 = this->ruc_process.getIncreaseList().begin();
                     auto iter2 = this->a2021_process.getIncreaseList().begin();
@@ -575,7 +590,7 @@ namespace experiment {
         int iteration_count;
         ThreadPool pool_dynamic;
         IterationChangeWeightInfo<GraphType> iterationChangeWeightInfo;
-        experiment::csv::CSVWriter csvWriter;
+        experiment::csv::CSVWriterMaintain csvWriter;
 
         graph<GraphType> instance_graph;
         std::vector<graph<GraphType>> instance_graph_list;
@@ -625,7 +640,7 @@ namespace experiment {
                 upper_k(config->hop_limit),
                 iteration_count(config->iterations),
                 pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", "1.0", true),
+                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
                 generatedFilePath(config->generatedFilePath),
                 changeStrategy(config->changeStrategy),
                 enableCorrectnessCheck(config->enableCorrectnessCheck) {
@@ -637,7 +652,9 @@ namespace experiment {
             this->iterationChangeWeightInfo.update(this->instance_graph.size(), config->iterations,
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
-            experiment::result::init_config(config->datasetName, config->threads, config->iterations,
+            experiment::result::init_config(config->changeStrategy == std::nullopt
+                                            ? "" : config->changeStrategy.value(), config->datasetName, config->threads,
+                                            config->iterations,
                                             config->change_count, config->hop_limit);
         };
 
@@ -816,6 +833,17 @@ namespace experiment {
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
+            experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
+                    instance_graph_list.begin(),
+                    instance_graph_list.end(),
+                    size_t(0), // 初始值（0）
+                    [](size_t total, const graph<GraphType>& graph) {
+                        return total + graph.computeSize();
+                    }
+            );
+            experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
+            experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_label_bit_size();
+            experiment::result::global_csv_config.basic_data.ARucSize = hop_info.compute_label_bit_size();
         }
 
         void check_correctness() {
@@ -908,7 +936,7 @@ namespace experiment {
         int iteration_count;
         ThreadPool pool_dynamic;
         IterationChangeWeightInfo<GraphType> iterationChangeWeightInfo;
-        experiment::csv::CSVWriter csvWriter;
+        experiment::csv::CSVWriterMaintain csvWriter;
 
         graph<GraphType> instance_graph;
         std::vector<graph<GraphType>> instance_graph_list;

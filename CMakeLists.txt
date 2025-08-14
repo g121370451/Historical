@@ -48,6 +48,7 @@ add_executable(experiment_program
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/ExecutionTimer.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/global.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/CSVWriter.cpp
+        ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/MaintainCSVWriter.cpp
 )
 target_compile_options(experiment_program PRIVATE
         -Wall -Wextra -Wpedantic    # 更严格的警告
