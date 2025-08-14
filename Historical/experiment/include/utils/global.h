@@ -1,10 +1,6 @@
 #pragma once
 
 #include <string>
-#include <atomic>
-#include <array>
-#include <thread>
-#include <functional>
 #include <mutex>
 #include <boost/random.hpp>
 
@@ -22,6 +18,7 @@ namespace experiment {
             double ruc_time_slot2 = 0;
             double a2021_time_slot1 = 0;
             double a2021_time_slot2 = 0;
+            // 补充字段
             size_t baseline1Size = 0;
             size_t baseline2Size = 0;
             long long A2021Size = 0;
@@ -44,9 +41,15 @@ namespace experiment {
             size_t diffuse_count_slot2 = 0; // 8
             char padding[128 - 96]{};
         };
+
         struct alignas(64) QueryShard {
-            long long int compare_count = 0;
-            char padding[64 - (1 * sizeof(long long int))]{}; // 显式填充
+            size_t baseline1Cost = 0;
+            size_t baseline2Cost = 0;
+            size_t rucCost = 0;
+            size_t a2021Cost = 0;
+            size_t rucLabelCover = 0;
+            size_t a2021LabelCover = 0;
+            char padding[64 - (6 * sizeof(size_t))]{}; // 显式填充
         };
 
         static_assert(sizeof(MaintainShard) == 128, "Maintain MethodShard size mismatch");
@@ -78,7 +81,22 @@ namespace experiment {
 
             // 合并所有分片数据
             void merge_to(MaintainShard &target) const noexcept;
+
+            // 合并所有分片数据
+            void merge_to(QueryShard &target) const noexcept;
         };
+
+        // 对外暴露的统计接口
+        struct QueryMethodData {
+            size_t baseline1Cost = 0;
+            size_t baseline2Cost = 0;
+            size_t rucCost = 0;
+            size_t a2021Cost = 0;
+            size_t rucLabelCover = 0;
+            size_t a2021LabelCover = 0;
+            explicit operator QueryShard &();
+        };
+
 
         // 对外暴露的统计接口
         struct MethodData {
@@ -116,7 +134,9 @@ namespace experiment {
             basicData basic_data;    // 不可变基础数据
             FixedShardedCounter ruc_counter; // RUC方法计数器
             FixedShardedCounter old_counter; // 旧方法计数器
+            FixedShardedCounter query_counter; // 旧方法计数器
             MethodData ruc_data;         // 合并后的RUC结果
+            QueryMethodData data_query;         // 合并后的RUC结果
             MethodData old_data;         // 合并后的旧方法结果
         };
 

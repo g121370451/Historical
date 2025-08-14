@@ -17,8 +17,11 @@
 #include "utils/MaintainCSVWriter.h"
 #include <ranges>
 
+#include "utils/QueryCSVWriter.h"
+
 namespace experiment {
-    template<experiment::status::MaintainAlgorithmMode Y, experiment::status::HopMode H, typename GraphType, typename HopType>
+    template<experiment::status::MaintainAlgorithmMode Y, experiment::status::HopMode H, typename GraphType, typename
+        HopType>
     class MaintainStrategyAlgorithmSelector;
 
     template<experiment::status::HopMode H, typename GraphType, typename HopType>
@@ -26,7 +29,8 @@ namespace experiment {
 
 
     template<typename GraphType, typename HopType>
-    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType, HopType> {
+    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024,
+                experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2024");
@@ -35,21 +39,21 @@ namespace experiment {
         ~MaintainStrategyAlgorithmSelector() = default;
 
         void decrease(experiment::graph<GraphType> &graph, experiment::nonhop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain Nonhop 2024 Decrease" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::nonhop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain Nonhop 2024 Increase" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
@@ -58,11 +62,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        std::vector<nonhop::record_in_increase<HopType>> &getDecreaseList() {
+        std::vector<nonhop::record_in_increase<HopType> > &getDecreaseList() {
             return decreaseItem.list;
         };
 
-        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseList() {
+        std::vector<nonhop::record_in_increase<HopType> > &getIncreaseList() {
             return increaseItem.list;
         };
 
@@ -82,6 +86,7 @@ namespace experiment {
         }
 
 #endif
+
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -90,9 +95,9 @@ namespace experiment {
     };
 
     template<typename GraphType, typename HopType>
-    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType, HopType> {
+    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021,
+                experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
-
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2021");
         };
@@ -100,21 +105,21 @@ namespace experiment {
         ~MaintainStrategyAlgorithmSelector() = default;
 
         void decrease(experiment::graph<GraphType> &graph, experiment::nonhop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain Nonhop 2021 Decrease" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::nonhop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain Nonhop 2021 Increase" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
@@ -123,11 +128,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        std::vector<nonhop::record_in_increase<HopType>> &getIncreaseList() {
+        std::vector<nonhop::record_in_increase<HopType> > &getIncreaseList() {
             return increaseItem.list;
         };
 
-        std::vector<nonhop::record_in_increase<HopType>> &getDecreaseList() {
+        std::vector<nonhop::record_in_increase<HopType> > &getDecreaseList() {
             return decreaseItem.list;
         };
 #ifdef _DEBUG
@@ -146,6 +151,7 @@ namespace experiment {
         }
 
 #endif
+
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -154,7 +160,8 @@ namespace experiment {
     };
 
     template<typename GraphType, typename HopType>
-    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType, HopType> {
+    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024,
+                experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2024");
@@ -163,21 +170,21 @@ namespace experiment {
         ~MaintainStrategyAlgorithmSelector() = default;
 
         void decrease(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2024 Decrease" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2024 Increase" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
@@ -186,11 +193,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getDecreaseList() {
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType> > &getDecreaseList() {
             return decreaseItem.list;
         };
 
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getIncreaseList() {
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType> > &getIncreaseList() {
             return increaseItem.list;
         };
 
@@ -210,6 +217,7 @@ namespace experiment {
         }
 
 #endif
+
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -218,9 +226,9 @@ namespace experiment {
     };
 
     template<typename GraphType, typename HopType>
-    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType, HopType> {
+    class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021,
+                experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
-
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2021");
         };
@@ -228,21 +236,21 @@ namespace experiment {
         ~MaintainStrategyAlgorithmSelector() = default;
 
         void decrease(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > &v, std::vector<GraphType> &w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2021 Decrease" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->decreaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
 
         void increase(experiment::graph<GraphType> &graph, experiment::hop::two_hop_case_info<HopType> &case_info,
-                      std::vector<std::pair<int, int>> v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
+                      std::vector<std::pair<int, int> > v, std::vector<GraphType> w_new, ThreadPool &pool_dynamic,
                       int time) {
             this->maintainTimes++;
             this->maintain_timer.startSubtask("Maintain hop 2021 Increase" + std::to_string(this->maintainTimes));
-            std::vector<std::future<int>> results_dynamic;
+            std::vector<std::future<int> > results_dynamic;
             this->increaseItem(graph, case_info, v, w_new, pool_dynamic, results_dynamic, time);
             this->maintain_timer.endSubtask();
         };
@@ -251,11 +259,11 @@ namespace experiment {
             return this->maintain_timer.getTaskDuration();
         }
 
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getIncreaseList() {
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType> > &getIncreaseList() {
             return increaseItem.list;
         };
 
-        std::vector<experiment::hop::record_in_increase_with_hop<HopType>> &getDecreaseList() {
+        std::vector<experiment::hop::record_in_increase_with_hop<HopType> > &getDecreaseList() {
             return decreaseItem.list;
         };
 #ifdef _DEBUG
@@ -274,6 +282,7 @@ namespace experiment {
         }
 
 #endif
+
     private:
         int maintainTimes = 0;
         experiment::ExecutionTimer maintain_timer;
@@ -285,25 +294,30 @@ namespace experiment {
     template<typename GraphType, typename HopType>
     class MaintainStrategySelector<experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
-        using ruc = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType, HopType>;
-        using a2021 = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType, HopType>;
+        using ruc = experiment::MaintainStrategyAlgorithmSelector<
+            experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType,
+            HopType>;
+        using a2021 = experiment::MaintainStrategyAlgorithmSelector<
+            experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType,
+            HopType>;
 
-        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) :
-                savePath(config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
-                sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
-                graph_res_filename(sourcePath + "binary_graph"),
-                change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
-                hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) : savePath(
+                config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
+            sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
+            graph_res_filename(sourcePath + "binary_graph"),
+            change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
+            hop_label_res_filename(savePath + "binary_2_hop_label_info"),
 
-                ruc_process(),
-                a2021_process(),
-                thread_num(config->threads),
-                iteration_count(config->iterations),
-                pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
-                generatedFilePath(config->generatedFilePath),
-                changeStrategy(config->changeStrategy),
-                enableCorrectnessCheck(config->enableCorrectnessCheck) {
+            ruc_process(),
+            a2021_process(),
+            thread_num(config->threads),
+            iteration_count(config->iterations),
+            pool_dynamic(config->threads),
+            csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
+            csv_write_query_(config->save_path.string() + "query_result_withhop.csv", ','),
+            generatedFilePath(config->generatedFilePath),
+            changeStrategy(config->changeStrategy),
+            enableCorrectnessCheck(config->enableCorrectnessCheck) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
@@ -313,14 +327,15 @@ namespace experiment {
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
             experiment::result::init_config(config->changeStrategy == std::nullopt
-                                            ? "" : config->changeStrategy.value(), config->datasetName, config->threads,
+                                                ? ""
+                                                : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
         };
 
         // 持久化的方法
         template<typename... Args>
-        void persistData(Args &&...args) const {
+        void persistData(Args &&... args) const {
             std::filesystem::path hopPath(this->hop_label_res_filename);
             saveAll(hopPath, std::forward<Args>(args)...);
         }
@@ -333,7 +348,7 @@ namespace experiment {
             auto [low, mid, high] = classify_vertices_by_log_degree(this->instance_graph);
             std::vector<int> low_ids, mid_ids, high_ids;
 
-            auto extract_ids = [](const std::vector<std::pair<int, int>> &group) {
+            auto extract_ids = [](const std::vector<std::pair<int, int> > &group) {
                 std::vector<int> ids;
                 ids.reserve(group.size());
                 for (const auto &p: group) {
@@ -378,22 +393,23 @@ namespace experiment {
             for (int time = 1; time <= this->iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
-                    experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
+                    experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.
+                            getDuringTime();
                     experiment::result::global_csv_config.basic_data.ruc_time_slot1 = this->ruc_process.getDuringTime();
                 }
                 std::cout << "current slot is " << experiment::status::currentTimeMode << std::endl;
                 std::cout << "maintain time is " << time << std::endl;
-                std::vector<std::pair<int, int>> path_decrease;
+                std::vector<std::pair<int, int> > path_decrease;
                 std::map<std::pair<int, int>, size_t> path2Index4Decrease;
                 std::vector<GraphType> weight_decrease;
 
-                std::vector<std::pair<int, int>> path_increase;
+                std::vector<std::pair<int, int> > path_increase;
                 std::vector<int> weight_increase;
                 std::vector<int> weight_old_increase;
                 std::map<std::pair<int, int>, size_t> path2Index4Increase;
 
                 graph<GraphType> instance_graph_temp = this->instance_graph_list[time - 1];
-                std::queue<experiment::change_edge_info<GraphType>> q = this->iterationChangeWeightInfo.q_list[time];
+                std::queue<experiment::change_edge_info<GraphType> > q = this->iterationChangeWeightInfo.q_list[time];
                 while (!q.empty()) {
                     experiment::change_edge_info<GraphType> change_edge = q.front();
                     q.pop();
@@ -401,7 +417,7 @@ namespace experiment {
                     int v2 = change_edge.v2;
                     GraphType weight = change_edge.weight;
                     GraphType old_weight = sorted_vector_binary_operations_search_weight(instance_graph_temp.ADJs[v1],
-                                                                                         v2);
+                        v2);
                     if (old_weight < weight) {
                         auto pairPathV = std::make_pair(v1, v2);
                         auto it = path2Index4Increase.find(pairPathV);
@@ -431,7 +447,7 @@ namespace experiment {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-//                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
+                        //                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
@@ -446,7 +462,7 @@ namespace experiment {
                     this->initialize_experiment_global_values_dynamic();
                     this->a2021_process.decrease(instance_graph_temp, hop_info_2021, path_decrease, weight_decrease,
                                                  this->pool_dynamic, time);
-                    std::vector<std::pair<int, int>>().swap(path_decrease);
+                    std::vector<std::pair<int, int> >().swap(path_decrease);
                     std::vector<int>().swap(weight_decrease);
                     std::map<std::pair<int, int>, size_t>().swap(path2Index4Decrease);
                 }
@@ -477,7 +493,7 @@ namespace experiment {
                                                  hop_info_2021, path_increase,
                                                  weight_old_increase,
                                                  pool_dynamic, time);
-                    std::vector<std::pair<int, int>>().swap(path_increase);
+                    std::vector<std::pair<int, int> >().swap(path_increase);
                     std::vector<int>().swap(weight_increase);
                     std::vector<int>().swap(weight_old_increase);
                     std::map<std::pair<int, int>, size_t>().swap(path2Index4Increase);
@@ -485,16 +501,16 @@ namespace experiment {
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
-                                                                                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
+                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
             experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
-                    instance_graph_list.begin(),
-                    instance_graph_list.end(),
-                    size_t(0), // 初始值（0）
-                    [](size_t total, const graph<GraphType>& graph) {
-                        return total + graph.computeSize();
-                    }
+                instance_graph_list.begin(),
+                instance_graph_list.end(),
+                size_t(0), // 初始值（0）
+                [](size_t total, const graph<GraphType> &graph) {
+                    return total + graph.computeSize();
+                }
             );
             experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_L_byte_size();
@@ -504,12 +520,16 @@ namespace experiment {
         // 保存csv的值
         void save_csv() {
             result::global_csv_config.ruc_counter.merge_to(
-                    static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
+                static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
             result::global_csv_config.old_counter.merge_to(
-                    static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
-            csvWriter.write_csv_row(result::global_csv_config.basic_data,
-                                    result::global_csv_config.ruc_data,
-                                    result::global_csv_config.old_data);
+                static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
+            result::global_csv_config.query_counter.merge_to(
+                static_cast<result::QueryShard &>(result::global_csv_config.data_query));
+            csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
+                                    experiment::result::global_csv_config.ruc_data,
+                                    experiment::result::global_csv_config.old_data);
+            csv_write_query_.write_csv_row(experiment::result::global_csv_config.basic_data,
+                        experiment::result::global_csv_config.data_query);
         }
 
         void check_correctness() {
@@ -591,9 +611,10 @@ namespace experiment {
         ThreadPool pool_dynamic;
         IterationChangeWeightInfo<GraphType> iterationChangeWeightInfo;
         experiment::csv::CSVWriterMaintain csvWriter;
+        experiment::csv::CSVWriteQuery csv_write_query_;
 
         graph<GraphType> instance_graph;
-        std::vector<graph<GraphType>> instance_graph_list;
+        std::vector<graph<GraphType> > instance_graph_list;
         graph_with_time_span<GraphType> graph_time;
         nonhop::two_hop_case_info<HopType> hop_info;
         nonhop::two_hop_case_info<HopType> hop_info_2021;
@@ -603,7 +624,7 @@ namespace experiment {
 
         // 读取旧值的初始化方法
         template<typename... Args>
-        void readData(Args &&...args) {
+        void readData(Args &&... args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
         }
@@ -615,7 +636,7 @@ namespace experiment {
             auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e);
             if (res1 != res2 || res3 != res1 || res2 != res3) {
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
-                          << std::endl;
+                        << std::endl;
             }
         }
     };
@@ -623,27 +644,32 @@ namespace experiment {
     template<typename GraphType, typename HopType>
     class MaintainStrategySelector<experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
-        using ruc = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType, HopType>;
-        using a2021 = experiment::MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType, HopType>;
+        using ruc = experiment::MaintainStrategyAlgorithmSelector<
+            experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType,
+            HopType>;
+        using a2021 = experiment::MaintainStrategyAlgorithmSelector<
+            experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType,
+            HopType>;
 
-        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) :
-                savePath(config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
-                sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
-                graph_res_filename(sourcePath + "binary_graph"),
-                change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
-                hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+        explicit MaintainStrategySelector(experiment::ExperimentConfig *config) : savePath(
+                config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
+            sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
+            graph_res_filename(sourcePath + "binary_graph"),
+            change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
+            hop_label_res_filename(savePath + "binary_2_hop_label_info"),
 
-                ruc_process(),
-                a2021_process(),
+            ruc_process(),
+            a2021_process(),
 
-                thread_num(config->threads),
-                upper_k(config->hop_limit),
-                iteration_count(config->iterations),
-                pool_dynamic(config->threads),
-                csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
-                generatedFilePath(config->generatedFilePath),
-                changeStrategy(config->changeStrategy),
-                enableCorrectnessCheck(config->enableCorrectnessCheck) {
+            thread_num(config->threads),
+            upper_k(config->hop_limit),
+            iteration_count(config->iterations),
+            pool_dynamic(config->threads),
+            csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
+            csvWriterQuery(config->save_path.string() + "query_result_withhop.csv", ','),
+            generatedFilePath(config->generatedFilePath),
+            changeStrategy(config->changeStrategy),
+            enableCorrectnessCheck(config->enableCorrectnessCheck) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
@@ -653,14 +679,15 @@ namespace experiment {
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
             experiment::result::init_config(config->changeStrategy == std::nullopt
-                                            ? "" : config->changeStrategy.value(), config->datasetName, config->threads,
+                                                ? ""
+                                                : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
         };
 
         // 持久化的方法
         template<typename... Args>
-        void persistData(Args &&...args) const {
+        void persistData(Args &&... args) const {
             std::filesystem::path hopPath(this->hop_label_res_filename);
             saveAll(hopPath, std::forward<Args>(args)...);
         }
@@ -676,7 +703,7 @@ namespace experiment {
             auto [low, mid, high] = classify_vertices_by_log_degree(this->instance_graph);
             std::vector<int> low_ids, mid_ids, high_ids;
 
-            auto extract_ids = [](const std::vector<std::pair<int, int>> &group) {
+            auto extract_ids = [](const std::vector<std::pair<int, int> > &group) {
                 std::vector<int> ids;
                 ids.reserve(group.size());
                 for (const auto &p: group) {
@@ -723,22 +750,23 @@ namespace experiment {
             for (int time = 1; time <= iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
-                    experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.getDuringTime();
+                    experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.
+                            getDuringTime();
                     experiment::result::global_csv_config.basic_data.ruc_time_slot1 = this->ruc_process.getDuringTime();
                 }
                 std::cout << "current slot is " << experiment::status::currentTimeMode << std::endl;
                 std::cout << "maintain time is " << time << std::endl;
-                std::vector<std::pair<int, int>> path_decrease;
+                std::vector<std::pair<int, int> > path_decrease;
                 std::map<std::pair<int, int>, size_t> path2Index4Decrease;
                 std::vector<GraphType> weight_decrease;
 
-                std::vector<std::pair<int, int>> path_increase;
+                std::vector<std::pair<int, int> > path_increase;
                 std::vector<int> weight_increase;
                 std::vector<int> weight_old_increase;
                 std::map<std::pair<int, int>, size_t> path2Index4Increase;
 
                 graph<GraphType> instance_graph_temp = this->instance_graph_list[time - 1];
-                std::queue<experiment::change_edge_info<GraphType>> q = this->iterationChangeWeightInfo.q_list[time];
+                std::queue<experiment::change_edge_info<GraphType> > q = this->iterationChangeWeightInfo.q_list[time];
                 while (!q.empty()) {
                     experiment::change_edge_info<GraphType> change_edge = q.front();
                     q.pop();
@@ -746,7 +774,7 @@ namespace experiment {
                     int v2 = change_edge.v2;
                     GraphType weight = change_edge.weight;
                     GraphType old_weight = sorted_vector_binary_operations_search_weight(instance_graph_temp.ADJs[v1],
-                                                                                         v2);
+                        v2);
                     if (old_weight < weight) {
                         auto pairPathV = std::make_pair(v1, v2);
                         auto it = path2Index4Increase.find(pairPathV);
@@ -776,7 +804,7 @@ namespace experiment {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-//                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
+                        //                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
                         // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
@@ -791,7 +819,7 @@ namespace experiment {
                     this->initialize_experiment_global_values_dynamic();
                     this->a2021_process.decrease(instance_graph_temp, hop_info_2021, path_decrease, weight_decrease,
                                                  this->pool_dynamic, time);
-                    std::vector<std::pair<int, int>>().swap(path_decrease);
+                    std::vector<std::pair<int, int> >().swap(path_decrease);
                     std::vector<int>().swap(weight_decrease);
                     std::map<std::pair<int, int>, size_t>().swap(path2Index4Decrease);
                 }
@@ -822,7 +850,7 @@ namespace experiment {
                                                  hop_info_2021, path_increase,
                                                  weight_old_increase,
                                                  pool_dynamic, time);
-                    std::vector<std::pair<int, int>>().swap(path_increase);
+                    std::vector<std::pair<int, int> >().swap(path_increase);
                     std::vector<int>().swap(weight_increase);
                     std::vector<int>().swap(weight_old_increase);
                     std::map<std::pair<int, int>, size_t>().swap(path2Index4Increase);
@@ -830,16 +858,16 @@ namespace experiment {
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
-                                                                                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
+                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
             experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
-                    instance_graph_list.begin(),
-                    instance_graph_list.end(),
-                    size_t(0), // 初始值（0）
-                    [](size_t total, const graph<GraphType>& graph) {
-                        return total + graph.computeSize();
-                    }
+                instance_graph_list.begin(),
+                instance_graph_list.end(),
+                size_t(0), // 初始值（0）
+                [](size_t total, const graph<GraphType> &graph) {
+                    return total + graph.computeSize();
+                }
             );
             experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_label_bit_size();
@@ -910,15 +938,24 @@ namespace experiment {
             }
         }
 
+        void query() {
+            // 随机匹配1000个点对
+
+        }
+
         // 保存csv的值
         void save_csv() {
-            experiment::result::global_csv_config.ruc_counter.merge_to(
-                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.ruc_data));
-            experiment::result::global_csv_config.old_counter.merge_to(
-                    static_cast<result::MaintainShard &>(experiment::result::global_csv_config.old_data));
+            result::global_csv_config.ruc_counter.merge_to(
+                static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
+            result::global_csv_config.old_counter.merge_to(
+                static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
+            result::global_csv_config.query_counter.merge_to(
+                static_cast<result::QueryShard &>(result::global_csv_config.data_query));
             csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
                                     experiment::result::global_csv_config.ruc_data,
                                     experiment::result::global_csv_config.old_data);
+            csvWriterQuery.write_csv_row(experiment::result::global_csv_config.basic_data,
+                        experiment::result::global_csv_config.data_query);
         }
 
     private:
@@ -937,9 +974,10 @@ namespace experiment {
         ThreadPool pool_dynamic;
         IterationChangeWeightInfo<GraphType> iterationChangeWeightInfo;
         experiment::csv::CSVWriterMaintain csvWriter;
+        experiment::csv::CSVWriteQuery csvWriterQuery;
 
         graph<GraphType> instance_graph;
-        std::vector<graph<GraphType>> instance_graph_list;
+        std::vector<graph<GraphType> > instance_graph_list;
         graph_with_time_span<GraphType> graph_time;
         hop::two_hop_case_info<HopType> hop_info;
         hop::two_hop_case_info<HopType> hop_info_2021;
@@ -949,7 +987,7 @@ namespace experiment {
 
         // 读取旧值的初始化方法
         template<typename... Args>
-        void readData(Args &&...args) {
+        void readData(Args &&... args) {
             std::filesystem::path graphPath(this->graph_res_filename);
             loadAll(graphPath, std::forward<Args>(args)...);
         }
@@ -961,9 +999,8 @@ namespace experiment {
             auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
             if (res1 != res2 || res3 != res1 || res2 != res3) {
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
-                          << std::endl;
+                        << std::endl;
             }
         }
     };
-
 }

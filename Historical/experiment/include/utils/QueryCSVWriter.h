@@ -2,13 +2,13 @@
 #include "CSVWriter.h"
 
 namespace experiment::csv {
-    class CSVWriterMaintain {
+    class CSVWriteQuery {
     public:
-        explicit CSVWriterMaintain(const std::string &path, char delimiter = ',');
+        explicit CSVWriteQuery(const std::string &path, char delimiter = ',');
 
-        ~CSVWriterMaintain() = default;
+        ~CSVWriteQuery() = default;
 
-        void write_csv_row(const result::basicData &data, const result::MethodData &ruc, const result::MethodData &old);
+        void write_csv_row(const result::basicData &data, const result::QueryMethodData &query_data);
         void write_csv_header() const;
 
     private:

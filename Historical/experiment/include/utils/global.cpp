@@ -1,5 +1,7 @@
 #include "utils/global.h"
 
+#include <atomic>
+
 experiment::result::CSVConfig experiment::result::global_csv_config;
 experiment::status::MaintainTimeMode experiment::status::currentTimeMode = experiment::status::MaintainTimeMode::SLOT1;
 experiment::status::HopMode experiment::status::currentHopMode = experiment::status::HopMode::NoHop;
@@ -20,6 +22,7 @@ void experiment::result::init_config(const std::string strategy, const std::stri
             0, 0};
     global_csv_config.ruc_counter.initialize(thread_count);
     global_csv_config.old_counter.initialize(thread_count);
+    global_csv_config.query_counter.initialize(thread_count);
     // Initialize with default values (can be modified later)
     global_csv_config.ruc_data = {0, 0, 0, 0, 0, 0, 0, 0};
     global_csv_config.old_data = {0, 0, 0, 0, 0, 0, 0, 0};
@@ -41,6 +44,19 @@ void experiment::result::FixedShardedCounter::merge_to(MaintainShard &target) co
         target.ppr_insert_slot2 += shard.ppr_insert_slot2;
         target.diffuse_count_slot1 += shard.diffuse_count_slot1;
         target.diffuse_count_slot2 += shard.diffuse_count_slot2;
+    }
+}
+
+void experiment::result::FixedShardedCounter::merge_to(QueryShard &target) const noexcept {
+    // 内存屏障更新
+    std::atomic_thread_fence(std::memory_order_acquire);
+    for (const auto &shard: this->query_shards_) {
+        target.baseline1Cost += shard.baseline1Cost;
+        target.baseline2Cost += shard.baseline2Cost;
+        target.rucCost += shard.rucCost;
+        target.a2021Cost += shard.a2021Cost;
+        target.a2021LabelCover += shard.a2021LabelCover;
+        target.rucLabelCover += shard.rucLabelCover;
     }
 }
 
@@ -71,4 +87,7 @@ double experiment::result::MethodData::total_diffuse_count() const noexcept {
 
 experiment::result::MethodData::operator MaintainShard &() {
     return *reinterpret_cast<MaintainShard *>(this);
+}
+experiment::result::QueryMethodData::operator QueryShard &() {
+    return *reinterpret_cast<QueryShard *>(this);
 }
