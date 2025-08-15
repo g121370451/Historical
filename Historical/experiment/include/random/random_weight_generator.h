@@ -30,6 +30,9 @@ namespace experiment {
         int u;
         int t_s;
         int t_e;
+        explicit QueryTaskInfo(int v,int u,int t_s,int t_e):v(v),u(u),t_s(t_s),t_e(t_e) {
+
+        }
     };
 
     static std::vector<QueryTaskInfo> getRandomQueryPair(int num, int maxNum, int t_s, int t_e) {
