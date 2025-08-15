@@ -8,7 +8,7 @@ rem %5 = min
 rem %6 = m 迭代次数
 rem %7 = c 变化次数
 rem %8 = strategy 变化策略
-rem %9 = (可选) --check
+rem %9 = (可选) query
 
 setlocal
 
@@ -58,7 +58,7 @@ set min=%5
 set m=%6
 set c=%7
 set strategy=%8
-set check=%9
+set query=%9
 
 rem ==== 支持的策略列表 ====
 set STRATEGIES=high_high_increase high_high_decrease high_high_mixed low_low_increase low_low_decrease low_low_mixed high_low_increase high_low_decrease high_low_mixed
@@ -76,39 +76,39 @@ if "%found%"=="0" (
     goto usage
 )
 
-if /I "%check%"=="check" (
-    set check=--%check%
+if /I "%query%"=="query" (
+    set query=--%query%
 )
 
 rem ==== 根据数据集设置路径 ====
 if /I "%dataset%"=="enron-email" (
     set file=%DATA_DIR%/enron-email/processed/
     set out=%DATA_DIR%/enron-email/processed/
-) else if /I "%dataset%"=="twitch" (
+) else (if /I "%dataset%"=="twitch" (
     set file=%DATA_DIR%/twitch/processed/
     set out=%DATA_DIR%/twitch/processed/
-) else if /I "%dataset%"=="wiki" (
+) else (if /I "%dataset%"=="wiki" (
     set file=%DATA_DIR%/wiki/processed/
     set out=%DATA_DIR%/wiki/processed/
-) else if /I "%dataset%"=="youtube" (
+) else (if /I "%dataset%"=="youtube" (
     set file=%DATA_DIR%/youtube/processed/
     set out=%DATA_DIR%/youtube/processed/
 ) else (
     echo [ERROR] Unknown dataset: %dataset%
     goto usage
-)
+))))
 
 rem ==== 执行程序 ====
 echo.
 echo [INFO] Running label maintain...
-echo %EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c "%c%" -m "%m%" -max %max% -min %min% --strategy %strategy% %check% -n "%dataset%"
-%EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c %c% -m %m% -max %max% -min %min% --strategy %strategy% %check% -n "%dataset%"
+echo %EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c "%c%" -m "%m%" -max %max% -min %min% --strategy %strategy% %query% -n "%dataset%"
+%EXEC% maintain-label -t %t% -f %file% -p %out% -k %k% -c %c% -m %m% -max %max% -min %min% --strategy %strategy% %query% -n "%dataset%"
 goto :eof
 
 :usage
 echo.
-echo usage: %~nx0 [dataset] [k-limit] [thread] [max-weight] [min-weight] [iteration_count] [edge_change_count] [strategy] [check]
-echo e.g : %~nx0 enron-email 3 8 100 1 10 500 high_high_increase check
+echo usage: %~nx0 [dataset] [k-limit] [thread] [max-weight] [min-weight] [iteration_count] [edge_change_count] [strategy] [query]
+echo e.g : %~nx0 enron-email 3 8 100 1 10 500 high_high_increase query
 echo.
 echo dataset supported:
 echo    - enron-email
