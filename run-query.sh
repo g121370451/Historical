@@ -120,4 +120,6 @@ esac
 echo
 echo "[INFO] Running label maintain..."
 echo "$EXEC maintain-label -t $t -f $file -p $out -k $k -c $c -m $m -max $max -min $min --strategy $strategy $query -n $dataset"
+for ((i = 1; i <= 5; i++)); do
 "$EXEC" maintain-label -t "$t" -f "$file" -p "$out" -k "$k" -c "$c" -m "$m" -max "$max" -min "$min" --strategy "$strategy" $query -n "$dataset"
+done
