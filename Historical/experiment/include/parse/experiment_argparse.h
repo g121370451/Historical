@@ -29,6 +29,7 @@ namespace experiment
 		int min_value = 0;
 
         bool enableCorrectnessCheck = false;
+        bool enableQueryExperiment = false;
         std::optional<std::string> generatedFilePath = std::nullopt;
         std::optional<std::string> changeStrategy = std::nullopt;
 		// 构造函数需要初始化所有成员

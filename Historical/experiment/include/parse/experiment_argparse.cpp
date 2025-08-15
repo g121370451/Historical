@@ -39,6 +39,11 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
             .implicit_value(true)
             .nargs(0)
             .help("开启正确性检查");
+    maintain_label.add_argument("--query")
+            .default_value(false)
+            .implicit_value(true)
+            .nargs(0)
+            .help("开启查询实验 取1000个点对 统计他们的耗时 计算平均时间");
 
     maintain_label.add_argument("--read_old")
             .default_value("")
@@ -48,17 +53,8 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
             .default_value("")
             .help("边变化策略，如：high_high_increase, low_low_mixed 等");
 
-//  query-result
-    argparse::ArgumentParser query_label("query-result");
-    query_label.add_argument("-t", "--threads").required().scan<'i', int>().help("开启的线程数");
-    query_label.add_argument("-f", "--data_source").required().help("数据来源");
-    query_label.add_argument("-p", "--save_path").required().help("结果csv的保存路径 追加写");
-    query_label.add_argument("-k", "--hop_limit").required().scan<'i', int>().help("k-hop限制，查找不同hop目录下的二进制文件");
-    query_label.add_argument("-c", "--query_count").required().scan<'i', int>().help("每次演化的边变化次数");
-
     program.add_subparser(generate_label);
     program.add_subparser(maintain_label);
-    program.add_subparser(query_label);
 
     try
     {
@@ -97,6 +93,7 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
         config->min_value = maintain_label.get<int>("-min");
         config->datasetName = maintain_label.get<std::string>("-n");
         config->enableCorrectnessCheck = maintain_label.get<bool>("--check");
+        config->enableQueryExperiment = maintain_label.get<bool>("--query");
         auto readOldPath = maintain_label.get<std::string>("--read_old");
         if (!readOldPath.empty()) {
             config->generatedFilePath = readOldPath;
@@ -109,15 +106,6 @@ void experiment::parse_arguments(ExperimentConfig *config, int argc, char *argv[
         {
             throw std::invalid_argument("Error: max_value and min_value must be greater than 0.");
         }
-    }
-    else if (program.is_subcommand_used("query-result"))
-    {
-        config->mode = QUERY_RESULT;
-        config->threads = query_label.get<int>("-t");
-        config->data_source = query_label.get<std::string>("-f");
-        config->save_path = query_label.get<std::string>("-p");
-        config->hop_limit = query_label.get<int>("-k");
-        config->change_count = query_label.get<int>("-c");
     }
     else
     {

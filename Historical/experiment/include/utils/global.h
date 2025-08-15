@@ -43,23 +43,43 @@ namespace experiment {
         };
 
         struct alignas(64) QueryShard {
-            size_t baseline1Cost = 0;
-            size_t baseline2Cost = 0;
-            size_t rucCost = 0;
-            size_t a2021Cost = 0;
-            size_t rucLabelCover = 0;
-            size_t a2021LabelCover = 0;
-            char padding[64 - (6 * sizeof(size_t))]{}; // 显式填充
+            double baseline1Cost = 0;
+            double baseline2Cost = 0;
+            double rucCost = 0;
+            double a2021Cost = 0;
+            double rucLabelCover = 0;
+            double a2021LabelCover = 0;
+            char padding[64 - (6 * sizeof(double))]{}; // 显式填充
         };
 
         static_assert(sizeof(MaintainShard) == 128, "Maintain MethodShard size mismatch");
         static_assert(sizeof(QueryShard) == 64, "Query MethodShard size mismatch");
 
         // 分片计数器管理器（固定线程数优化版）
+        class FixedShardedCounterQuery {
+        private:
+            std::vector<QueryShard> query_shards_; // 动态数量分片
+            std::once_flag init_flag_;
+
+        public:
+            // 初始化固定分片数（线程安全）
+            void initialize(size_t thread_count) {
+                std::call_once(init_flag_, [=, this] {
+                    query_shards_.resize(thread_count);
+                });
+            }
+
+            // 获取线程专属分片（需先初始化）
+            QueryShard &get_thread_query_shard(size_t thread_idx) noexcept {
+                return query_shards_.at(thread_idx); // 带边界检查
+            }
+
+            // 合并所有分片数据
+            void merge_to(QueryShard &target) const noexcept;
+        };
         class FixedShardedCounter {
         private:
             std::vector<MaintainShard> maintain_shards_; // 动态数量分片
-            std::vector<QueryShard> query_shards_; // 动态数量分片
             std::once_flag init_flag_;
 
         public:
@@ -75,25 +95,19 @@ namespace experiment {
                 return maintain_shards_.at(thread_idx); // 带边界检查
             }
 
-            QueryShard &get_thread_query_shard(size_t thread_idx) noexcept {
-                return query_shards_.at(thread_idx); // 带边界检查
-            }
-
             // 合并所有分片数据
             void merge_to(MaintainShard &target) const noexcept;
 
-            // 合并所有分片数据
-            void merge_to(QueryShard &target) const noexcept;
         };
 
         // 对外暴露的统计接口
         struct QueryMethodData {
-            size_t baseline1Cost = 0;
-            size_t baseline2Cost = 0;
-            size_t rucCost = 0;
-            size_t a2021Cost = 0;
-            size_t rucLabelCover = 0;
-            size_t a2021LabelCover = 0;
+            double baseline1Cost = 0;
+            double baseline2Cost = 0;
+            double rucCost = 0;
+            double a2021Cost = 0;
+            double rucLabelCover = 0;
+            double a2021LabelCover = 0;
             explicit operator QueryShard &();
         };
 
@@ -134,7 +148,7 @@ namespace experiment {
             basicData basic_data;    // 不可变基础数据
             FixedShardedCounter ruc_counter; // RUC方法计数器
             FixedShardedCounter old_counter; // 旧方法计数器
-            FixedShardedCounter query_counter; // 旧方法计数器
+            FixedShardedCounterQuery query_counter; // 旧方法计数器
             MethodData ruc_data;         // 合并后的RUC结果
             QueryMethodData data_query;         // 合并后的RUC结果
             MethodData old_data;         // 合并后的旧方法结果

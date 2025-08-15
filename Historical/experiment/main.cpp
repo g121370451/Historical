@@ -63,6 +63,7 @@ int main(const int argc, char *argv[])
                 maintain.maintain();
                 maintain.save_csv();
                 maintain.check_correctness();
+                maintain.query_experiment();
             }else{
                 using Maintain = experiment::MaintainStrategySelector<experiment::status::HopMode::NoHop, int, int>;
                 Maintain maintain(config);
@@ -72,6 +73,7 @@ int main(const int argc, char *argv[])
                 maintain.maintain();
                 maintain.save_csv();
                 maintain.check_correctness();
+                maintain.query_experiment();
             }
         }else if(config->mode == experiment::QUERY_RESULT){
 

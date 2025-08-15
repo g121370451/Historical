@@ -21,7 +21,7 @@
 
 namespace experiment {
     template<experiment::status::MaintainAlgorithmMode Y, experiment::status::HopMode H, typename GraphType, typename
-        HopType>
+    HopType>
     class MaintainStrategyAlgorithmSelector;
 
     template<experiment::status::HopMode H, typename GraphType, typename HopType>
@@ -30,7 +30,7 @@ namespace experiment {
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024,
-                experiment::status::HopMode::NoHop, GraphType, HopType> {
+            experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2024");
@@ -96,7 +96,7 @@ namespace experiment {
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021,
-                experiment::status::HopMode::NoHop, GraphType, HopType> {
+            experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain Nonhop 2021");
@@ -161,7 +161,7 @@ namespace experiment {
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2024,
-                experiment::status::HopMode::WithHop, GraphType, HopType> {
+            experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2024");
@@ -227,7 +227,7 @@ namespace experiment {
 
     template<typename GraphType, typename HopType>
     class MaintainStrategyAlgorithmSelector<experiment::status::MaintainAlgorithmMode::Algorithm2021,
-                experiment::status::HopMode::WithHop, GraphType, HopType> {
+            experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
         MaintainStrategyAlgorithmSelector() : maintain_timer(), increaseItem(), decreaseItem() {
             this->maintain_timer.startTask("Maintain hop 2021");
@@ -295,29 +295,48 @@ namespace experiment {
     class MaintainStrategySelector<experiment::status::HopMode::NoHop, GraphType, HopType> {
     public:
         using ruc = experiment::MaintainStrategyAlgorithmSelector<
-            experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType,
-            HopType>;
+                experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::NoHop, GraphType,
+                HopType>;
         using a2021 = experiment::MaintainStrategyAlgorithmSelector<
-            experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType,
-            HopType>;
+                experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::NoHop, GraphType,
+                HopType>;
 
         explicit MaintainStrategySelector(experiment::ExperimentConfig *config) : savePath(
                 config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
-            sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
-            graph_res_filename(sourcePath + "binary_graph"),
-            change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
-            hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+                                                                                  sourcePath(
+                                                                                          config->data_source.string() +
+                                                                                          "k" + std::to_string(
+                                                                                                  config->hop_limit) +
+                                                                                          "/"),
+                                                                                  graph_res_filename(
+                                                                                          sourcePath + "binary_graph"),
+                                                                                  change_info_res_filename(
+                                                                                          savePath + "changeinfo_res_" +
+                                                                                          get_current_time_string() +
+                                                                                          ".txt"),
+                                                                                  hop_label_res_filename(savePath +
+                                                                                                         "binary_2_hop_label_info"),
 
-            ruc_process(),
-            a2021_process(),
-            thread_num(config->threads),
-            iteration_count(config->iterations),
-            pool_dynamic(config->threads),
-            csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
-            csv_write_query_(config->save_path.string() + "query_result_withhop.csv", ','),
-            generatedFilePath(config->generatedFilePath),
-            changeStrategy(config->changeStrategy),
-            enableCorrectnessCheck(config->enableCorrectnessCheck) {
+                                                                                  ruc_process(),
+                                                                                  a2021_process(),
+                                                                                  thread_num(config->threads),
+                                                                                  iteration_count(config->iterations),
+                                                                                  pool_dynamic(config->threads),
+                                                                                  csvWriter(config->save_path.string() +
+                                                                                            "maintain_result_withhop.csv",
+                                                                                            ','),
+                                                                                  csv_write_query_(
+                                                                                          config->save_path.string() +
+                                                                                          "query_result_withhop.csv",
+                                                                                          ','),
+                                                                                  generatedFilePath(
+                                                                                          config->generatedFilePath),
+                                                                                  changeStrategy(
+                                                                                          config->changeStrategy),
+                                                                                  enableCorrectnessCheck(
+                                                                                          config->enableCorrectnessCheck),
+                                                                                  enableQueryExperiment(
+                                                                                          config->enableQueryExperiment) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
@@ -327,8 +346,8 @@ namespace experiment {
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
             experiment::result::init_config(config->changeStrategy == std::nullopt
-                                                ? ""
-                                                : config->changeStrategy.value(), config->datasetName, config->threads,
+                                            ? ""
+                                            : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
         };
@@ -417,7 +436,7 @@ namespace experiment {
                     int v2 = change_edge.v2;
                     GraphType weight = change_edge.weight;
                     GraphType old_weight = sorted_vector_binary_operations_search_weight(instance_graph_temp.ADJs[v1],
-                        v2);
+                                                                                         v2);
                     if (old_weight < weight) {
                         auto pairPathV = std::make_pair(v1, v2);
                         auto it = path2Index4Increase.find(pairPathV);
@@ -501,16 +520,16 @@ namespace experiment {
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
-                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
+                                                                                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
             experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
-                instance_graph_list.begin(),
-                instance_graph_list.end(),
-                size_t(0), // 初始值（0）
-                [](size_t total, const graph<GraphType> &graph) {
-                    return total + graph.computeSize();
-                }
+                    instance_graph_list.begin(),
+                    instance_graph_list.end(),
+                    size_t(0), // 初始值（0）
+                    [](size_t total, const graph<GraphType> &graph) {
+                        return total + graph.computeSize();
+                    }
             );
             experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_L_byte_size();
@@ -520,16 +539,12 @@ namespace experiment {
         // 保存csv的值
         void save_csv() {
             result::global_csv_config.ruc_counter.merge_to(
-                static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
+                    static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
             result::global_csv_config.old_counter.merge_to(
-                static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
-            result::global_csv_config.query_counter.merge_to(
-                static_cast<result::QueryShard &>(result::global_csv_config.data_query));
+                    static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
             csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
                                     experiment::result::global_csv_config.ruc_data,
                                     experiment::result::global_csv_config.old_data);
-            csv_write_query_.write_csv_row(experiment::result::global_csv_config.basic_data,
-                        experiment::result::global_csv_config.data_query);
         }
 
         void check_correctness() {
@@ -596,6 +611,54 @@ namespace experiment {
             }
         }
 
+        void query_experiment() {
+            if (this->enableQueryExperiment) {
+                std::vector<std::future<int> > results_dynamic;
+                auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
+                for (const QueryTaskInfo &item: list) {
+                    results_dynamic.emplace_back(pool_dynamic.enqueue([&item, this] {
+                        nonhop::mtx_595_1.lock();
+                        int current_tid = nonhop::Qid_595.front();
+                        nonhop::Qid_595.pop();
+                        nonhop::mtx_595_1.unlock();
+
+                        auto &counter = experiment::result::global_csv_config.query_counter;
+                        auto &shard = counter.get_thread_query_shard(current_tid);
+
+                        int index1 = item.v;
+                        int index2 = item.u;
+                        int t1 = item.t_s;
+                        int t2 = item.t_e;
+                        auto time1 = std::chrono::steady_clock::now();
+                        auto res1 = this->hop_info.query(index1, index2, t1, t2, shard, true);
+                        auto time2 = std::chrono::steady_clock::now();
+                        auto res2 = this->hop_info_2021.query(index1, index2, t1, t2, shard, false);
+                        auto time3 = std::chrono::steady_clock::now();
+                        auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, index1, index2, t1,
+                                                                       t2, shard);
+                        auto time4 = std::chrono::steady_clock::now();
+                        auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
+                                                                       t2, shard);
+                        auto time5 = std::chrono::steady_clock::now();
+                        if (!(res1 == res2 && res3 == res4 && res1 == res3)) {
+                            // 结果错误
+                            std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
+                                      << std::endl;
+                            return 1;
+                        }
+                        return 0;
+                    }));
+                }
+                for (auto &&result: results_dynamic) {
+                    result.get();
+                }
+                result::global_csv_config.query_counter.merge_to(
+                        static_cast<result::QueryShard &>(result::global_csv_config.data_query));
+                csv_write_query_.write_csv_row(experiment::result::global_csv_config.basic_data,
+                                             experiment::result::global_csv_config.data_query);
+            }
+        }
+
     private:
         std::string savePath;
         std::string sourcePath;
@@ -621,6 +684,7 @@ namespace experiment {
         std::optional<std::string> generatedFilePath = std::nullopt;
         std::optional<std::string> changeStrategy = std::nullopt;
         bool enableCorrectnessCheck = false;
+        bool enableQueryExperiment = false;
 
         // 读取旧值的初始化方法
         template<typename... Args>
@@ -636,7 +700,7 @@ namespace experiment {
             auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e);
             if (res1 != res2 || res3 != res1 || res2 != res3) {
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
-                        << std::endl;
+                          << std::endl;
             }
         }
     };
@@ -645,31 +709,50 @@ namespace experiment {
     class MaintainStrategySelector<experiment::status::HopMode::WithHop, GraphType, HopType> {
     public:
         using ruc = experiment::MaintainStrategyAlgorithmSelector<
-            experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType,
-            HopType>;
+                experiment::status::MaintainAlgorithmMode::Algorithm2024, experiment::status::HopMode::WithHop, GraphType,
+                HopType>;
         using a2021 = experiment::MaintainStrategyAlgorithmSelector<
-            experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType,
-            HopType>;
+                experiment::status::MaintainAlgorithmMode::Algorithm2021, experiment::status::HopMode::WithHop, GraphType,
+                HopType>;
 
         explicit MaintainStrategySelector(experiment::ExperimentConfig *config) : savePath(
                 config->save_path.string() + "k" + std::to_string(config->hop_limit) + "/"),
-            sourcePath(config->data_source.string() + "k" + std::to_string(config->hop_limit) + "/"),
-            graph_res_filename(sourcePath + "binary_graph"),
-            change_info_res_filename(savePath + "changeinfo_res_" + get_current_time_string() + ".txt"),
-            hop_label_res_filename(savePath + "binary_2_hop_label_info"),
+                                                                                  sourcePath(
+                                                                                          config->data_source.string() +
+                                                                                          "k" + std::to_string(
+                                                                                                  config->hop_limit) +
+                                                                                          "/"),
+                                                                                  graph_res_filename(
+                                                                                          sourcePath + "binary_graph"),
+                                                                                  change_info_res_filename(
+                                                                                          savePath + "changeinfo_res_" +
+                                                                                          get_current_time_string() +
+                                                                                          ".txt"),
+                                                                                  hop_label_res_filename(savePath +
+                                                                                                         "binary_2_hop_label_info"),
 
-            ruc_process(),
-            a2021_process(),
+                                                                                  ruc_process(),
+                                                                                  a2021_process(),
 
-            thread_num(config->threads),
-            upper_k(config->hop_limit),
-            iteration_count(config->iterations),
-            pool_dynamic(config->threads),
-            csvWriter(config->save_path.string() + "maintain_result_withhop.csv", ','),
-            csvWriterQuery(config->save_path.string() + "query_result_withhop.csv", ','),
-            generatedFilePath(config->generatedFilePath),
-            changeStrategy(config->changeStrategy),
-            enableCorrectnessCheck(config->enableCorrectnessCheck) {
+                                                                                  thread_num(config->threads),
+                                                                                  upper_k(config->hop_limit),
+                                                                                  iteration_count(config->iterations),
+                                                                                  pool_dynamic(config->threads),
+                                                                                  csvWriter(config->save_path.string() +
+                                                                                            "maintain_result_withhop.csv",
+                                                                                            ','),
+                                                                                  csvWriterQuery(
+                                                                                          config->save_path.string() +
+                                                                                          "query_result_withhop.csv",
+                                                                                          ','),
+                                                                                  generatedFilePath(
+                                                                                          config->generatedFilePath),
+                                                                                  changeStrategy(
+                                                                                          config->changeStrategy),
+                                                                                  enableCorrectnessCheck(
+                                                                                          config->enableCorrectnessCheck),
+                                                                                  enableQueryExperiment(
+                                                                                          config->enableQueryExperiment) {
             this->readData(this->instance_graph, this->graph_time, this->hop_info);
             this->hop_info_2021 = hop_info;
             std::cout << "finish readData" << std::endl;
@@ -679,8 +762,8 @@ namespace experiment {
                                                    config->change_count, config->max_value, config->min_value,
                                                    this->instance_graph);
             experiment::result::init_config(config->changeStrategy == std::nullopt
-                                                ? ""
-                                                : config->changeStrategy.value(), config->datasetName, config->threads,
+                                            ? ""
+                                            : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
         };
@@ -774,7 +857,7 @@ namespace experiment {
                     int v2 = change_edge.v2;
                     GraphType weight = change_edge.weight;
                     GraphType old_weight = sorted_vector_binary_operations_search_weight(instance_graph_temp.ADJs[v1],
-                        v2);
+                                                                                         v2);
                     if (old_weight < weight) {
                         auto pairPathV = std::make_pair(v1, v2);
                         auto it = path2Index4Increase.find(pairPathV);
@@ -858,16 +941,16 @@ namespace experiment {
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
-                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
+                                                                                experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
             experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
-                instance_graph_list.begin(),
-                instance_graph_list.end(),
-                size_t(0), // 初始值（0）
-                [](size_t total, const graph<GraphType> &graph) {
-                    return total + graph.computeSize();
-                }
+                    instance_graph_list.begin(),
+                    instance_graph_list.end(),
+                    size_t(0), // 初始值（0）
+                    [](size_t total, const graph<GraphType> &graph) {
+                        return total + graph.computeSize();
+                    }
             );
             experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_label_bit_size();
@@ -938,24 +1021,61 @@ namespace experiment {
             }
         }
 
-        void query() {
-            // 随机匹配1000个点对
+        void query_experiment() {
+            std::cout <<"query experiment" << std::endl;
+            if (this->enableQueryExperiment) {
+                std::vector<std::future<int> > results_dynamic;
+                auto list = getRandomQueryPair(10, this->instance_graph_list[0].size(), 0, this->iteration_count);
+                for (const QueryTaskInfo &item: list) {
+                    results_dynamic.emplace_back(pool_dynamic.enqueue([&item, this] {
+                        hop::mtx_599_1.lock();
+                        int current_tid = hop::Qid_599.front();
+                        hop::Qid_599.pop();
+                        hop::mtx_599_1.unlock();
 
+                        auto &counter = experiment::result::global_csv_config.query_counter;
+                        auto &shard = counter.get_thread_query_shard(current_tid);
+
+                        int index1 = item.v;
+                        int index2 = item.u;
+                        int t1 = item.t_s;
+                        int t2 = item.t_e;
+
+                        auto res1 = this->hop_info.query(index1, index2, t1, t2, this->upper_k, shard, true);
+                        auto res2 = this->hop_info_2021.query(index1, index2, t1, t2, this->upper_k, shard, false);
+                        auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, index1, index2, t1,
+                                                                       t2, this->upper_k, shard);
+                        auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
+                                                                       t2, this->upper_k, shard);
+                        bool isError = !(res1 == res2 && res3 == res4 && res1 == res3);
+                        if (isError) {
+                            // 结果错误
+                            std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
+                                      << std::endl;
+                        }
+
+                        return 0;
+                    }));
+                }
+                for (auto &&result: results_dynamic) {
+                    result.get();
+                }
+                result::global_csv_config.query_counter.merge_to(
+                        static_cast<result::QueryShard &>(result::global_csv_config.data_query));
+                csvWriterQuery.write_csv_row(experiment::result::global_csv_config.basic_data,
+                                             experiment::result::global_csv_config.data_query);
+            }
         }
 
         // 保存csv的值
         void save_csv() {
             result::global_csv_config.ruc_counter.merge_to(
-                static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
+                    static_cast<result::MaintainShard &>(result::global_csv_config.ruc_data));
             result::global_csv_config.old_counter.merge_to(
-                static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
-            result::global_csv_config.query_counter.merge_to(
-                static_cast<result::QueryShard &>(result::global_csv_config.data_query));
+                    static_cast<result::MaintainShard &>(result::global_csv_config.old_data));
             csvWriter.write_csv_row(experiment::result::global_csv_config.basic_data,
                                     experiment::result::global_csv_config.ruc_data,
                                     experiment::result::global_csv_config.old_data);
-            csvWriterQuery.write_csv_row(experiment::result::global_csv_config.basic_data,
-                        experiment::result::global_csv_config.data_query);
         }
 
     private:
@@ -984,6 +1104,7 @@ namespace experiment {
         std::optional<std::string> generatedFilePath = std::nullopt;
         std::optional<std::string> changeStrategy = std::nullopt;
         bool enableCorrectnessCheck = false;
+        bool enableQueryExperiment = false;
 
         // 读取旧值的初始化方法
         template<typename... Args>
@@ -999,7 +1120,7 @@ namespace experiment {
             auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
             if (res1 != res2 || res3 != res1 || res2 != res3) {
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
-                        << std::endl;
+                          << std::endl;
             }
         }
     };

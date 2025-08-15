@@ -47,7 +47,7 @@ void experiment::result::FixedShardedCounter::merge_to(MaintainShard &target) co
     }
 }
 
-void experiment::result::FixedShardedCounter::merge_to(QueryShard &target) const noexcept {
+void experiment::result::FixedShardedCounterQuery::merge_to(experiment::result::QueryShard &target) const noexcept {
     // 内存屏障更新
     std::atomic_thread_fence(std::memory_order_acquire);
     for (const auto &shard: this->query_shards_) {
@@ -59,7 +59,6 @@ void experiment::result::FixedShardedCounter::merge_to(QueryShard &target) const
         target.rucLabelCover += shard.rucLabelCover;
     }
 }
-
 double experiment::result::MethodData::total_label_count() const noexcept {
     return this->label_count_slot1 + this->label_count_slot2;
 }

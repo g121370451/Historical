@@ -1,4 +1,5 @@
 #pragma once
+
 #include <vector>
 #include <tuple>
 #include <queue>
@@ -13,6 +14,40 @@
 
 namespace experiment {
     boost::random::mt19937 boost_random_time_seed{static_cast<std::uint32_t>(std::time(0))};
+
+    static int getRandomNumber(int maxNum) {
+        boost::random::uniform_int_distribution<int> dist(0, maxNum - 1);
+        return dist(boost_random_time_seed);
+    }
+
+    static int getRandomTime(int t_s, int t_e) {
+        boost::random::uniform_int_distribution<int> dist(t_s, t_e);
+        return dist(boost_random_time_seed);
+    }
+
+    struct QueryTaskInfo {
+        int v;
+        int u;
+        int t_s;
+        int t_e;
+    };
+
+    static std::vector<QueryTaskInfo> getRandomQueryPair(int num, int maxNum, int t_s, int t_e) {
+        std::vector<QueryTaskInfo> res;
+        int index = 0;
+        while (index < num) {
+            auto index1 = getRandomNumber(maxNum);
+            auto index2 = getRandomNumber(maxNum);
+            if (index1 == index2) {
+                continue;
+            }
+            auto t1 = getRandomTime(t_s, t_e);
+            auto t2 = getRandomTime(t1, t_e);
+            res.emplace_back(index1, index2, t1, t2);
+            ++index;
+        }
+        return res;
+    }
 
     double percentile(const std::vector<double> &data, double p) {
         if (data.empty())
@@ -48,7 +83,9 @@ namespace experiment {
         }
 
         if (degree_counts.empty()) {
-            return {{}, {}, {}};
+            return {{},
+                    {},
+                    {}};
         }
 
         std::vector<double> degrees;
@@ -122,6 +159,7 @@ namespace experiment {
 
         change_edge_info(int _v1, int _v2, weight_type _w, int _t) : v1(_v1), v2(_v2), weight(_w), time(_t) {
         };
+
         friend std::ostream &operator<<(std::ostream &os, const change_edge_info &info) {
             os << info.v1 << ", " << info.v2 << ", " << info.weight << ", " << info.time << "\n";
             return os;
@@ -150,7 +188,8 @@ namespace experiment {
             {"high_low_decrease",  EdgeChangeStrategy::HIGH_LOW_DECREASE},
             {"high_low_mixed",     EdgeChangeStrategy::HIGH_LOW_MIXED}
     };
-    EdgeChangeStrategy parseEdgeChangeStrategy(const std::string& input) {
+
+    EdgeChangeStrategy parseEdgeChangeStrategy(const std::string &input) {
         auto it = strategyMap.find(input);
         if (it != strategyMap.end()) {
             return it->second;
@@ -158,6 +197,7 @@ namespace experiment {
             throw std::invalid_argument("Invalid EdgeChangeStrategy: " + input);
         }
     }
+
     template<typename weight_type>
     class IterationChangeWeightInfo {
     private:
@@ -176,7 +216,7 @@ namespace experiment {
         IterationChangeWeightInfo() {
         };
 
-        void update(int v_num, int iteration, int change_num, int upper, int lower, graph<weight_type> graph) {
+        void update(int v_num, int iteration, int change_num, int upper, int lower, graph <weight_type> graph) {
             this->_v_num = v_num;
             this->_iteration = iteration;
             this->_change_num = change_num;
@@ -186,7 +226,7 @@ namespace experiment {
             this->_random_v = boost::random::uniform_int_distribution<>(0, this->_v_num);
             this->_random_weight = boost::random::uniform_real_distribution<>(0.01, 1.0);
             q_list = std::vector<std::queue<change_edge_info<weight_type> > >(
-                this->_iteration + 1, std::queue<change_edge_info<weight_type> >());
+                    this->_iteration + 1, std::queue<change_edge_info<weight_type> >());
         };
 
         void build_change_by_strategy(const std::vector<int> &high, const std::vector<int> &low,
@@ -232,19 +272,19 @@ namespace experiment {
                         continue;
 
                     auto [u_final, v_final] = candidate_edges[
-                        _random_v(boost_random_time_seed) % candidate_edges.size()];
+                            _random_v(boost_random_time_seed) % candidate_edges.size()];
 
                     if (u_final > v_final)
                         std::swap(u_final, v_final);
-                    if (!edge_values.contains({u_final,v_final})) {
-                        edge_values[{u_final,v_final}] =  this->instance_graph.edge_weight(u_final, v_final);
+                    if (!edge_values.contains({u_final, v_final})) {
+                        edge_values[{u_final, v_final}] = this->instance_graph.edge_weight(u_final, v_final);
                     }
-                    weight_type old_weight = edge_values[{u_final,v_final}];
+                    weight_type old_weight = edge_values[{u_final, v_final}];
                     weight_type new_weight = old_weight;
 
                     if (change_case == 0) {
                         if (old_weight < _upper) {
-                            weight_type delta = _random_weight(boost_random_time_seed)  * (_upper - old_weight);
+                            weight_type delta = _random_weight(boost_random_time_seed) * (_upper - old_weight);
                             new_weight = std::min(_upper, old_weight + delta);
                         }
                     } else if (change_case == 1) {
@@ -262,10 +302,10 @@ namespace experiment {
                             new_weight = std::max(_lower, old_weight - delta);
                         }
                     }
-                    if (edge_values[{u_final,v_final}] == new_weight) {
+                    if (edge_values[{u_final, v_final}] == new_weight) {
                         continue;
                     }
-                    edge_values[{u_final,v_final}] = new_weight;
+                    edge_values[{u_final, v_final}] = new_weight;
                     q_list[iter].push({u_final, v_final, new_weight, iter});
                     ++added;
                 }
@@ -293,15 +333,15 @@ namespace experiment {
                         } else {
                             std::cout << u << std::endl;
                             std::cout << "error generate random weight from" << pair.first << " to" << pair.second <<
-                                    " and weight is "
-                                    << u.weight << " at " << u.time << std::endl;
+                                      " and weight is "
+                                      << u.weight << " at " << u.time << std::endl;
                         }
                     }
-                    if(static_cast<int>(strategy_type) % 3 == 2){
+                    if (static_cast<int>(strategy_type) % 3 == 2) {
                         //decrease
-                        if(edge_values[pair] > u.weight){
+                        if (edge_values[pair] > u.weight) {
                             edge_values[pair] = u.weight;
-                        }else{
+                        } else {
                             std::cout << u << std::endl;
                             std::cout << "error generate random weight from" << pair.first << " to" << pair.second <<
                                       " and weight is "
@@ -382,8 +422,8 @@ namespace experiment {
                     while (!temp.empty()) {
                         const auto &change = temp.front();
                         out << "  Edge (" << change.v1 << ", " << change.v2
-                                << ") weight: " << change.weight
-                                << " at time: " << change.time << std::endl;
+                            << ") weight: " << change.weight
+                            << " at time: " << change.time << std::endl;
                         temp.pop();
                     }
                 }

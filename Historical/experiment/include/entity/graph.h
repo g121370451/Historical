@@ -192,7 +192,7 @@ namespace experiment {
                 myfile.close(); // close the file
             } else {
                 std::cout << "Unable to open file " << save_name << std::endl
-                        << "Please check the file location or file name." << std::endl; // throw an error message
+                          << "Please check the file location or file name." << std::endl; // throw an error message
                 getchar(); // keep the console window
                 exit(1); // end the program
             }
@@ -219,7 +219,7 @@ namespace experiment {
         }
 
         static bool compare_graph_v_of_v_update_vertexIDs_by_degrees_large_to_small(const std::pair<int, int> &i,
-            std::pair<int, int> &j) {
+                                                                                    std::pair<int, int> &j) {
             /*< is nearly 10 times slower than >*/
             return i.second >
                    j.second;
@@ -267,7 +267,7 @@ namespace experiment {
         std::string readPath = config->data_source.string();
         std::string line_content;
         boost::random::uniform_int_distribution<> random_weight = boost::random::uniform_int_distribution<>(
-            config->min_value, config->max_value);
+                config->min_value, config->max_value);
         int v_num = 0;
         std::ifstream myfile(readPath);
         if (myfile.is_open()) {
@@ -316,7 +316,7 @@ namespace experiment {
         std::vector<int> path;
 
         dijkstra_withHop(int vertex_id, weight_type weight, int hop, std::vector<int> path)
-            : vertex_id(vertex_id), weight(weight), hop(hop), path(std::move(path)) {
+                : vertex_id(vertex_id), weight(weight), hop(hop), path(std::move(path)) {
         }
     };
 
@@ -336,10 +336,10 @@ namespace experiment {
         // 使用二维数组记录到达每个节点在不同hop数下的最短距离
         std::vector<std::vector<weight_type> > dist(graph.size(),
                                                     std::vector<weight_type>(
-                                                        k + 1, std::numeric_limits<weight_type>::max()));
+                                                            k + 1, std::numeric_limits<weight_type>::max()));
 
         boost::heap::fibonacci_heap<dijkstra_withHop<weight_type>,
-            boost::heap::compare<dijkstra_withHop_compare<weight_type> > > queue;
+                boost::heap::compare<dijkstra_withHop_compare<weight_type> > > queue;
 
         // 初始化源节点
         dist[source][0] = 0;
@@ -466,10 +466,30 @@ namespace experiment {
                 res = std::min(res, item_res.weight);
             }
         }
+        return static_cast<long long int>(res);
+    }
 
-        if (res == std::numeric_limits<weight_type>::max()) {
-            return -1; // 表示无解
+    template<typename weight_type>
+    static long long int
+    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
+                           int hop, result::QueryShard &shard) {
+        weight_type res = std::numeric_limits<weight_type>::max();
+        auto start = std::chrono::steady_clock::now();
+        for (int index = t_s; index <= t_e; index++) {
+            auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target, hop);
+
+            if (item_res.weight < std::numeric_limits<weight_type>::max()) {
+                std::cout << "Found path with weight " << item_res.weight << ": ";
+                for (int vertex: item_res.path) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << std::endl;
+                res = std::min(res, item_res.weight);
+            }
         }
+
+        auto end = std::chrono::steady_clock::now();
+        shard.baseline1Cost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();;
         return static_cast<long long int>(res);
     }
 
@@ -490,10 +510,29 @@ namespace experiment {
                 res = std::min(res, item_res.weight);
             }
         }
+        return static_cast<long long int>(res);
+    }
 
-        if (res == std::numeric_limits<weight_type>::max()) {
-            return -1; // 表示无解
+    template<typename weight_type>
+    static long long int
+    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
+                           result::QueryShard &shard) {
+        weight_type res = std::numeric_limits<weight_type>::max();
+        auto start = std::chrono::steady_clock::now();
+        for (int index = t_s; index <= t_e; index++) {
+            auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target);
+
+            if (item_res.weight < std::numeric_limits<weight_type>::max()) {
+                std::cout << "Found path with weight " << item_res.weight << ": ";
+                for (int vertex: item_res.path) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << std::endl;
+                res = std::min(res, item_res.weight);
+            }
         }
+        auto end = std::chrono::steady_clock::now();
+        shard.baseline1Cost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();;
         return static_cast<long long int>(res);
     }
 

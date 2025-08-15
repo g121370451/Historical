@@ -337,16 +337,20 @@ namespace experiment {
                 if (source == terminal) {
                     return 0;
                 }
-
                 int distance = std::numeric_limits<int>::max();
                 auto vector1_check_pointer = L[source].begin();
                 auto vector2_check_pointer = L[terminal].begin();
                 auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
-
                 for (auto vector1_begin = vector1_check_pointer; vector1_begin != pointer_L_s_end; ++vector1_begin) {
+                    if(vector1_begin->t_e < t_s || vector1_begin->t_s > t_e){
+                        continue;
+                    }
                     // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance << "," << vector1_begin->parent_vertex << ") " << endl;
                     for (auto vector2_begin = vector2_check_pointer;
                          vector2_begin != pointer_L_t_end; ++vector2_begin) {
+                        if(vector2_begin->t_e < t_s || vector2_begin->t_s > t_e){
+                            continue;
+                        }
                         // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
                         if (vector1_begin->vertex == vector2_begin->vertex &&
                             std::max(vector1_begin->t_s, std::max(vector2_begin->t_s, t_s)) <=
@@ -360,6 +364,46 @@ namespace experiment {
                         }
                     }
                 }
+                return distance;
+            }
+
+            long long int query(int source, int terminal, int t_s, int t_e, result::QueryShard &query_shard, bool isRuc) {
+                if (source == terminal) {
+                    return 0;
+                }
+                int distance = std::numeric_limits<int>::max();
+                auto vector1_check_pointer = L[source].begin();
+                auto vector2_check_pointer = L[terminal].begin();
+                auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
+                auto start = std::chrono::steady_clock::now();
+                auto &labelOperation = isRuc?query_shard.rucLabelCover:query_shard.a2021LabelCover;
+                auto &coverCost = isRuc?query_shard.rucCost:query_shard.a2021Cost;
+                for (auto vector1_begin = vector1_check_pointer; vector1_begin != pointer_L_s_end; ++vector1_begin) {
+                    if(vector1_begin->t_e < t_s || vector1_begin->t_s > t_e){
+                        continue;
+                    }
+                    // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance << "," << vector1_begin->parent_vertex << ") " << endl;
+                    for (auto vector2_begin = vector2_check_pointer;
+                         vector2_begin != pointer_L_t_end; ++vector2_begin) {
+                        if(vector2_begin->t_e < t_s || vector2_begin->t_s > t_e){
+                            continue;
+                        }
+                        labelOperation+=1;
+                        // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
+                        if (vector1_begin->vertex == vector2_begin->vertex &&
+                            std::max(vector1_begin->t_s, std::max(vector2_begin->t_s, t_s)) <=
+                            std::min(vector1_begin->t_e, std::min(vector2_begin->t_e, t_e))) {
+                            long long int dis = (long long int) vector1_begin->distance + vector2_begin->distance;
+                            if (distance > dis) {
+                                distance = dis;
+                                // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance <<  ") " << endl;
+                                // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance <<  ") " << endl;
+                            }
+                        }
+                    }
+                }
+                auto end = std::chrono::steady_clock::now();
+                coverCost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();;
                 return distance;
             }
         };
@@ -978,10 +1022,8 @@ namespace experiment {
 
                 outputFile << "compute_label_bit_size()=" << compute_label_bit_size() << std::endl;
             }
-
             long long int query(int source, int terminal, int t_s, int t_e, int hop_cst) {
                 /*return std::numeric_limits<int>::max() is not connected*/
-
                 if (hop_cst < 0) {
                     return std::numeric_limits<int>::max();
                 }
@@ -990,16 +1032,21 @@ namespace experiment {
                 } else if (hop_cst == 0) {
                     return std::numeric_limits<int>::max();
                 }
-
                 int distance = std::numeric_limits<int>::max();
                 auto vector1_check_pointer = L[source].begin();
                 auto vector2_check_pointer = L[terminal].begin();
                 auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
 
                 for (auto vector1_begin = vector1_check_pointer; vector1_begin != pointer_L_s_end; vector1_begin++) {
+                    if(vector1_begin->t_e < t_s || vector1_begin->t_s > t_e){
+                        continue;
+                    }
                     // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance << "," << vector1_begin->parent_vertex << ") " << endl;
                     for (auto vector2_begin = vector2_check_pointer;
                          vector2_begin != pointer_L_t_end; vector2_begin++) {
+                        if(vector2_begin->t_e < t_s || vector2_begin->t_s > t_e){
+                            continue;
+                        }
                         // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
                         if (vector1_begin->hub_vertex == vector2_begin->hub_vertex &&
                             vector1_begin->hop + vector2_begin->hop <= hop_cst &&
@@ -1014,6 +1061,53 @@ namespace experiment {
                         }
                     }
                 }
+                return distance;
+            }
+            long long int query(int source, int terminal, int t_s, int t_e, int hop_cst, result::QueryShard &query_shard, bool isRuc) {
+                /*return std::numeric_limits<int>::max() is not connected*/
+                if (hop_cst < 0) {
+                    return std::numeric_limits<int>::max();
+                }
+                if (source == terminal) {
+                    return 0;
+                } else if (hop_cst == 0) {
+                    return std::numeric_limits<int>::max();
+                }
+                auto start = std::chrono::steady_clock::now();
+                auto &labelOperation = isRuc?query_shard.rucLabelCover:query_shard.a2021LabelCover;
+                auto &coverCost = isRuc?query_shard.rucCost:query_shard.a2021Cost;
+                int distance = std::numeric_limits<int>::max();
+                auto vector1_check_pointer = L[source].begin();
+                auto vector2_check_pointer = L[terminal].begin();
+                auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
+
+                for (auto vector1_begin = vector1_check_pointer; vector1_begin != pointer_L_s_end; vector1_begin++) {
+                    if(vector1_begin->t_e < t_s || vector1_begin->t_s > t_e){
+                        continue;
+                    }
+                    // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance << "," << vector1_begin->parent_vertex << ") " << endl;
+                    for (auto vector2_begin = vector2_check_pointer;
+                         vector2_begin != pointer_L_t_end; vector2_begin++) {
+                        if(vector2_begin->t_e < t_s || vector2_begin->t_s > t_e){
+                            continue;
+                        }
+                        labelOperation+=1;
+                        // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
+                        if (vector1_begin->hub_vertex == vector2_begin->hub_vertex &&
+                            vector1_begin->hop + vector2_begin->hop <= hop_cst &&
+                            std::max(vector1_begin->t_s, std::max(vector2_begin->t_s, t_s)) <=
+                            std::min(vector1_begin->t_e, std::min(vector2_begin->t_e, t_e))) {
+                            long long int dis = (long long int) vector1_begin->distance + vector2_begin->distance;
+                            if (distance > dis) {
+                                distance = dis;
+                                // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance <<  ") " << endl;
+                                // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance <<  ") " << endl;
+                            }
+                        }
+                    }
+                }
+                auto end = std::chrono::steady_clock::now();
+                coverCost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();;
                 return distance;
             }
         };
