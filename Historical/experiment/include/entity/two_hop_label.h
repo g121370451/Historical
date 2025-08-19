@@ -1080,18 +1080,12 @@ namespace experiment {
                 auto vector1_check_pointer = L[source].begin();
                 auto vector2_check_pointer = L[terminal].begin();
                 auto pointer_L_s_end = L[source].end(), pointer_L_t_end = L[terminal].end();
-
+                labelOperation += L[source].size();
+                labelOperation += L[terminal].size();
                 for (auto vector1_begin = vector1_check_pointer; vector1_begin != pointer_L_s_end; vector1_begin++) {
-                    if(vector1_begin->t_e < t_s || vector1_begin->t_s > t_e){
-                        continue;
-                    }
                     // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance << "," << vector1_begin->parent_vertex << ") " << endl;
                     for (auto vector2_begin = vector2_check_pointer;
                          vector2_begin != pointer_L_t_end; vector2_begin++) {
-                        if(vector2_begin->t_e < t_s || vector2_begin->t_s > t_e){
-                            continue;
-                        }
-                        labelOperation+=1;
                         // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance << "," << vector2_begin->parent_vertex << ") " << endl;
                         if (vector1_begin->hub_vertex == vector2_begin->hub_vertex &&
                             vector1_begin->hop + vector2_begin->hop <= hop_cst &&

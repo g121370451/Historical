@@ -282,7 +282,12 @@ namespace experiment {
                 } else {
                     int v1 = std::stoi(Parsed_content[0]);
                     int v2 = std::stoi(Parsed_content[1]);
-                    int w = random_weight(experiment::status::boost_random_time_seed);
+                    int w;
+                    if (Parsed_content.size() >2) {
+                        w = std::stoi(Parsed_content[2]);
+                    }else {
+                        w = random_weight(experiment::status::boost_random_time_seed);
+                    }
                     graph.add_edge(v1, v2, w);
                     // std::cout << v1 << " " << v2 << " " << w << std::endl;
                 }

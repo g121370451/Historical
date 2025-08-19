@@ -629,17 +629,12 @@ namespace experiment {
                         int index2 = item.u;
                         int t1 = item.t_s;
                         int t2 = item.t_e;
-                        auto time1 = std::chrono::steady_clock::now();
                         auto res1 = this->hop_info.query(index1, index2, t1, t2, shard, true);
-                        auto time2 = std::chrono::steady_clock::now();
                         auto res2 = this->hop_info_2021.query(index1, index2, t1, t2, shard, false);
-                        auto time3 = std::chrono::steady_clock::now();
                         auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, index1, index2, t1,
                                                                        t2, shard);
-                        auto time4 = std::chrono::steady_clock::now();
                         auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
                                                                        t2, shard);
-                        auto time5 = std::chrono::steady_clock::now();
                         if (!(res1 == res2 && res3 == res4 && res1 == res3)) {
                             // 结果错误
                             std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
@@ -1041,8 +1036,8 @@ namespace experiment {
                         int t1 = item.t_s;
                         int t2 = item.t_e;
 
-                        auto res1 = this->hop_info.query(index1, index2, t1, t2, this->upper_k, shard, true);
                         auto res2 = this->hop_info_2021.query(index1, index2, t1, t2, this->upper_k, shard, false);
+                        auto res1 = this->hop_info.query(index1, index2, t1, t2, this->upper_k, shard, true);
                         auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, index1, index2, t1,
                                                                        t2, this->upper_k, shard);
                         auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
