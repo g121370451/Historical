@@ -1,0 +1,17 @@
+Iteration Info:
+---------------
+Vertex number (v_num): 7
+Iteration count: 1
+Changes per iteration: 2
+Weight upper bound: 100
+Weight lower bound: 1
+
+Graph Information:
+------------------
+Graph with 7 vertices
+
+Change Queues:
+--------------
+Queue for iteration 1 (2 changes):
+  Edge (1, 2) weight: 1 at time: 1
+  Edge (3, 4) weight: 1 at time: 1
