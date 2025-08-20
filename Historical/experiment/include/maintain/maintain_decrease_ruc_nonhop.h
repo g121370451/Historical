@@ -70,8 +70,8 @@ namespace experiment::nonhop::ruc::decrease {
         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
         std::vector<affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
         std::vector<std::future<int> > &results_dynamic) {
-        for (std::pair<std::pair<int, int>, weight_type> v_item: v_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([&v_item, L, PPR, CL] {
+        for (const std::pair<std::pair<int, int>,weight_type>& v_item: v_map) {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([v_item, L, PPR, CL] {
                 mtx_595_1.lock();
                 int current_tid = Qid_595.front();
                 Qid_595.pop();
@@ -81,6 +81,7 @@ namespace experiment::nonhop::ruc::decrease {
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                 int v1 = v_item.first.first, v2 = v_item.first.second;
+                std::cout << "v1 is " << v1 << " v2 is " << v2 << std::endl;
                 weight_type w_new = v_item.second;
 
                 for (int sl = 0; sl < 2; sl++) {

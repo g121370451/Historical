@@ -38,7 +38,7 @@ int main(const int argc, char *argv[])
                 experiment::nonhop::two_hop_case_info<int> hop_info;
                 generator.refreshDir();
                 generator.pll(instance_graph, hop_info);
-                // hop_info.print_L();
+                 hop_info.print_L();
                 export_degree_distribution_and_plot(instance_graph,saveDir.string());
                 generator.persistData(instance_graph, graph_time,hop_info);
             }else{

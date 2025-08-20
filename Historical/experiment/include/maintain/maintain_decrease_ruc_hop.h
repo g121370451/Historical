@@ -68,7 +68,7 @@ namespace experiment::hop::ruc::decrease {
             std::vector<hop_constrained_affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
             std::vector<std::future<int> > &results_dynamic, int upper_k) {
         for (const auto &v_map_item: v_map) {
-            results_dynamic.emplace_back(pool_dynamic.enqueue([&v_map_item, L, PPR, CL, upper_k] {
+            results_dynamic.emplace_back(pool_dynamic.enqueue([v_map_item, L, PPR, CL, upper_k] {
                 mtx_599_1.lock();
                 int current_tid = Qid_599.front();
                 Qid_599.pop();
@@ -193,7 +193,7 @@ namespace experiment::hop::ruc::decrease {
         for (auto &cl_item: CL_map) {
             // results_dynamic.emplace_back(pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k] {
             results_dynamic.emplace_back(
-                    pool_dynamic.enqueue([time, &cl_item, L, &instance_graph, PPR, upper_k, &size, this] {
+                    pool_dynamic.enqueue([time, cl_item, L, &instance_graph, PPR, upper_k, &size, this] {
                         mtx_599_1.lock();
                         int current_tid = Qid_599.front();
                         Qid_599.pop();
@@ -202,7 +202,6 @@ namespace experiment::hop::ruc::decrease {
                         auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                         int v = cl_item.first;
-                        std::vector<hop_constrained_label_v2<hop_weight_type> > &vec_with_hub_v = cl_item.second;
 
                         L_lock[v].lock();
                         auto Lv = (*L)[v]; // to avoid interlocking
@@ -217,7 +216,7 @@ namespace experiment::hop::ruc::decrease {
                         std::vector<int> hubs(instance_graph.size(), -1);
                         auto &Q_VALUE = Q_value<hop_weight_type>[current_tid];
 
-                        for (auto &it: vec_with_hub_v) {
+                        for (const auto &it: cl_item.second) {
                             int u = it.hub_vertex;
                             int h_v = it.hop;
                             hop_weight_type du = it.distance;
