@@ -289,25 +289,24 @@ namespace experiment {
         auto start = std::chrono::steady_clock::now();
         int N = graph_with_time.v_num;
         boost::heap::fibonacci_heap<edge_diffuse_info<weight_type>> queue;
-        std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
+        std::vector dist(N, std::vector(t_e + 1, std::numeric_limits<int>::max()));
         queue.clear();
-        std::fill(dist[source].begin(), dist[source].end(), 0);
-        queue.emplace(source, 0, 0, 0);
+        std::fill(dist[source].begin(), dist[source].end(), std::numeric_limits<int>::max());
+        queue.emplace(source, 0, t_s, t_e);
         while (!queue.empty()) {
             auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
             queue.pop();
             if (vertexBase == target) {
-                return static_cast<long long int>(res);
+                return static_cast<long long int>(currentDist);
             }
-            int push_ts, push_te = -1;
+            int push_ts = -1, push_te = -1;
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
                 int next = vertices.first;
                 for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
-                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
-                        edge_info_time_span.endTimeLabel <= effective_te) {
+                    if (std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
                         int newDist = currentDist + edge_info_time_span.weight;
                         for (int index = effective_ts; index <= effective_te; index++) {
-                            if (dist[next][index] < newDist) {
+                            if (dist[next][index] > newDist) {
                                 //更新距离
                                 dist[next][index] = newDist;
                                 if (push_ts == -1) {
@@ -318,14 +317,14 @@ namespace experiment {
                                 }
                             } else {
                                 if (push_ts != -1) {
-                                    queue.emplace(vertexBase, newDist, push_ts, push_te);
+                                    queue.emplace(next, newDist, push_ts, push_te);
                                     push_ts = -1;
                                     push_te = -1;
                                 }
                             }
                         }
                         if (push_ts != -1) {
-                            queue.emplace(vertexBase, newDist, push_ts, push_te);
+                            queue.emplace(next, newDist, push_ts, push_te);
                             push_ts = -1;
                             push_te = -1;
                         }

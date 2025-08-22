@@ -81,7 +81,6 @@ namespace experiment::nonhop::ruc::decrease {
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                 int v1 = v_item.first.first, v2 = v_item.first.second;
-                std::cout << "v1 is " << v1 << " v2 is " << v2 << std::endl;
                 weight_type w_new = v_item.second;
 
                 for (int sl = 0; sl < 2; sl++) {

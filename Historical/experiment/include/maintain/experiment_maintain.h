@@ -636,6 +636,9 @@ namespace experiment {
                                                                        t2, shard);
                         auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
                                                                        t2, shard);
+                        nonhop::mtx_595_1.lock();
+                        nonhop::Qid_595.push(current_tid);
+                        nonhop::mtx_595_1.unlock();
                         if (!(res1 == res2 && res3 == res4 && res1 == res3)) {
                             // 结果错误
                             std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
