@@ -409,6 +409,7 @@ namespace experiment {
 
         // 动态维护
         void maintain() {
+//            this->hop_info.print_L();
             for (int time = 1; time <= this->iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
@@ -825,6 +826,7 @@ namespace experiment {
 
         // 动态维护
         void maintain() {
+//            this->hop_info.print_L();
             for (int time = 1; time <= iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;

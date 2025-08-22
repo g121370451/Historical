@@ -175,10 +175,10 @@ namespace experiment {
                     if (input_vector[mid].vertex == key) {
                         two_hop_label<hop_weight_type> old_label = input_vector[mid];
                         old_label.t_e = time - 1;
-                        if (input_vector[mid].distance == value) {
-                            std::cout << "nihop has same label,so dont insert new label to it" << std::endl;
-                            return;
-                        }
+//                        if (input_vector[mid].distance == value) {
+//                            std::cout << "nihop has same label,so dont insert new label to it" << std::endl;
+//                            return;
+//                        }
                         input_vector[mid].distance = value;
                         input_vector[mid].t_s = time;
                         if (old_label.distance != std::numeric_limits<hop_weight_type>::max()) {

@@ -255,61 +255,31 @@ namespace experiment {
         }
     };
 
-    struct compare_tuple {
-        bool operator()(const std::tuple<int, int, int> &lhs, const std::tuple<int, int, int> &rhs) const {
-            if (std::get<1>(lhs) == std::get<1>(rhs)) {
-                return std::get<2>(lhs) > std::get<2>(rhs);
-            }
-            return std::get<1>(lhs) > std::get<1>(rhs);
-        }
+    template<typename weight_type>
+    struct edge_diffuse_info {
+        int vertex;
+        weight_type dis;
+        int t_s;
+        int t_e;
+
+        bool operator<(const edge_diffuse_info<weight_type> others) const{
+            return this->dis > others.dis;
+        };
     };
 
     template<typename weight_type>
-    static long long int
-    Baseline2ResultWithHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
-                           int t_e, int hop_limit, result::QueryShard &shard) {
-        weight_type res = std::numeric_limits<weight_type>::max();
-        auto start = std::chrono::steady_clock::now();
-        int N = graph_with_time.v_num;
-        boost::heap::fibonacci_heap<std::tuple<int, int, int>, boost::heap::compare<compare_tuple>> queue;
-        for (int queryTime = t_s; queryTime <= t_e; queryTime++) {
-            std::vector<int> dist(N, std::numeric_limits<int>::max());
-            std::vector<int> hop_list(N, std::numeric_limits<int>::max());
-            queue.clear();
-            dist[source] = 0;
-            hop_list[source] = 0;
-            queue.emplace(source, 0, 0);
-            while (queue.size() > 0) {
-                auto [vertexBase, currentDist, hop] = queue.top();
-                queue.pop();
-                if (vertexBase == target) {
-                    res = (currentDist < res) ? currentDist : res;
-                }
-                if (hop == hop_limit) {
-                    continue;
-                }
+    struct edge_diffuse_info_with_hop {
+        int vertex;
+        weight_type dis;
+        int hop;
+        int t_s;
+        int t_e;
 
-                for (const auto &vertices: graph_with_time.ADJs[vertexBase]) {
-                    int next = vertices.first;
-                    for (const auto &edge_info_time_span: vertices.second) {
-                        if (edge_info_time_span.startTimeLabel <= queryTime &&
-                            edge_info_time_span.endTimeLabel >= queryTime) {
-                            int newDist = currentDist + edge_info_time_span.weight;
-                            if (newDist < dist[next] || (hop + 1) < hop_list[next]) {
-                                dist[next] = newDist;
-                                hop_list[next] = hop + 1;
-                                queue.push({next, newDist, hop + 1});
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        auto end = std::chrono::steady_clock::now();
-        shard.baseline2Cost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
-        return static_cast<long long int>(res);
-    }
+        bool operator<(const edge_diffuse_info<weight_type> others) const{
+            return this->dis > others.dis;
+        };
+    };
+
 
     template<typename weight_type>
     static long long int
@@ -318,38 +288,52 @@ namespace experiment {
         weight_type res = std::numeric_limits<weight_type>::max();
         auto start = std::chrono::steady_clock::now();
         int N = graph_with_time.v_num;
-        boost::heap::fibonacci_heap<std::tuple<int, int, int>, boost::heap::compare<compare_tuple>> queue;
-        for (int queryTime = t_s; queryTime <= t_e; queryTime++) {
-            std::vector<int> dist(N, std::numeric_limits<int>::max());
-            std::vector<int> hop_list(N, std::numeric_limits<int>::max());
-            queue.clear();
-            dist[source] = 0;
-            hop_list[source] = 0;
-            queue.emplace(source, 0, 0);
-            while (queue.size() > 0) {
-                auto [vertexBase, currentDist, hop] = queue.top();
-                queue.pop();
-                if (vertexBase == target) {
-                    res = (currentDist < res) ? currentDist : res;
-                }
-
-                for (const auto &vertices: graph_with_time.ADJs[vertexBase]) {
-                    int next = vertices.first;
-                    for (const auto &edge_info_time_span: vertices.second) {
-                        if (edge_info_time_span.startTimeLabel <= queryTime &&
-                            edge_info_time_span.endTimeLabel >= queryTime) {
-                            int newDist = currentDist + edge_info_time_span.weight;
-                            if (newDist < dist[next] || (hop + 1) < hop_list[next]) {
-                                dist[next] = newDist;
-                                hop_list[next] = hop + 1;
-                                queue.push({next, newDist, hop + 1});
+        boost::heap::fibonacci_heap<edge_diffuse_info<weight_type>> queue;
+        std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
+        queue.clear();
+        std::fill(dist[source].begin(), dist[source].end(), 0);
+        queue.emplace(source, 0, 0, 0);
+        while (!queue.empty()) {
+            auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
+            queue.pop();
+            if (vertexBase == target) {
+                return static_cast<long long int>(res);
+            }
+            int push_ts, push_te = -1;
+            for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
+                int next = vertices.first;
+                for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
+                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
+                        edge_info_time_span.endTimeLabel <= effective_te) {
+                        int newDist = currentDist + edge_info_time_span.weight;
+                        for (int index = effective_ts; index <= effective_te; index++) {
+                            if (dist[next][index] < newDist) {
+                                //更新距离
+                                dist[next][index] = newDist;
+                                if (push_ts == -1) {
+                                    push_ts = index;
+                                    push_te = index;
+                                } else {
+                                    push_te = index;
+                                }
+                            } else {
+                                if (push_ts != -1) {
+                                    queue.emplace(vertexBase, newDist, push_ts, push_te);
+                                    push_ts = -1;
+                                    push_te = -1;
+                                }
                             }
-                            break;
+                        }
+                        if (push_ts != -1) {
+                            queue.emplace(vertexBase, newDist, push_ts, push_te);
+                            push_ts = -1;
+                            push_te = -1;
                         }
                     }
                 }
             }
         }
+
         auto end = std::chrono::steady_clock::now();
         shard.baseline2Cost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
         return static_cast<long long int>(res);
@@ -358,87 +342,59 @@ namespace experiment {
     template<typename weight_type>
     static long long int
     Baseline2ResultWithHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
-                           int t_e, int hop_limit) {
+                           int t_e, int hop_limit, result::QueryShard &shard) {
         weight_type res = std::numeric_limits<weight_type>::max();
+        auto start = std::chrono::steady_clock::now();
         int N = graph_with_time.v_num;
-        boost::heap::fibonacci_heap<std::tuple<int, int, int>, boost::heap::compare<compare_tuple>> queue;
-        for (int queryTime = t_s; queryTime <= t_e; queryTime++) {
-            std::vector<int> dist(N, std::numeric_limits<int>::max());
-            std::vector<int> hop_list(N, std::numeric_limits<int>::max());
-            queue.clear();
-            dist[source] = 0;
-            hop_list[source] = 0;
-            queue.emplace(source, 0, 0);
-            while (queue.size() > 0) {
-                auto [vertexBase, currentDist, hop] = queue.top();
-                queue.pop();
-                if (vertexBase == target) {
-                    res = (currentDist < res) ? currentDist : res;
-                }
-                if (hop == hop_limit) {
-                    continue;
-                }
-
-                for (const auto &vertices: graph_with_time.ADJs[vertexBase]) {
-                    int next = vertices.first;
-                    for (const auto &edge_info_time_span: vertices.second) {
-                        if (edge_info_time_span.startTimeLabel <= queryTime &&
-                            edge_info_time_span.endTimeLabel >= queryTime) {
-                            int newDist = currentDist + edge_info_time_span.weight;
-                            if (newDist < dist[next] || (hop + 1) < hop_list[next]) {
-                                dist[next] = newDist;
-                                hop_list[next] = hop + 1;
-                                queue.push({next, newDist, hop + 1});
+        boost::heap::fibonacci_heap<edge_diffuse_info<weight_type>> queue;
+        std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
+        queue.clear();
+        std::fill(dist[source].begin(), dist[source].end(), 0);
+        queue.emplace(source, 0, 0, 0);
+        while (!queue.empty()) {
+            auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
+            queue.pop();
+            if (vertexBase == target) {
+                return static_cast<long long int>(res);
+            }
+            int push_ts, push_te = -1;
+            for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
+                int next = vertices.first;
+                for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
+                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
+                        edge_info_time_span.endTimeLabel <= effective_te) {
+                        int newDist = currentDist + edge_info_time_span.weight;
+                        for (int index = effective_ts; index <= effective_te; index++) {
+                            if (dist[next][index] < newDist) {
+                                //更新距离
+                                dist[next][index] = newDist;
+                                if (push_ts == -1) {
+                                    push_ts = index;
+                                    push_te = index;
+                                } else {
+                                    push_te = index;
+                                }
+                            } else {
+                                if (push_ts != -1) {
+                                    queue.emplace(vertexBase, newDist, push_ts, push_te);
+                                    push_ts = -1;
+                                    push_te = -1;
+                                }
                             }
-                            break;
+                        }
+                        if (push_ts != -1) {
+                            queue.emplace(vertexBase, newDist, push_ts, push_te);
+                            push_ts = -1;
+                            push_te = -1;
                         }
                     }
                 }
             }
         }
+
+        auto end = std::chrono::steady_clock::now();
+        shard.baseline2Cost += std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
         return static_cast<long long int>(res);
     }
-
-    template<typename weight_type>
-    static long long int
-    Baseline2ResultWithHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
-                           int t_e) {
-        weight_type res = std::numeric_limits<weight_type>::max();
-        int N = graph_with_time.v_num;
-        boost::heap::fibonacci_heap<std::tuple<int, int, int>, boost::heap::compare<compare_tuple>> queue;
-        for (int queryTime = t_s; queryTime <= t_e; queryTime++) {
-            std::vector<int> dist(N, std::numeric_limits<int>::max());
-            std::vector<int> hop_list(N, std::numeric_limits<int>::max());
-            queue.clear();
-            dist[source] = 0;
-            hop_list[source] = 0;
-            queue.emplace(source, 0, 0);
-            while (queue.size() > 0) {
-                auto [vertexBase, currentDist, hop] = queue.top();
-                queue.pop();
-                if (vertexBase == target) {
-                    res = (currentDist < res) ? currentDist : res;
-                }
-
-                for (const auto &vertices: graph_with_time.ADJs[vertexBase]) {
-                    int next = vertices.first;
-                    for (const auto &edge_info_time_span: vertices.second) {
-                        if (edge_info_time_span.startTimeLabel <= queryTime &&
-                            edge_info_time_span.endTimeLabel >= queryTime) {
-                            int newDist = currentDist + edge_info_time_span.weight;
-                            if (newDist < dist[next] || (hop + 1) < hop_list[next]) {
-                                dist[next] = newDist;
-                                hop_list[next] = hop + 1;
-                                queue.push({next, newDist, hop + 1});
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        return static_cast<long long int>(res);
-    }
-
 #pragma endregion
 }

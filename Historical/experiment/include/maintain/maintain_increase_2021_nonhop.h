@@ -281,10 +281,10 @@ namespace experiment::nonhop::algorithm2021::increase {
                                 hop_weight_type d1 = std::numeric_limits<hop_weight_type>::max();
                                 for (auto nei: instance_graph[v]) {
                                     mtx_595[nei.first].lock();
-                                    hop_weight_type dis = std::min(d1, search_sorted_two_hop_label_in_current_with_csv(
-                                            (*L)[nei.first], t, shard) + nei.second);
+                                    hop_weight_type dis = search_sorted_two_hop_label_in_current_with_csv(
+                                            (*L)[nei.first], t, shard);
                                     mtx_595[nei.first].unlock();
-                                    if(dis == std::numeric_limits<hop_weight_type>::max()){
+                                    if (dis == std::numeric_limits<hop_weight_type>::max()) {
                                         continue;
                                     }
                                     hop_weight_type d_new = dis + nei.second;
@@ -377,48 +377,50 @@ namespace experiment::nonhop::algorithm2021::increase {
                                                                                 it.second,
                                                                                 shard);
                         mtx_595[it.first].unlock();
-                        for (auto nei: instance_graph[it.first]) {
-                            if (nei.first > it.second) {
-                                hop_weight_type d_new = search_result + nei.second;
+                        if (search_result != std::numeric_limits<hop_weight_type>::max()) {
+                            for (auto nei: instance_graph[it.first]) {
+                                if (nei.first > it.second) {
+                                    hop_weight_type d_new = search_result + nei.second;
 #ifdef _DEBUG
-                                if (d_new < 0) {
-                                    std::cout << "overflow happen in maintain increase 2021 with hop pi22"
-                                              << std::endl;
-                                }
+                                    if (d_new < 0) {
+                                        std::cout << "overflow happen in maintain increase 2021 with hop pi22"
+                                                  << std::endl;
+                                    }
 #endif
-                                mtx_595[nei.first].lock();
-                                auto [query_dis, query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
-                                        (*L)[nei.first], Lxx, nei.first, it.second, shard);
-                                mtx_595[nei.first].unlock();
-                                if (query_dis > search_result) {
                                     mtx_595[nei.first].lock();
-                                    insert_sorted_two_hop_label_with_csv((*L)[nei.first], it.second,
-                                                                         search_result, time, shard);
+                                    auto [query_dis, query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
+                                            (*L)[nei.first], Lxx, nei.first, it.second, shard);
                                     mtx_595[nei.first].unlock();
-                                    mtx_list_check.lock();
-                                    this->list.emplace_back(nei.first, it.second, d_new, query_dis,
-                                                            time);
-                                    mtx_list_check.unlock();
-                                    mtx_595_1.lock();
-                                    al2_next->push_back(pair_label(nei.first, it.second));
-                                    mtx_595_1.unlock();
-                                    if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
-                                        shard.diffuse_count_slot1++;
+                                    if (query_dis > search_result) {
+                                        mtx_595[nei.first].lock();
+                                        insert_sorted_two_hop_label_with_csv((*L)[nei.first], it.second,
+                                                                             search_result, time, shard);
+                                        mtx_595[nei.first].unlock();
+                                        mtx_list_check.lock();
+                                        this->list.emplace_back(nei.first, it.second, d_new, query_dis,
+                                                                time);
+                                        mtx_list_check.unlock();
+                                        mtx_595_1.lock();
+                                        al2_next->push_back(pair_label(nei.first, it.second));
+                                        mtx_595_1.unlock();
+                                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                                            shard.diffuse_count_slot1++;
+                                        } else {
+                                            shard.diffuse_count_slot2++;
+                                        }
                                     } else {
-                                        shard.diffuse_count_slot2++;
-                                    }
-                                } else {
-                                    if (query_hub != -1 && query_hub != it.second) {
-                                        mtx_5952[nei.first].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, nei.first, query_hub,
-                                                                      it.second, shard);
-                                        mtx_5952[nei.first].unlock();
-                                    }
-                                    if (query_hub != -1 && query_hub != nei.first) {
-                                        mtx_5952[it.second].lock();
-                                        PPR_TYPE::PPR_insert_with_csv(PPR, it.second, query_hub,
-                                                                      nei.first, shard);
-                                        mtx_5952[it.second].unlock();
+                                        if (query_hub != -1 && query_hub != it.second) {
+                                            mtx_5952[nei.first].lock();
+                                            PPR_TYPE::PPR_insert_with_csv(PPR, nei.first, query_hub,
+                                                                          it.second, shard);
+                                            mtx_5952[nei.first].unlock();
+                                        }
+                                        if (query_hub != -1 && query_hub != nei.first) {
+                                            mtx_5952[it.second].lock();
+                                            PPR_TYPE::PPR_insert_with_csv(PPR, it.second, query_hub,
+                                                                          nei.first, shard);
+                                            mtx_5952[it.second].unlock();
+                                        }
                                     }
                                 }
                             }
