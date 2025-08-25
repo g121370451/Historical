@@ -165,20 +165,20 @@ namespace experiment::nonhop::ruc::increase {
                             int x = q.front().first;
                             weight_type dx = q.front().second;
                             q.pop();
-                            mtx_595[x].lock();
+                            L_lock[x].lock();
                             insert_sorted_two_hop_label_with_csv((*L)[x], v,
                                                                  std::numeric_limits<hop_weight_type>::max(), time,
                                                                  shard);
-                            mtx_595[x].unlock();
+                            L_lock[x].unlock();
                             mtx_595_1.lock();
                             al2->emplace_back(x, v);
                             mtx_595_1.unlock();
                             for (auto nei: instance_graph[x]) {
                                 if (v < nei.first) {
-                                    mtx_595[nei.first].lock();
+                                    L_lock[nei.first].lock();
                                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(
                                             (*L)[nei.first], v, shard);
-                                    mtx_595[nei.first].unlock();
+                                    L_lock[nei.first].unlock();
                                     weight_type w_old;
                                     if (w_old_map.count(std::pair<int, int>(x, nei.first)) > 0) {
                                         w_old = w_old_map[std::pair<int, int>(x, nei.first)];
@@ -280,14 +280,14 @@ namespace experiment::nonhop::ruc::increase {
                         mtx_595_1.unlock();
                     } else if (query_dis != std::numeric_limits<hop_weight_type>::max() && query_dis <= d1) {
                         if (query_hub != -1 && query_hub != targetVertex) {
-                            mtx_5952[diffuseVertex].lock();
+                            ppr_lock[diffuseVertex].lock();
                             PPR_TYPE::PPR_insert_with_csv(PPR, diffuseVertex, query_hub, targetVertex, shard);
-                            mtx_5952[diffuseVertex].unlock();
+                            ppr_lock[diffuseVertex].unlock();
                         }
                         if (query_hub != -1 && query_hub != diffuseVertex) {
-                            mtx_5952[targetVertex].lock();
+                            ppr_lock[targetVertex].lock();
                             PPR_TYPE::PPR_insert_with_csv(PPR, targetVertex, query_hub, diffuseVertex, shard);
-                            mtx_5952[targetVertex].unlock();
+                            ppr_lock[targetVertex].unlock();
                         }
                     }
                 }
@@ -360,9 +360,9 @@ namespace experiment::nonhop::ruc::increase {
                 std::vector<std::pair<int, weight_type>> vec_with_hub_v = it.second;
 
 
-                mtx_595[v].lock();
+                L_lock[v].lock();
                 auto Lv = (*L)[v]; // to avoid interlocking
-                mtx_595[v].unlock();
+                L_lock[v].unlock();
 
                 std::vector<int> Dis_changed;
                 auto &DIS = Dis<hop_weight_type>[current_tid];
@@ -373,20 +373,20 @@ namespace experiment::nonhop::ruc::increase {
                 for (auto &diffuseLabel: vec_with_hub_v) {
                     int u = diffuseLabel.first;
                     weight_type du = diffuseLabel.second;
-                    mtx_595[u].lock();
+                    L_lock[u].lock();
                     auto [query_dis, query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                             (*L)[u], Lv, u, v, shard);
-                    mtx_595[u].unlock();
+                    L_lock[u].unlock();
                     if (query_dis <= du && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                         if (query_hub != -1 && query_hub != v) {
-                            mtx_5952[u].lock();
+                            ppr_lock[u].lock();
                             PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, v, shard);
-                            mtx_5952[u].unlock();
+                            ppr_lock[u].unlock();
                         }
                         if (query_hub != -1 && query_hub != u) {
-                            mtx_5952[v].lock();
+                            ppr_lock[v].lock();
                             PPR_TYPE::PPR_insert_with_csv(PPR, v, query_hub, u, shard);
-                            mtx_5952[v].unlock();
+                            ppr_lock[v].unlock();
                         }
                     } else {
                         Q_handle[u] = pq.push(node_for_DIFFUSE(u, du));
@@ -407,14 +407,14 @@ namespace experiment::nonhop::ruc::increase {
 
                     Q_handle.erase(x);
 
-                    mtx_595[x].lock();
+                    L_lock[x].lock();
                     hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
                                                                                             shard);
-                    mtx_595[x].unlock();
+                    L_lock[x].unlock();
                     if (dx < d_old && dx >= 0) {
-                        mtx_595[x].lock();
+                        L_lock[x].lock();
                         insert_sorted_two_hop_label_with_csv((*L)[x], v, dx, time, shard);
-                        mtx_595[x].unlock();
+                        L_lock[x].unlock();
                         mtx_list_check.lock();
                         this->list.emplace_back(x, v, dx, d_old, time);
                         mtx_list_check.unlock();
@@ -435,10 +435,10 @@ namespace experiment::nonhop::ruc::increase {
 #endif
 
                         if (DIS[xnei].first == -1) {
-                            mtx_595[xnei].lock();
+                            L_lock[xnei].lock();
                             DIS[xnei] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                     (*L)[xnei], Lv, xnei, v, shard);
-                            mtx_595[xnei].unlock();
+                            L_lock[xnei].unlock();
                             Dis_changed.push_back(xnei);
                         }
                         if (DIS[xnei].first > d_new) {
@@ -455,14 +455,14 @@ namespace experiment::nonhop::ruc::increase {
                             }
                         } else if(DIS[xnei].first < d_new){
                             if (DIS[xnei].second!= -1 && DIS[xnei].second != v) {
-                                mtx_5952[xnei].lock();
+                                ppr_lock[xnei].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, xnei, DIS[xnei].second, v, shard);
-                                mtx_5952[xnei].unlock();
+                                ppr_lock[xnei].unlock();
                             }
                             if (DIS[xnei].second!= -1 && DIS[xnei].second != xnei) {
-                                mtx_5952[v].lock();
+                                ppr_lock[v].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, v, DIS[xnei].second, xnei, shard);
-                                mtx_5952[v].unlock();
+                                ppr_lock[v].unlock();
                             }
                         }
 

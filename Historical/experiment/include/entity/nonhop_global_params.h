@@ -10,7 +10,7 @@ namespace experiment::nonhop {
     using PLL_handle_t_for_sp = typename boost::heap::fibonacci_heap<two_hop_label<T> >::handle_type;
 
     inline int max_N_ID_for_mtx_595 = 1e7;
-    inline std::vector<std::mutex> mtx_595(max_N_ID_for_mtx_595);
+    inline std::vector<std::mutex> L_lock(max_N_ID_for_mtx_595);
     inline std::vector<std::mutex> ppr_595(max_N_ID_for_mtx_595);
 
     template<typename hop_weight_type>
@@ -109,7 +109,7 @@ namespace experiment::nonhop {
 
     inline std::mutex mtx_595_1;
     inline std::mutex mtx_list_check;
-    inline std::vector<std::mutex> mtx_5952(max_N_ID_for_mtx_595);
+    inline std::vector<std::mutex> ppr_lock(max_N_ID_for_mtx_595);
 
 
     static void sort_and_output_to_file(std::vector<pair_label> &labels, const std::string &filename) {

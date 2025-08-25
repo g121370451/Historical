@@ -88,10 +88,10 @@ namespace experiment::nonhop {
     template<typename weight_type, typename hop_weight_type>
     void GeneratorNonHop<weight_type, hop_weight_type>::PLL_dij_function(
         int v_k, graph<weight_type> &input_graph) const {
-        mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+        L_lock[max_N_ID_for_mtx_595 - 1].lock();
         int used_id = Qid_595.front();
         Qid_595.pop();
-        mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+        L_lock[max_N_ID_for_mtx_595 - 1].unlock();
 
         std::vector<int> P_changed_vertices, T_changed_vertices;
         std::vector<hop_weight_type> &T_dij = T_dij_595<hop_weight_type>[used_id], &P_dij = P_dij_595<hop_weight_type>[
@@ -106,13 +106,13 @@ namespace experiment::nonhop {
         Q_handles[v_k] = Q.push(node);
         P_dij[v_k] = 0;
         P_changed_vertices.push_back(v_k);
-        mtx_595[v_k].lock();
+        L_lock[v_k].lock();
         for (const auto &xx: L_temp_595<hop_weight_type>[v_k]) {
             int L_v_k_i_vertex = xx.vertex;
             T_dij[L_v_k_i_vertex] = xx.distance;
             T_changed_vertices.push_back(L_v_k_i_vertex);
         }
-        mtx_595[v_k].unlock();
+        L_lock[v_k].unlock();
         int new_label_num = 0;
         int count = 0;
         while (!Q.empty()) {
@@ -129,7 +129,7 @@ namespace experiment::nonhop {
 
             int query_v_k_u = std::numeric_limits<hop_weight_type>::max();
             int common_hub_for_query_v_k_u = 0;
-            mtx_595[u].lock(); // put lock in for loop is very slow
+            L_lock[u].lock(); // put lock in for loop is very slow
             for (const auto &xx: L_temp_595<hop_weight_type>[u]) {
                 if (T_dij[xx.vertex] == std::numeric_limits<hop_weight_type>::max()) {
                     continue;
@@ -143,16 +143,16 @@ namespace experiment::nonhop {
                     common_hub_for_query_v_k_u = xx.vertex;
                 }
             }
-            mtx_595[u].unlock();
+            L_lock[u].unlock();
 
             if (P_u < query_v_k_u) {
                 node.vertex = v_k;
                 node.distance = P_u;
 
-                mtx_595[u].lock();
+                L_lock[u].lock();
                 L_temp_595<hop_weight_type>[u].push_back(node);
                 // std::cout << "u: " << u << " vk: " << v_k << " dis: " << node.distance << std::endl;
-                mtx_595[u].unlock();
+                L_lock[u].unlock();
                 new_label_num++;
 
                 for (const auto &xx: input_graph.ADJs[u]) {
@@ -197,10 +197,10 @@ namespace experiment::nonhop {
             T_dij[i] = std::numeric_limits<int>::max(); // reverse-allocate T values
         }
 
-        mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+        L_lock[max_N_ID_for_mtx_595 - 1].lock();
         std::cout << "calculate pll v: " << v_k << std::endl;
         Qid_595.push(used_id);
-        mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+        L_lock[max_N_ID_for_mtx_595 - 1].unlock();
     };
 
     template<typename weight_type, typename hop_weight_type>
@@ -247,10 +247,10 @@ namespace experiment::nonhop {
             results.emplace_back(
                 pool.enqueue([v, &L] {
                     // pass const type value j to thread; [] can be empty
-                    mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+                    L_lock[max_N_ID_for_mtx_595 - 1].lock();
                     int used_id = Qid_595.front();
                     Qid_595.pop();
-                    mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+                    L_lock[max_N_ID_for_mtx_595 - 1].unlock();
 
                     std::vector<two_hop_label<hop_weight_type> > Lv_final_inner;
 
@@ -265,7 +265,7 @@ namespace experiment::nonhop {
                             T[v] = Lvi.distance;
                             continue;
                         }
-                        mtx_595[u].lock();
+                        L_lock[u].lock();
                         const auto &Lu = L[u];
 
                         int min_dis = std::numeric_limits<hop_weight_type>::max();
@@ -281,7 +281,7 @@ namespace experiment::nonhop {
                                 min_dis = query_dis;
                             }
                         }
-                        mtx_595[u].unlock();
+                        L_lock[u].unlock();
                         if (min_dis > Lvi.distance) {
                             Lv_final_inner.push_back(two_hop_label(Lvi));
                             T[u] = Lvi.distance;
@@ -292,14 +292,14 @@ namespace experiment::nonhop {
                         T[label.vertex] = std::numeric_limits<hop_weight_type>::max();
                     }
 
-                    mtx_595[v].lock();
+                    L_lock[v].lock();
                     Lv = std::move(Lv_final_inner);
-                    mtx_595[v].unlock();
+                    L_lock[v].unlock();
 
-                    mtx_595[max_N_ID_for_mtx_595 - 1].lock();
+                    L_lock[max_N_ID_for_mtx_595 - 1].lock();
                     Qid_595.push(used_id);
                     std::cout << "print pll v: " << v << std::endl;
-                    mtx_595[max_N_ID_for_mtx_595 - 1].unlock();
+                    L_lock[max_N_ID_for_mtx_595 - 1].unlock();
 
                     return 1; // return to results; the return type must be the same with results
                 }));

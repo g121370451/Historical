@@ -70,7 +70,7 @@ namespace experiment::nonhop::ruc::decrease {
         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
         std::vector<affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,
         std::vector<std::future<int> > &results_dynamic) {
-        for (const std::pair<std::pair<int, int>,weight_type>& v_item: v_map) {
+        for (auto& v_item: v_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([v_item, L, PPR, CL] {
                 mtx_595_1.lock();
                 int current_tid = Qid_595.front();
@@ -125,16 +125,16 @@ namespace experiment::nonhop::ruc::decrease {
                                     mtx_595_1.unlock();
                                 }
                                 if (query_hub != -1 && query_hub != it.vertex) {
-                                    mtx_5952[v2].lock();
+                                    ppr_lock[v2].lock();
                                     PPR_TYPE::PPR_insert_with_csv(PPR, v2, query_hub, it.vertex,
                                                                   shard);
-                                    mtx_5952[v2].unlock();
+                                    ppr_lock[v2].unlock();
                                 }
                                 if (query_hub != -1 && query_hub != v2) {
-                                    mtx_5952[it.vertex].lock();
+                                    ppr_lock[it.vertex].lock();
                                     PPR_TYPE::PPR_insert_with_csv(PPR, it.vertex, query_hub, v2,
                                                                   shard);
-                                    mtx_5952[it.vertex].unlock();
+                                    ppr_lock[it.vertex].unlock();
                                 }
                             }
                         }
@@ -202,9 +202,9 @@ namespace experiment::nonhop::ruc::decrease {
                 int v = cl_item.first;
                 std::vector<std::pair<int, hop_weight_type> > vec_with_hub_v = cl_item.second;
 
-                mtx_595[v].lock();
+                L_lock[v].lock();
                 auto Lv = (*L)[v]; // to avoid interlocking
-                mtx_595[v].unlock();
+                L_lock[v].unlock();
 
                 std::vector<int> Dis_changed;
                 std::vector<std::pair<hop_weight_type, int> > &DIS = Dis<hop_weight_type>[current_tid];
@@ -215,22 +215,22 @@ namespace experiment::nonhop::ruc::decrease {
                 for (auto &vec_with_hub_v_item: vec_with_hub_v) {
                     int u = vec_with_hub_v_item.first;
                     hop_weight_type du = vec_with_hub_v_item.second;
-                    mtx_595[u].lock();
+                    L_lock[u].lock();
                     auto [query_dis, query_hub] =
                             graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                     (*L)[u], Lv,
                                     u, v, shard);
-                    mtx_595[u].unlock();
+                    L_lock[u].unlock();
                     if (query_dis <= du && query_dis != std::numeric_limits<hop_weight_type>::max()) {
                         if (query_hub != -1 && query_hub != v) {
-                            mtx_5952[u].lock();
+                            ppr_lock[u].lock();
                             PPR_TYPE::PPR_insert(PPR, u, query_hub, v);
-                            mtx_5952[u].unlock();
+                            ppr_lock[u].unlock();
                         }
                         if (query_hub != -1 && query_hub != u) {
-                            mtx_5952[v].lock();
+                            ppr_lock[v].lock();
                             PPR_TYPE::PPR_insert(PPR, v, query_hub, u);
-                            mtx_5952[v].unlock();
+                            ppr_lock[v].unlock();
                         }
                     } else {
                         node_for_DIFFUSE<hop_weight_type> node(u, du);
@@ -244,14 +244,14 @@ namespace experiment::nonhop::ruc::decrease {
                     hop_weight_type dx = temp2.disx;
                     Q.pop();
                     Q_handle.erase(x);
-                    mtx_595[x].lock();
+                    L_lock[x].lock();
                     hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
                         shard);
-                    mtx_595[x].unlock();
+                    L_lock[x].unlock();
                     if (d_old > dx) {
-                        mtx_595[x].lock();
+                        L_lock[x].lock();
                         insert_sorted_two_hop_label_with_csv((*L)[x], v, dx, time, shard);
-                        mtx_595[x].unlock();
+                        L_lock[x].unlock();
                         mtx_list_check.lock();
                         this->list.emplace_back(x, v, dx, d_old, time);
                         mtx_list_check.unlock();
@@ -274,10 +274,10 @@ namespace experiment::nonhop::ruc::decrease {
 #endif
                         node_for_DIFFUSE<hop_weight_type> node = {xnei, d_new};
                         if (DIS[xnei].first == -1) {
-                            mtx_595[xnei].lock();
+                            L_lock[xnei].lock();
                             DIS[xnei] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[xnei], Lv, xnei, v, shard);
-                            mtx_595[xnei].unlock();
+                            L_lock[xnei].unlock();
                             Dis_changed.push_back(xnei);
                         }
                         if (DIS[xnei].first > d_new) {
@@ -294,14 +294,14 @@ namespace experiment::nonhop::ruc::decrease {
                             DIS[xnei] = {d_new, v};
                         } else if (DIS[xnei].first < d_new) {
                             if (DIS[xnei].second != -1 && DIS[xnei].second != v) {
-                                mtx_5952[xnei].lock();
+                                ppr_lock[xnei].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, xnei, DIS[xnei].second, v, shard);
-                                mtx_5952[xnei].unlock();
+                                ppr_lock[xnei].unlock();
                             }
                             if (DIS[xnei].second != -1 && DIS[xnei].second != xnei) {
-                                mtx_5952[v].lock();
+                                ppr_lock[v].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, v, DIS[xnei].second, xnei, shard);
-                                mtx_5952[v].unlock();
+                                ppr_lock[v].unlock();
                             }
                         }
                     }

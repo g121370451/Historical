@@ -40,16 +40,19 @@ namespace experiment::nonhop::algorithm2021::decrease {
                                                                                   int time) {
         for (const affected_label<hop_weight_type> &it: CL_curr) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([time, it, L, PPR, CL_next, &instance_graph,this] {
-                int v = it.first, u = it.second;
                 mtx_595_1.lock();
                 int current_tid = Qid_595.front();
                 Qid_595.pop();
                 mtx_595_1.unlock();
                 auto &counter = experiment::result::global_csv_config.old_counter;
                 auto &shard = counter.get_thread_maintain_shard(current_tid);
-                mtx_595[u].lock();
+
+                const int v = it.first;
+                int u = it.second;
+
+                L_lock[u].lock();
                 std::vector<two_hop_label<hop_weight_type> > Lu = (*L)[u]; // to avoid interlocking
-                mtx_595[u].unlock();
+                L_lock[u].unlock();
 
                 for (auto nei: instance_graph[v]) {
                     int vnei = nei.first;
@@ -62,14 +65,14 @@ namespace experiment::nonhop::algorithm2021::decrease {
                     }
 #endif
                     if (u < vnei) {
-                        mtx_595[vnei].lock();
+                        L_lock[vnei].lock();
                         auto [query_dis, query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                                 (*L)[vnei], Lu, vnei, u, shard); // query_result is {distance, common hub}
-                        mtx_595[vnei].unlock();
+                        L_lock[vnei].unlock();
                         if (query_dis > dnew) {
-                            mtx_595[vnei].lock();
+                            L_lock[vnei].lock();
                             insert_sorted_two_hop_label_with_csv((*L)[vnei], u, dnew, time, shard);
-                            mtx_595[vnei].unlock();
+                            L_lock[vnei].unlock();
                             mtx_list_check.lock();
                             this->list.emplace_back(vnei, u, dnew, query_dis, time);
                             mtx_list_check.unlock();
@@ -82,16 +85,15 @@ namespace experiment::nonhop::algorithm2021::decrease {
                             }
                             mtx_595_1.unlock();
                         } else {
-                            mtx_595[vnei].lock();
+                            L_lock[vnei].lock();
                             hop_weight_type search_result = search_sorted_two_hop_label_in_current_with_csv(
                                     (*L)[vnei], u, shard);
-                            mtx_595[vnei].unlock();
+                            L_lock[vnei].unlock();
                             if (search_result < std::numeric_limits<hop_weight_type>::max() && search_result > dnew) {
-                                mtx_595[vnei].lock();
-                                // std::cout << "decrease label has better answer : old label is " << vnei << " to " << search_result.vertex << " old value is " << search_result.distance << " to " << dnew << " t_s is " << search_result.t_s << std::endl;
+                                L_lock[vnei].lock();
                                 insert_sorted_two_hop_label_with_csv((*L)[vnei], u,
                                                                      dnew, time, shard);
-                                mtx_595[vnei].unlock();
+                                L_lock[vnei].unlock();
                                 mtx_list_check.lock();
                                 this->list.emplace_back(vnei, u, dnew, query_dis, time);
                                 mtx_list_check.unlock();
@@ -105,14 +107,14 @@ namespace experiment::nonhop::algorithm2021::decrease {
                                 mtx_595_1.unlock();
                             }
                             if (query_hub != -1 && query_hub != u) {
-                                mtx_5952[vnei].lock();
+                                ppr_lock[vnei].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, vnei, query_hub, u, shard);
-                                mtx_5952[vnei].unlock();
+                                ppr_lock[vnei].unlock();
                             }
                             if (query_hub != -1 && query_hub != vnei) {
-                                mtx_5952[u].lock();
+                                ppr_lock[u].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, u, query_hub, vnei, shard);
-                                mtx_5952[u].unlock();
+                                ppr_lock[u].unlock();
                             }
                         }
                     }
@@ -189,9 +191,7 @@ namespace experiment::nonhop::algorithm2021::decrease {
                                     _v_item, v2,
                                     shard); // query_result is {distance, common hub}
                         if (query_dis > dis) {
-                            mtx_595[v2].lock();
                             insert_sorted_two_hop_label_with_csv(L[v2], _v_item, dis, time, shard);
-                            mtx_595[v2].unlock();
                             this->list.emplace_back(v2, _v_item, dis, query_dis, time);
                             CL_curr.emplace_back(v2, _v_item, dis);
                             if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
@@ -202,10 +202,8 @@ namespace experiment::nonhop::algorithm2021::decrease {
                         } else {
                             auto search_result = search_sorted_two_hop_label_in_current_with_csv(L[v2], _v_item, shard);
                             if (search_result < std::numeric_limits<hop_weight_type>::max() && search_result > dis) {
-                                mtx_595[v2].lock();
                                 insert_sorted_two_hop_label_with_csv(L[v2], _v_item, dis, time,
                                                                      shard);
-                                mtx_595[v2].unlock();
                                 this->list.emplace_back(v2, _v_item, dis, search_result, time);
                                 CL_curr.emplace_back(v2, _v_item, dis);
                                 if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(HistoricalHopHL)
+project(HistoricalHopHL LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 # 在顶部添加调试模式配置
@@ -15,7 +15,7 @@ else()
     add_compile_options(-O2 -pthread)
 endif()
 find_package(Boost REQUIRED COMPONENTS random filesystem system)
-
+find_package(Threads REQUIRED)
 if(Boost_FOUND)
     message(STATUS "Boost found: ${Boost_VERSION}")
     message(STATUS "Include dirs: ${Boost_INCLUDE_DIRS}")
@@ -57,6 +57,7 @@ target_compile_options(experiment_program PRIVATE
 # 链接库
 target_link_libraries(experiment_program
         ${Boost_LIBRARIES}
-        pthread
+        Threads::Threads
 )
+set_target_properties(experiment_program PROPERTIES LINKER_LANGUAGE CXX)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin)
