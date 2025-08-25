@@ -275,15 +275,124 @@ namespace experiment {
         int t_s;
         int t_e;
 
-        bool operator<(const edge_diffuse_info<weight_type> others) const{
+        bool operator<(const edge_diffuse_info_with_hop<weight_type> others) const{
             return this->dis > others.dis;
         };
     };
 
+    template<typename weight_type>
+    static long long int
+    Baseline2ResultNoHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
+                           int t_e) {
+        weight_type res = std::numeric_limits<weight_type>::max();
+        int N = graph_with_time.v_num;
+        boost::heap::fibonacci_heap<edge_diffuse_info<weight_type>> queue;
+        std::vector dist(N, std::vector(t_e + 1, std::numeric_limits<int>::max()));
+        queue.clear();
+        std::fill(dist[source].begin(), dist[source].end(), std::numeric_limits<int>::max());
+        queue.emplace(source, 0, t_s, t_e);
+        while (!queue.empty()) {
+            auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
+            queue.pop();
+            if (vertexBase == target) {
+                return static_cast<long long int>(currentDist);
+            }
+            int push_ts = -1, push_te = -1;
+            for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
+                int next = vertices.first;
+                for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
+                    if (std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                        int newDist = currentDist + edge_info_time_span.weight;
+                        for (int index = effective_ts; index <= effective_te; index++) {
+                            if (dist[next][index] > newDist) {
+                                //更新距离
+                                dist[next][index] = newDist;
+                                if (push_ts == -1) {
+                                    push_ts = index;
+                                    push_te = index;
+                                } else {
+                                    push_te = index;
+                                }
+                            } else {
+                                if (push_ts != -1) {
+                                    queue.emplace(next, newDist, push_ts, push_te);
+                                    push_ts = -1;
+                                    push_te = -1;
+                                }
+                            }
+                        }
+                        if (push_ts != -1) {
+                            queue.emplace(next, newDist, push_ts, push_te);
+                            push_ts = -1;
+                            push_te = -1;
+                        }
+                    }
+                }
+            }
+        }
+        return static_cast<long long int>(res);
+    }
 
     template<typename weight_type>
     static long long int
     Baseline2ResultWithHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
+                           int t_e, int hop_limit) {
+        weight_type res = std::numeric_limits<weight_type>::max();
+        int N = graph_with_time.v_num;
+        boost::heap::fibonacci_heap<edge_diffuse_info_with_hop<weight_type>> queue;
+        std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
+        queue.clear();
+        std::fill(dist[source].begin(), dist[source].end(), 0);
+        queue.emplace(source, 0,0, 0, 0);
+        while (!queue.empty()) {
+            auto [vertexBase, currentDist, currentHop,effective_ts, effective_te] = queue.top();
+            queue.pop();
+            if (vertexBase == target) {
+                return static_cast<long long int>(res);
+            }
+            if(currentHop == hop_limit){
+                continue;
+            }
+            int push_ts, push_te = -1;
+            for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
+                int next = vertices.first;
+                for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
+                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
+                        edge_info_time_span.endTimeLabel <= effective_te) {
+                        int newDist = currentDist + edge_info_time_span.weight;
+                        for (int index = effective_ts; index <= effective_te; index++) {
+                            if (dist[next][index] < newDist) {
+                                //更新距离
+                                dist[next][index] = newDist;
+                                if (push_ts == -1) {
+                                    push_ts = index;
+                                    push_te = index;
+                                } else {
+                                    push_te = index;
+                                }
+                            } else {
+                                if (push_ts != -1) {
+                                    queue.emplace(vertexBase, newDist,currentHop + 1, push_ts, push_te);
+                                    push_ts = -1;
+                                    push_te = -1;
+                                }
+                            }
+                        }
+                        if (push_ts != -1) {
+                            queue.emplace(vertexBase, newDist, currentHop + 1,push_ts, push_te);
+                            push_ts = -1;
+                            push_te = -1;
+                        }
+                    }
+                }
+            }
+        }
+        return static_cast<long long int>(res);
+    }
+
+    template<typename weight_type>
+    static long long int
+    Baseline2ResultNoHop(graph_with_time_span<weight_type> &graph_with_time, int source, int target, int t_s,
                            int t_e, result::QueryShard &shard) {
         weight_type res = std::numeric_limits<weight_type>::max();
         auto start = std::chrono::steady_clock::now();
@@ -345,16 +454,19 @@ namespace experiment {
         weight_type res = std::numeric_limits<weight_type>::max();
         auto start = std::chrono::steady_clock::now();
         int N = graph_with_time.v_num;
-        boost::heap::fibonacci_heap<edge_diffuse_info<weight_type>> queue;
+        boost::heap::fibonacci_heap<edge_diffuse_info_with_hop<weight_type>> queue;
         std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
         queue.clear();
         std::fill(dist[source].begin(), dist[source].end(), 0);
         queue.emplace(source, 0, 0, 0);
         while (!queue.empty()) {
-            auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
+            auto [vertexBase, currentDist,currentHop, effective_ts, effective_te] = queue.top();
             queue.pop();
             if (vertexBase == target) {
                 return static_cast<long long int>(res);
+            }
+            if(currentHop == hop_limit){
+                continue;
             }
             int push_ts, push_te = -1;
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
@@ -375,14 +487,14 @@ namespace experiment {
                                 }
                             } else {
                                 if (push_ts != -1) {
-                                    queue.emplace(vertexBase, newDist, push_ts, push_te);
+                                    queue.emplace(vertexBase, newDist, currentHop + 1,push_ts, push_te);
                                     push_ts = -1;
                                     push_te = -1;
                                 }
                             }
                         }
                         if (push_ts != -1) {
-                            queue.emplace(vertexBase, newDist, push_ts, push_te);
+                            queue.emplace(vertexBase, newDist, currentHop + 1,push_ts, push_te);
                             push_ts = -1;
                             push_te = -1;
                         }

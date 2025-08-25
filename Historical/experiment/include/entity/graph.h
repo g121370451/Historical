@@ -500,7 +500,7 @@ namespace experiment {
 
     template<typename weight_type>
     static long long int
-    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e) {
+    Baseline1ResultNoHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e) {
         weight_type res = std::numeric_limits<weight_type>::max();
 
         for (int index = t_s; index <= t_e; index++) {
@@ -520,7 +520,7 @@ namespace experiment {
 
     template<typename weight_type>
     static long long int
-    Baseline1ResultWithHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
+    Baseline1ResultNoHop(const std::vector<graph<weight_type> > &graphs, int source, int target, int t_s, int t_e,
                            result::QueryShard &shard) {
         weight_type res = std::numeric_limits<weight_type>::max();
         auto start = std::chrono::steady_clock::now();

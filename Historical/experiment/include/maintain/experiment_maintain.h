@@ -552,16 +552,17 @@ namespace experiment {
             if (this->enableCorrectnessCheck) {
 #ifdef _DEBUG
                 nonhop::sort_and_output_to_file(this->ruc_process.getDecreaseCList(),
-                                             this->savePath + "decrease_cl_ruc.txt");
+                                                this->savePath + "decrease_cl_ruc.txt");
                 nonhop::sort_and_output_to_file(this->a2021_process.getDecreaseCList(),
-                                             this->savePath + "decrease_2021_CL.txt");
+                                                this->savePath + "decrease_2021_CL.txt");
 
                 nonhop::sort_and_output_to_file_unique(this->ruc_process.getIncreaseInfiniteList(),
-                                                    this->savePath + "increase_item_ruc_infinite.txt");
+                                                       this->savePath + "increase_item_ruc_infinite.txt");
                 nonhop::sort_and_output_to_file_unique(this->a2021_process.getIncreaseInfiniteList(),
-                                                    this->savePath + "increase_item_2021_infinite.txt");
+                                                       this->savePath + "increase_item_2021_infinite.txt");
                 nonhop::sort_and_output_to_file(this->ruc_process.getIncreaseListAL2(), this->savePath + "ruc_al2.txt");
-                nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(), this->savePath + "2021_al2.txt");
+                nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseListAL2(),
+                                                this->savePath + "2021_al2.txt");
 #endif
                 nonhop::sort_and_output_to_file(this->ruc_process.getDecreaseList(),
                                                 this->savePath + "decrease_ruc_insert.txt");
@@ -632,10 +633,10 @@ namespace experiment {
                         int t2 = item.t_e;
                         auto res1 = this->hop_info.query(index1, index2, t1, t2, shard, true);
                         auto res2 = this->hop_info_2021.query(index1, index2, t1, t2, shard, false);
-                        auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, index1, index2, t1,
-                                                                       t2, shard);
-                        auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
-                                                                       t2, shard);
+                        auto res3 = experiment::Baseline1ResultNoHop(this->instance_graph_list, index1, index2, t1,
+                                                                     t2, shard);
+                        auto res4 = experiment::Baseline2ResultNoHop(this->graph_time, index1, index2, t1,
+                                                                     t2, shard);
                         nonhop::mtx_595_1.lock();
                         nonhop::Qid_595.push(current_tid);
                         nonhop::mtx_595_1.unlock();
@@ -654,7 +655,7 @@ namespace experiment {
                 result::global_csv_config.query_counter.merge_to(
                         static_cast<result::QueryShard &>(result::global_csv_config.data_query));
                 csv_write_query_.write_csv_row(experiment::result::global_csv_config.basic_data,
-                                             experiment::result::global_csv_config.data_query);
+                                               experiment::result::global_csv_config.data_query);
             }
         }
 
@@ -695,10 +696,13 @@ namespace experiment {
         void checkDisCorrectness(int v, int u, int t_s, int t_e) {
             auto res1 = this->hop_info.query(v, u, t_s, t_e);
             auto res2 = this->hop_info_2021.query(v, u, t_s, t_e);
-            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
-            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e);
-            if (res1 != res2 || res3 != res1 || res2 != res3) {
+            auto res3 = experiment::Baseline1ResultNoHop(this->instance_graph_list, v, u, t_s, t_e);
+            auto res4 = experiment::Baseline2ResultNoHop(this->graph_time, v, u, t_s, t_e);
+            bool isError = !(res1 == res2 && res3 == res4 && res1 == res3);
+            if (isError) {
+                // 结果错误
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
+                          << " res4: " << res4
                           << std::endl;
             }
         }
@@ -955,6 +959,7 @@ namespace experiment {
             experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_label_bit_size();
             experiment::result::global_csv_config.basic_data.ARucSize = hop_info.compute_label_bit_size();
+            graph_time.print();
         }
 
         void check_correctness() {
@@ -1022,7 +1027,7 @@ namespace experiment {
         }
 
         void query_experiment() {
-            std::cout <<"query experiment" << std::endl;
+            std::cout << "query experiment" << std::endl;
             if (this->enableQueryExperiment) {
                 std::vector<std::future<int> > results_dynamic;
                 auto list = getRandomQueryPair(10, this->instance_graph_list[0].size(), 0, this->iteration_count);
@@ -1116,9 +1121,11 @@ namespace experiment {
         void checkDisCorrectness(int v, int u, int t_s, int t_e, int hop) {
             auto res1 = this->hop_info.query(v, u, t_s, t_e, hop);
             auto res2 = this->hop_info_2021.query(v, u, t_s, t_e, hop);
-            //            auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, 29, 1, 1, 1, 3);
             auto res3 = experiment::Baseline1ResultWithHop(this->instance_graph_list, v, u, t_s, t_e, hop);
-            if (res1 != res2 || res3 != res1 || res2 != res3) {
+            auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, v, u, t_s, t_e, hop);
+            bool isError = !(res1 == res2 && res3 == res4 && res1 == res3);
+            if (isError) {
+                // 结果错误
                 std::cout << "from " << v << " to " << u << " res1 : " << res1 << " res2: " << res2 << " res3: " << res3
                           << std::endl;
             }
