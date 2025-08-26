@@ -65,7 +65,7 @@ namespace experiment::nonhop::ruc::decrease {
     }
 
     template<typename weight_type, typename hop_weight_type>
-    inline void Strategy2024NonHopDecrease<weight_type, hop_weight_type>::decrease_maintain_step1_batch(
+    void Strategy2024NonHopDecrease<weight_type, hop_weight_type>::decrease_maintain_step1_batch(
         std::map<std::pair<int, int>, weight_type> &v_map,
         std::vector<std::vector<two_hop_label<hop_weight_type> > > *L, PPR_TYPE::PPR_type *PPR,
         std::vector<affected_label<hop_weight_type> > *CL, ThreadPool &pool_dynamic,

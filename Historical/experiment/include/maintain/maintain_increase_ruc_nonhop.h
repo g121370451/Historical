@@ -46,7 +46,7 @@ namespace experiment::nonhop::ruc::increase {
     };
 
     template<typename weight_type, typename hop_weight_type>
-    inline void
+    void
     Strategy2024NonHopIncrease<weight_type, hop_weight_type>::operator()(graph<weight_type> &instance_graph,
                                                                          two_hop_case_info<hop_weight_type> &mm,
                                                                          std::vector<std::pair<int, int>> &v,
@@ -57,12 +57,12 @@ namespace experiment::nonhop::ruc::increase {
         std::vector<affected_label<hop_weight_type>> al1, al3;
         std::vector<pair_label> al2;
         std::map<std::pair<int, int>, weight_type> w_old_map;
-        size_t batch_size = v.size();
+        const size_t batch_size = v.size();
         for (size_t i = 0; i < batch_size; i++) {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
             }
-            if (w_old_map.count(v[i]) == 0) {
+            if (!w_old_map.contains(v[i])) {
                 w_old_map[v[i]] = w_old_vec[i];
             }
         }
@@ -70,7 +70,7 @@ namespace experiment::nonhop::ruc::increase {
         for (auto &it: w_old_map) {
             results_dynamic.emplace_back(pool_dynamic.enqueue([it, &al1, &mm, this, time] {
                 mtx_595_1.lock();
-                int current_tid = Qid_595.front();
+                const int current_tid = Qid_595.front();
                 Qid_595.pop();
                 mtx_595_1.unlock();
                 auto &counter = experiment::result::global_csv_config.ruc_counter;
@@ -179,10 +179,10 @@ namespace experiment::nonhop::ruc::increase {
                                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(
                                             (*L)[nei.first], v, shard);
                                     L_lock[nei.first].unlock();
-                                    weight_type w_old;
-                                    if (w_old_map.count(std::pair<int, int>(x, nei.first)) > 0) {
+                                    weight_type w_old = nei.second;
+                                    if (w_old_map.contains(std::pair<int, int>(x, nei.first))) {
                                         w_old = w_old_map[std::pair<int, int>(x, nei.first)];
-                                    } else if (w_old_map.count(std::pair<int, int>(nei.first, x)) > 0) {
+                                    } else if (w_old_map.contains(std::pair<int, int>(nei.first, x))) {
                                         w_old = w_old_map[std::pair<int, int>(nei.first, x)];
                                     } else {
                                         w_old = nei.second;
