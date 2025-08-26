@@ -27,21 +27,30 @@ namespace experiment::nonhop {
 #pragma endregion
 #pragma region nonhop maintain global variables
     class pair_label {
-        // pair_label2 is stored in NoP
     public:
         int first, second;
 
-        pair_label(int _first, int _second) {
-            first = _first;
-            second = _second;
-        }
+        // 原有构造函数
+        pair_label(int _first, int _second) : first(_first), second(_second) {}
 
-        bool operator==(const pair_label other) const {
+        // 拷贝构造函数
+        pair_label(const pair_label& other) = default;
+
+        // 拷贝赋值运算符
+        pair_label& operator=(const pair_label& other) = default;
+
+        // 移动构造函数
+        pair_label(pair_label&& other) noexcept = default;
+
+        // 移动赋值运算符
+        pair_label& operator=(pair_label&& other) noexcept = default;
+
+        // 修改比较运算符参数为 const 引用
+        bool operator==(const pair_label& other) const {
             return (first == other.first && second == other.second);
         }
 
-        bool operator<(const pair_label other) const {
-            // used to sort/search pair_label2 in set
+        bool operator<(const pair_label& other) const {
             if (first != other.first)
                 return first < other.first;
             return second < other.second;

@@ -141,9 +141,9 @@ namespace experiment::nonhop::algorithm2021::increase {
             al1_curr = al1_next;
             al2_curr = al2_next;
 #ifdef _DEBUG
-            this->global_al2.insert(this->global_al2.end(),
-                                    std::make_move_iterator(al2_next.begin()),
-                                    std::make_move_iterator(al2_next.end()));
+            for (auto& item : al2_next) {
+                this->global_al2.push_back(std::move(item));
+            }
 #endif
             std::vector<affected_label<hop_weight_type>>().swap(al1_next);
             std::vector<pair_label>().swap(al2_next);
