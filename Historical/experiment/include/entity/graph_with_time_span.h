@@ -307,9 +307,10 @@ namespace experiment {
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
                 int next = vertices.first;
                 for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
-                    if (std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                    if (edge_info_time_span.startTimeLabel <= edge_info_time_span.endTimeLabel && std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                        int enum_ts = std::max(edge_info_time_span.startTimeLabel,effective_ts),enum_te = std::min(edge_info_time_span.endTimeLabel,effective_te);
                         int newDist = currentDist + edge_info_time_span.weight;
-                        for (int index = effective_ts; index <= effective_te; index++) {
+                        for (int index = enum_ts; index <= enum_te; index++) {
                             if (dist[next][index] > newDist) {
                                 //更新距离
                                 dist[next][index] = newDist;
@@ -363,10 +364,10 @@ namespace experiment {
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
                 int next = vertices.first;
                 for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
-                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
-                        edge_info_time_span.endTimeLabel <= effective_te) {
+                    if (edge_info_time_span.startTimeLabel <= edge_info_time_span.endTimeLabel && std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                        int enum_ts = std::max(edge_info_time_span.startTimeLabel,effective_ts),enum_te = std::min(edge_info_time_span.endTimeLabel,effective_te);
                         int newDist = currentDist + edge_info_time_span.weight;
-                        for (int index = effective_ts; index <= effective_te; index++) {
+                        for (int index = enum_ts; index <= enum_te; index++) {
                             if (dist[next][index] < newDist) {
                                 //更新距离
                                 dist[next][index] = newDist;
@@ -418,9 +419,10 @@ namespace experiment {
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
                 int next = vertices.first;
                 for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
-                    if (std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                    if (edge_info_time_span.startTimeLabel <= edge_info_time_span.endTimeLabel && std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                        int enum_ts = std::max(edge_info_time_span.startTimeLabel,effective_ts),enum_te = std::min(edge_info_time_span.endTimeLabel,effective_te);
                         int newDist = currentDist + edge_info_time_span.weight;
-                        for (int index = effective_ts; index <= effective_te; index++) {
+                        for (int index = enum_ts; index <= enum_te; index++) {
                             if (dist[next][index] > newDist) {
                                 //更新距离
                                 dist[next][index] = newDist;
@@ -478,10 +480,10 @@ namespace experiment {
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
                 int next = vertices.first;
                 for (const EdgeInfoWithTimeSpan<weight_type> &edge_info_time_span: vertices.second) {
-                    if (edge_info_time_span.startTimeLabel >= effective_ts &&
-                        edge_info_time_span.endTimeLabel <= effective_te) {
+                    if (edge_info_time_span.startTimeLabel <= edge_info_time_span.endTimeLabel && std::max(edge_info_time_span.startTimeLabel,effective_ts)<= std::min(edge_info_time_span.endTimeLabel,effective_te)) {
+                        int enum_ts = std::max(edge_info_time_span.startTimeLabel,effective_ts),enum_te = std::min(edge_info_time_span.endTimeLabel,effective_te);
                         int newDist = currentDist + edge_info_time_span.weight;
-                        for (int index = effective_ts; index <= effective_te; index++) {
+                        for (int index = enum_ts; index <= enum_te; index++) {
                             if (dist[next][index] < newDist) {
                                 //更新距离
                                 dist[next][index] = newDist;
