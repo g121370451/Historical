@@ -616,7 +616,12 @@ namespace experiment {
         void query_experiment() {
             if (this->enableQueryExperiment) {
                 std::vector<std::future<int> > results_dynamic;
-                auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
+                // auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
+                std::vector<QueryTaskInfo> list;
+                list.emplace_back(32965,658,2,2);
+                list.emplace_back(10475,14619,3,3);
+                list.emplace_back(14215,12736,1,3);
+                list.emplace_back(16467,32673,2,3);
                 for (const QueryTaskInfo &item: list) {
                     results_dynamic.emplace_back(pool_dynamic.enqueue([&item, this] {
                         nonhop::mtx_595_1.lock();
@@ -642,9 +647,9 @@ namespace experiment {
                         nonhop::mtx_595_1.unlock();
                         if (!(res1 == res2 && res3 == res4 && res1 == res3)) {
                             // 结果错误
-                            std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
-                                      << std::endl;
-                            return 1;
+                            std::cout << "error query result from "<<index1 << " to " << index2
+                            << " between "<< t1 << " and " << t2
+                            <<" res: " << res1 << ":" << res2 << ":" << res3 << ":" << res4<< std::endl;
                         }
                         return 0;
                     }));
@@ -1055,8 +1060,9 @@ namespace experiment {
                         bool isError = !(res1 == res2 && res3 == res4 && res1 == res3);
                         if (isError) {
                             // 结果错误
-                            std::cout << "error query result " << res1 << ":" << res2 << ":" << res3 << ":" << res4
-                                      << std::endl;
+                            std::cout << "error query result from "<<index1 << " to " << index2
+                            << " between "<< t1 << " and " << t2
+                            <<" res: " << res1 << ":" << res2 << ":" << res3 << ":" << res4<< std::endl;
                         }
 
                         return 0;
