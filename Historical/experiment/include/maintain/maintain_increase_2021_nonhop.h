@@ -47,7 +47,7 @@ namespace experiment::nonhop::algorithm2021::increase {
         std::vector<std::pair<int, int> > &v, std::vector<weight_type> &w_old_vec,
         ThreadPool &pool_dynamic, std::vector<std::future<int> > &results_dynamic, int time) {
         std::map<std::pair<int, int>, weight_type> w_old_map;
-        size_t batch_size = v.size();
+        const size_t batch_size = v.size();
         for (size_t i = 0; i < batch_size; i++) {
             if (v[i].first > v[i].second) {
                 std::swap(v[i].first, v[i].second);
@@ -82,7 +82,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                 if (it.vertex <= v2 && it.t_e == std::numeric_limits<int>::max()) {
                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v2], it.vertex,
                         shard);
-                    if (search_weight >= d_new &&
+                    if (search_weight == d_new &&
                         search_weight < std::numeric_limits<hop_weight_type>::max()) {
                         al1_curr.push_back(affected_label(v2, it.vertex, d_new));
                     }
@@ -101,7 +101,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                 if (it.vertex <= v1 && it.t_e == std::numeric_limits<int>::max()) {
                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(mm.L[v1], it.vertex,
                         shard);
-                    if (search_weight >= d_new
+                    if (search_weight == d_new
                         && search_weight < std::numeric_limits<hop_weight_type>::max()) {
                         al1_curr.push_back(affected_label(v1, it.vertex, d_new));
                     }
@@ -185,7 +185,7 @@ namespace experiment::nonhop::algorithm2021::increase {
                     auto &shard = counter.get_thread_maintain_shard(current_tid);
 
                     for (auto nei: instance_graph[it.first]) {
-                        if (it.second < nei.second) {
+                        if (it.second < nei.first) {
                             L_lock[nei.first].lock();
                             hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(
                                 (*L)[nei.first], it.second, shard);

@@ -51,9 +51,9 @@ namespace experiment::nonhop {
         }
 
         bool operator<(const pair_label& other) const {
-            if (first != other.first)
-                return first < other.first;
-            return second < other.second;
+            if (second != other.second)
+                return second < other.second;
+            return first < other.first;
         }
     };
 

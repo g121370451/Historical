@@ -136,13 +136,31 @@ namespace experiment::nonhop::ruc::increase {
             result.get();
         }
         std::vector<std::future<int>>().swap(results_dynamic);
+#ifdef _DEBUG
+        auto time1 = std::chrono::steady_clock::now();
+#endif
         SPREAD1_batch(instance_graph, &mm.L, al1, &al2, w_old_map, pool_dynamic, results_dynamic, time);
+        std::cout << "ruc increase al2 size is " << al2.size() << std::endl;
+#ifdef _DEBUG
+        auto time2 = std::chrono::steady_clock::now();
+#endif
         SPREAD2_batch(instance_graph, &mm.L, &mm.PPR, al2, &al3, pool_dynamic, results_dynamic);
+        std::cout << "ruc increase al3 size is " << al3.size() << std::endl;
+#ifdef _DEBUG
+        auto time3 = std::chrono::steady_clock::now();
+#endif
         SPREAD3_batch(instance_graph, &mm.L, &mm.PPR, al3, pool_dynamic, results_dynamic, time);
+#ifdef _DEBUG
+        auto time4 = std::chrono::steady_clock::now();
+        auto cost1 = std::chrono::duration_cast<std::chrono::duration<double> >(time2 - time1).count();
+        auto cost2 = std::chrono::duration_cast<std::chrono::duration<double> >(time3 - time2).count();
+        auto cost3 = std::chrono::duration_cast<std::chrono::duration<double> >(time4 - time3).count();
+        std::cout << cost1 << " " << cost2 << " " << cost3 << std::endl;
+#endif
     }
 
     template<typename weight_type, typename hop_weight_type>
-    inline void Strategy2024NonHopIncrease<weight_type, hop_weight_type>::SPREAD1_batch(
+    void Strategy2024NonHopIncrease<weight_type, hop_weight_type>::SPREAD1_batch(
             graph<weight_type> &instance_graph, std::vector<std::vector<two_hop_label<hop_weight_type>>> *L,
             std::vector<affected_label<hop_weight_type>> &al1, std::vector<pair_label> *al2,
             std::map<std::pair<int, int>, weight_type> &w_old_map, ThreadPool &pool_dynamic,
@@ -161,6 +179,13 @@ namespace experiment::nonhop::ruc::increase {
                         std::queue<std::pair<int, weight_type> > q; //(u,d)
                         int v = it.second;
                         q.push(std::pair<int, weight_type>(it.first, it.dis));
+#ifdef _DEBUG
+                        mtx_595_1.lock();
+                        this->list_infinite.emplace_back(it.first, v,
+                                                         std::numeric_limits<hop_weight_type>::max(),
+                                                         it.dis, time);
+                        mtx_595_1.unlock();
+#endif
                         while (!q.empty()) {
                             int x = q.front().first;
                             weight_type dx = q.front().second;
@@ -173,7 +198,7 @@ namespace experiment::nonhop::ruc::increase {
                             mtx_595_1.lock();
                             al2->emplace_back(x, v);
                             mtx_595_1.unlock();
-                            for (auto nei: instance_graph[x]) {
+                            for (const auto &nei: instance_graph[x]) {
                                 if (v < nei.first) {
                                     L_lock[nei.first].lock();
                                     hop_weight_type search_weight = search_sorted_two_hop_label_in_current_with_csv(
@@ -274,7 +299,7 @@ namespace experiment::nonhop::ruc::increase {
                     if (d1 == std::numeric_limits<hop_weight_type>::max()) continue;
                     auto [query_dis, query_hub] = graph_weighted_two_hop_extract_distance_and_hub_in_current_with_csv(
                             (*L)[diffuseVertex], (*L)[targetVertex], diffuseVertex, targetVertex, shard);
-                    if (query_dis > d1) { // only add new label when it's absolutely necessary
+                    if (query_dis > d1) {
                         mtx_595_1.lock();
                         al3->emplace_back(diffuseVertex, targetVertex, d1);
                         mtx_595_1.unlock();
@@ -365,7 +390,7 @@ namespace experiment::nonhop::ruc::increase {
                 L_lock[v].unlock();
 
                 std::vector<int> Dis_changed;
-                auto &DIS = Dis<hop_weight_type>[current_tid];
+                std::vector<std::pair<hop_weight_type, int>> &DIS = Dis<hop_weight_type>[current_tid];
                 std::map<int, handle_t_for_DIFFUSE<hop_weight_type>> Q_handle;
 
                 boost::heap::fibonacci_heap<node_for_DIFFUSE<hop_weight_type>> pq;
@@ -408,6 +433,9 @@ namespace experiment::nonhop::ruc::increase {
                     Q_handle.erase(x);
 
                     L_lock[x].lock();
+                    if(DIS[x].first < dx){
+                        continue;
+                    }
                     hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
                                                                                             shard);
                     L_lock[x].unlock();
@@ -415,6 +443,7 @@ namespace experiment::nonhop::ruc::increase {
                         L_lock[x].lock();
                         insert_sorted_two_hop_label_with_csv((*L)[x], v, dx, time, shard);
                         L_lock[x].unlock();
+                        DIS[x].first = dx;
                         mtx_list_check.lock();
                         this->list.emplace_back(x, v, dx, d_old, time);
                         mtx_list_check.unlock();
@@ -427,7 +456,7 @@ namespace experiment::nonhop::ruc::increase {
                         if (v >= xnei) {
                             continue;
                         }
-                        weight_type d_new = dx + nei.second;
+                        hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
 #ifdef _DEBUG
                         if (d_new < 0) {
                             std::cout << "overflow happen in ruc maintain increase spread3" << std::endl;
@@ -453,7 +482,8 @@ namespace experiment::nonhop::ruc::increase {
                             } else {
                                 pq.update(Q_handle[xnei], node_for_DIFFUSE(xnei, d_new));
                             }
-                        } else if(DIS[xnei].first < d_new){
+                        }
+                        if(DIS[xnei].first < d_new){
                             if (DIS[xnei].second!= -1 && DIS[xnei].second != v) {
                                 ppr_lock[xnei].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, xnei, DIS[xnei].second, v, shard);

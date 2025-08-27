@@ -102,6 +102,9 @@ namespace experiment {
                    vector2_check_pointer->t_e == std::numeric_limits<int>::max()) {
                 if (vector1_check_pointer->vertex == vector2_check_pointer->vertex) {
                     hop_weight_type dis = vector1_check_pointer->distance + vector2_check_pointer->distance;
+                    if (dis < 0) {
+                        dis = std::numeric_limits<hop_weight_type>::max();
+                    }
                     if (distance > dis) {
                         distance = dis;
                         common_hub = vector1_check_pointer->vertex;
