@@ -262,6 +262,10 @@ namespace experiment {
         int t_s;
         int t_e;
 
+        explicit edge_diffuse_info(int vertex,weight_type dis,int t_s,int t_e):vertex(vertex),dis(dis),t_s(t_s),t_e(t_e){
+
+        }
+
         bool operator<(const edge_diffuse_info<weight_type> others) const{
             return this->dis > others.dis;
         };
@@ -274,7 +278,9 @@ namespace experiment {
         int hop;
         int t_s;
         int t_e;
+        explicit edge_diffuse_info_with_hop(int vertex,weight_type dis,int hop,int t_s,int t_e):vertex(vertex),dis(dis),hop(hop),t_s(t_s),t_e(t_e){
 
+        }
         bool operator<(const edge_diffuse_info_with_hop<weight_type> others) const{
             return this->dis > others.dis;
         };
@@ -343,7 +349,7 @@ namespace experiment {
         std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
         queue.clear();
         std::fill(dist[source].begin(), dist[source].end(), 0);
-        queue.emplace(source, 0,0, 0, 0);
+        queue.emplace(source, 0, 0, t_s, t_e);
         while (!queue.empty()) {
             auto [vertexBase, currentDist, currentHop,effective_ts, effective_te] = queue.top();
             queue.pop();
@@ -458,7 +464,7 @@ namespace experiment {
         std::vector<std::vector<int>> dist(N, std::vector(t_e - t_s + 1, std::numeric_limits<int>::max()));
         queue.clear();
         std::fill(dist[source].begin(), dist[source].end(), 0);
-        queue.emplace(source, 0, 0, 0);
+        queue.emplace(source, 0, 0, t_s,t_e);
         while (!queue.empty()) {
             auto [vertexBase, currentDist,currentHop, effective_ts, effective_te] = queue.top();
             queue.pop();
