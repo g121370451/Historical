@@ -8,6 +8,7 @@ namespace experiment::csv {
     }
 
     CSVWriter::CSVWriter(const std::string &path, char delimiter) : delimiter_(delimiter), path(path) {
+        fileExist = !CSVWriter::file_exists(path);
         out_stream = std::make_unique<std::ofstream>(path, std::ios::app);
         if (!out_stream->is_open()) {
             throw std::runtime_error("Failed to open file: " + path);
@@ -37,5 +38,9 @@ namespace experiment::csv {
 
     const std::string &CSVWriter::getPath() const {
         return this->path;
+    }
+
+    bool CSVWriter::needHeader() const {
+        return this->fileExist;
     }
 }

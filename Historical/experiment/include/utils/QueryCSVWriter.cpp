@@ -2,6 +2,9 @@
 
 experiment::csv::CSVWriteQuery::CSVWriteQuery(const std::string &path, char delimiter) {
     this->csvWriter = std::make_unique<CSVWriter>(path, delimiter);
+    if(this->csvWriter->needHeader()){
+        this->write_csv_header();
+    }
 }
 
 void experiment::csv::CSVWriteQuery::write_csv_header() const {

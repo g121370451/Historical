@@ -17,7 +17,7 @@ namespace experiment::csv {
         ~CSVWriter();
         void write_csv_row(const std::vector<std::string>& columns); // 获取分隔符（delimiter_）
         char getDelimiter() const;
-
+        bool needHeader() const;
         // 获取文件路径（path_）
         const std::string& getPath() const;
         static bool file_exists(const std::string &path);
@@ -25,5 +25,6 @@ namespace experiment::csv {
         std::unique_ptr<std::ofstream> out_stream;
         char delimiter_;
         std::string path;
+        bool fileExist;
     };
 }
