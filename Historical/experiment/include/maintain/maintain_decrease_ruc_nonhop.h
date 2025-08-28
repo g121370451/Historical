@@ -235,6 +235,13 @@ namespace experiment::nonhop::ruc::decrease {
                     } else {
                         node_for_DIFFUSE<hop_weight_type> node(u, du);
                         Q_handle[u] = Q.push(node);
+                        if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
+                            shard.diffuse_count_slot1++;
+                        } else {
+                            shard.diffuse_count_slot2++;
+                        }
+                        DIS[u] = {du, v}; // <distance, hub responsible for this distance>
+                        Dis_changed.push_back(u);
                     }
                 }
 
@@ -252,6 +259,7 @@ namespace experiment::nonhop::ruc::decrease {
                         L_lock[x].lock();
                         insert_sorted_two_hop_label_with_csv((*L)[x], v, dx, time, shard);
                         L_lock[x].unlock();
+                        DIS[x].first = dx;
                         mtx_list_check.lock();
                         this->list.emplace_back(x, v, dx, d_old, time);
                         mtx_list_check.unlock();
@@ -264,7 +272,7 @@ namespace experiment::nonhop::ruc::decrease {
                         if (v >= xnei) {
                             continue;
                         }
-                        int d_new = dx + nei.second;
+                        hop_weight_type d_new = dx + static_cast<hop_weight_type>(nei.second);
 #ifdef _DEBUG
                         if (d_new < 0) {
                             std::cout << "overflow happen in maintain decrease ruc diffuse with nonhop"

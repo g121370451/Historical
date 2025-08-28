@@ -616,12 +616,7 @@ namespace experiment {
         void query_experiment() {
             if (this->enableQueryExperiment) {
                 std::vector<std::future<int> > results_dynamic;
-                // auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
-                std::vector<QueryTaskInfo> list;
-                list.emplace_back(32965,658,2,2);
-                list.emplace_back(10475,14619,3,3);
-                list.emplace_back(14215,12736,1,3);
-                list.emplace_back(16467,32673,2,3);
+                 auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
                 for (const QueryTaskInfo &item: list) {
                     results_dynamic.emplace_back(pool_dynamic.enqueue([&item, this] {
                         nonhop::mtx_595_1.lock();

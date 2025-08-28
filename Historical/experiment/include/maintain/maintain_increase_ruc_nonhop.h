@@ -433,11 +433,7 @@ namespace experiment::nonhop::ruc::increase {
                     Q_handle.erase(x);
 
                     L_lock[x].lock();
-                    if(DIS[x].first < dx){
-                        continue;
-                    }
-                    hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,
-                                                                                            shard);
+                    hop_weight_type d_old = search_sorted_two_hop_label_in_current_with_csv((*L)[x], v,shard);
                     L_lock[x].unlock();
                     if (dx < d_old && dx >= 0) {
                         L_lock[x].lock();
@@ -471,7 +467,6 @@ namespace experiment::nonhop::ruc::increase {
                             Dis_changed.push_back(xnei);
                         }
                         if (DIS[xnei].first > d_new) {
-                            DIS[xnei] = {d_new, v};
                             if (!Q_handle.contains(xnei)) {
                                 Q_handle[xnei] = pq.push(node_for_DIFFUSE(xnei, d_new));
                                 if (status::currentTimeMode == status::MaintainTimeMode::SLOT1) {
@@ -482,8 +477,8 @@ namespace experiment::nonhop::ruc::increase {
                             } else {
                                 pq.update(Q_handle[xnei], node_for_DIFFUSE(xnei, d_new));
                             }
-                        }
-                        if(DIS[xnei].first < d_new){
+                            DIS[xnei] = {d_new, v};
+                        } else if(DIS[xnei].first < d_new){
                             if (DIS[xnei].second!= -1 && DIS[xnei].second != v) {
                                 ppr_lock[xnei].lock();
                                 PPR_TYPE::PPR_insert_with_csv(PPR, xnei, DIS[xnei].second, v, shard);
