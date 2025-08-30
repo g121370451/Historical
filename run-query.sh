@@ -22,6 +22,7 @@ echo_usage() {
     echo "   - twitch"
     echo "   - wiki"
     echo "   - youtube"
+    echo "   - com-lj"
     echo "strategy supported:"
     echo "   - high_high_increase"
     echo "   - high_high_decrease"
@@ -109,6 +110,10 @@ case "$dataset" in
         file="$DATA_DIR/youtube/processed/"
         out="$DATA_DIR/youtube/processed/"
         ;;
+    com-lj)
+            file="$DATA_DIR/com-lj/processed/"
+            out="$DATA_DIR/com-lj/processed/"
+            ;;
     *)
         echo "[ERROR] Unknown dataset: $dataset"
         echo_usage

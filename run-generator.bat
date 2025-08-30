@@ -51,6 +51,9 @@ if /I "%dataset%"=="enron-email" (
 ) else if /I "%dataset%"=="youtube" (
     set file=%data_DIR%/youtube/raw/com-youtube.ungraph.txt
     set out=%data_DIR%/youtube/processed/
+) else if /I "%dataset%"=="com-lj" (
+      set file=%data_DIR%/com-lj/raw/com-lj.ungraph.txt
+      set out=%data_DIR%/com-lj/processed/
 ) else (
     echo [ERROR] unknown dataset: %dataset%
     goto usage
@@ -77,4 +80,5 @@ echo    - enron-email
 echo    - twitch
 echo    - wiki
 echo    - youtube
+echo    - com-lj
 echo    - ....

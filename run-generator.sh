@@ -18,6 +18,7 @@ echo_usage() {
     echo "   - twitch"
     echo "   - wiki"
     echo "   - youtube"
+    echo "   - com-lj"
     echo "   - ...."
     echo
 }
@@ -80,6 +81,10 @@ case "$dataset" in
     youtube)
       file="$DATA_DIR/youtube/raw/com-youtube.ungraph.txt"
       out="$DATA_DIR/youtube/processed/"
+      ;;
+    com-lj)
+      file="$DATA_DIR/com-lj/raw/com-lj.ungraph.txt"
+      out="$DATA_DIR/com-lj/processed/"
       ;;
     *)
         echo "[ERROR] unknown dataset: $dataset"
