@@ -413,7 +413,8 @@ namespace experiment {
             auto [vertexBase, currentDist, effective_ts, effective_te] = queue.top();
             queue.pop();
             if (vertexBase == target) {
-                return static_cast<long long int>(currentDist);
+                res= static_cast<long long int>(currentDist);
+                break;
             }
             int push_ts = -1, push_te = -1;
             for (std::pair<int, std::vector<EdgeInfoWithTimeSpan<weight_type>>> &vertices: graph_with_time.ADJs[vertexBase]) {
@@ -471,7 +472,8 @@ namespace experiment {
             auto [vertexBase, currentDist,currentHop, effective_ts, effective_te] = queue.top();
             queue.pop();
             if (vertexBase == target) {
-                return static_cast<long long int>(res);
+                res= static_cast<long long int>(res);
+                break;
             }
             if(currentHop == hop_limit){
                 continue;
