@@ -7,6 +7,7 @@
 #include <cstring>
 #include <fstream>
 #include <algorithm>
+#include <sys/stat.h>  // For file existence check
 #include "utils/BinaryPersistence.h"
 #include "utils/sorted_vector_binary_operations.h"
 #include "utils/StringHelper.h"
@@ -209,6 +210,7 @@ namespace experiment {
         }
 
         static void read_graph(graph<weight_type> &graph, ExperimentConfig *config);
+        static void write_graph(graph<weight_type> &graph, ExperimentConfig * config);
 
     private:
         static bool sortEdgeById(const std::pair<int, int> &i, std::pair<int, int> &j) {
@@ -294,6 +296,33 @@ namespace experiment {
             }
         }
     };
+
+    template<typename weight_type>
+    inline void graph<weight_type>::write_graph(graph<weight_type> &graph, experiment::ExperimentConfig *config) {
+        std::string writePath = config->data_source.string() + "graph_after.txt";
+
+        struct stat buffer{};
+        if (stat(writePath.c_str(), &buffer) == 0){
+            return;
+        }
+
+        std::ofstream myfile(writePath);
+
+        if (!myfile.is_open()) {
+            throw std::runtime_error("Failed to open file for writing: " + writePath);
+        }
+        myfile << "#" << "\t" << "Nodes" << "\t" << graph.size() << std::endl;
+        myfile << "#" << "\t" << "Edges" << "\t" << graph.edge_number() << std::endl;
+        myfile << "#" << "\t" << "Edges" << "\t" << graph.edge_number() << std::endl;
+
+        for (int i = 0; i < graph.ADJs.size(); ++i){
+            auto &adj = graph.ADJs[i];
+            for(const std::pair<int, weight_type>& item:adj){
+                myfile << i << "\t" << item.first << "\t" << item.second << std::endl;
+            }
+        }
+        myfile.close(); // 显式关闭文件（RAII也会在析构时自动关闭）
+    }
 
     template<typename weight_type>
     struct dijkstra_nonHop {
