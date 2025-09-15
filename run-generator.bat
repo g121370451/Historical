@@ -51,9 +51,18 @@ if /I "%dataset%"=="enron-email" (
 ) else if /I "%dataset%"=="youtube" (
     set file=%data_DIR%/youtube/raw/com-youtube.ungraph.txt
     set out=%data_DIR%/youtube/processed/
-) else if /I "%dataset%"=="com-lj" (
-      set file=%data_DIR%/com-lj/raw/com-lj.ungraph.txt
-      set out=%data_DIR%/com-lj/processed/
+) else if /I "%dataset%"=="google" (
+    set file=%data_DIR%/google/raw/web-Google.txt
+    set out=%data_DIR%/google/processed/
+) else if /I "%dataset%"=="stanford" (
+    set file=%data_DIR%/stanford/raw/web-Stanford.txt
+    set out=%data_DIR%/stanford/processed/
+) else if /I "%dataset%"=="road-pa" (
+    set file=%data_DIR%/rand-pa/raw/roadNet-PA.txt
+    set out=%data_DIR%/rand-pa/processed/
+) else if /I "%dataset%"=="road-ca" (
+    set file=%data_DIR%/rand-ca/raw/roadNet-CA.txt
+    set out=%data_DIR%/rand-ca/processed/
 ) else (
     echo [ERROR] unknown dataset: %dataset%
     goto usage
@@ -80,5 +89,8 @@ echo    - enron-email
 echo    - twitch
 echo    - wiki
 echo    - youtube
-echo    - com-lj
+echo    - google
+echo    - stanford
+echo    - road-pa
+echo    - road-ca
 echo    - ....

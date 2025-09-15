@@ -22,7 +22,10 @@ echo_usage() {
     echo "   - twitch"
     echo "   - wiki"
     echo "   - youtube"
-    echo "   - com-lj"
+    echo "   - google"
+    echo "   - stanford"
+    echo "   - road-pa"
+    echo "   - road-ca"
     echo "strategy supported:"
     echo "   - high_high_increase"
     echo "   - high_high_decrease"
@@ -110,10 +113,22 @@ case "$dataset" in
         file="$DATA_DIR/youtube/processed/"
         out="$DATA_DIR/youtube/processed/"
         ;;
-    com-lj)
-            file="$DATA_DIR/com-lj/processed/"
-            out="$DATA_DIR/com-lj/processed/"
-            ;;
+    google)
+        file="$DATA_DIR/google/processed/"
+        out="$DATA_DIR/google/processed/"
+        ;;
+    stanford)
+        file="$DATA_DIR/stanford/processed/"
+        out="$DATA_DIR/stanford/processed/"
+        ;;
+    road-pa)
+        file="$DATA_DIR/road-pa/processed/"
+        out="$DATA_DIR/road-pa/processed/"
+        ;;
+    road-ca)
+        file="$DATA_DIR/road-ca/processed/"
+        out="$DATA_DIR/road-ca/processed/"
+        ;;
     *)
         echo "[ERROR] Unknown dataset: $dataset"
         echo_usage

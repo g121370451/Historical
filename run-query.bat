@@ -93,9 +93,18 @@ if /I "%dataset%"=="enron-email" (
 ) else (if /I "%dataset%"=="youtube" (
     set file=%DATA_DIR%/youtube/processed/
     set out=%DATA_DIR%/youtube/processed/
-) else (if /I "%dataset%"=="com-lj" (
-      set file=%DATA_DIR%/com-lj/processed/
-      set out=%DATA_DIR%/com-lj/processed/
+) else if /I "%dataset%"=="google" (
+      set file=%DATA_DIR%/google/processed/
+      set out=%DATA_DIR%/google/processed/
+) else if /I "%dataset%"=="stanford" (
+      set file=%DATA_DIR%/stanford/processed/
+      set out=%DATA_DIR%/stanford/processed/
+) else if /I "%dataset%"=="road-pa" (
+      set file=%DATA_DIR%/road-pa/processed/
+      set out=%DATA_DIR%/road-pa/processed/
+) else if /I "%dataset%"=="road-ca" (
+      set file=%DATA_DIR%/road-ca/processed/
+      set out=%DATA_DIR%/road-ca/processed/
 ) else (
     echo [ERROR] Unknown dataset: %dataset%
     goto usage
@@ -118,7 +127,10 @@ echo    - enron-email
 echo    - twitch
 echo    - wiki
 echo    - youtube
-echo    - com-lj
+echo    - google
+echo    - stanford
+echo    - road-pa
+echo    - road-ca
 echo strategy supported:
 echo    - high_high_increase
 echo    - high_high_decrease

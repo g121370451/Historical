@@ -18,7 +18,11 @@ echo_usage() {
     echo "   - twitch"
     echo "   - wiki"
     echo "   - youtube"
-    echo "   - com-lj"
+    echo "   - google"
+    echo "   - stanford"
+    echo "   - google"
+    echo "   - road-pa"
+    echo "   - road-ca"
     echo "   - ...."
     echo
 }
@@ -82,9 +86,21 @@ case "$dataset" in
       file="$DATA_DIR/youtube/raw/com-youtube.ungraph.txt"
       out="$DATA_DIR/youtube/processed/"
       ;;
-    com-lj)
-      file="$DATA_DIR/com-lj/raw/com-lj.ungraph.txt"
-      out="$DATA_DIR/com-lj/processed/"
+    google)
+      file="$DATA_DIR/google/raw/web-Google.txt"
+      out="$DATA_DIR/google/processed/"
+      ;;
+    stanford)
+      file="$DATA_DIR/stanford/raw/web-Stanford.txt"
+      out="$DATA_DIR/stanford/processed/"
+      ;;
+    road-pa)
+      file="$DATA_DIR/road-pa/raw/roadNet-PA.txt"
+      out="$DATA_DIR/road-pa/processed/"
+      ;;
+    road-ca)
+      file="$DATA_DIR/road-ca/raw/roadNet-CA.txt"
+      out="$DATA_DIR/road-ca/processed/"
       ;;
     *)
         echo "[ERROR] unknown dataset: $dataset"
