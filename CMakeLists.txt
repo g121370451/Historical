@@ -50,6 +50,7 @@ add_executable(experiment_program
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/CSVWriter.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/MaintainCSVWriter.cpp
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/QueryCSVWriter.cpp
+        ${PROJECT_SOURCE_DIR}/Historical/experiment/include/utils/LogTransaction.cpp
 )
 target_compile_options(experiment_program PRIVATE
         -Wall -Wextra -Wpedantic    # 更严格的警告
