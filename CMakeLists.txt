@@ -27,6 +27,7 @@ endif()
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/Historical/experiment/include
+        ${PROJECT_SOURCE_DIR}/Historical/experiment/include/third
         ${Boost_INCLUDE_DIRS}
 )
 

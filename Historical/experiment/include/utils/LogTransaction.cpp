@@ -14,7 +14,7 @@ void LogTransaction::log(const std::string &msg) {
 
 void LogTransaction::commit() {
     for (auto& msg : buffer) {
-        spdlog::info("{}", msg);
+        spdlog::info("{}", std::string_view(msg));
     }
     buffer.clear();
 }
