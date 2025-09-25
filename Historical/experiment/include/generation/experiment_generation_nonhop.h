@@ -1,4 +1,5 @@
 #pragma once
+
 #include <boost/heap/fibonacci_heap.hpp>
 #include <algorithm>
 #include "utils/ExecutionTimer.h"
@@ -27,7 +28,7 @@ namespace experiment::nonhop {
 
     template<typename weight_type, typename hop_weight_type>
     void GeneratorNonHop<weight_type, hop_weight_type>::operator()(
-        graph<weight_type> &input_graph, two_hop_case_info<hop_weight_type> &case_info) const {
+            graph<weight_type> &input_graph, two_hop_case_info<hop_weight_type> &case_info) const {
         //----------------------------------- step 1: initialization ------------------------------------------------------------------
         generator_timer.startSubtask("step 1: initialization");
         int num_of_threads = case_info.thread_num;
@@ -39,7 +40,8 @@ namespace experiment::nonhop {
         //---------------------------------------------------------------------------------------------------------------------------------------
 
         //----------------------------------------------- step 2: generate labels ---------------------------------------------------------------
-        generator_timer.startSubtask("step 2: generate labels"); {
+        generator_timer.startSubtask("step 2: generate labels");
+        {
             // to save RAM of ThreadPool
             /*seaching shortest paths*/
             ThreadPool pool(num_of_threads);
@@ -57,11 +59,11 @@ namespace experiment::nonhop {
             int last_check_vID = N - 1;
             for (int v_k = 0; v_k <= last_check_vID; v_k++) {
                 results.emplace_back(
-                    pool.enqueue([this, v_k, &input_graph, last_check_vID] {
-                        // pass const type value j to thread; [] can be empty
-                        this->PLL_dij_function(v_k, input_graph);
-                        return 1; // return to results; the return type must be the same with results
-                    }));
+                        pool.enqueue([this, v_k, &input_graph, last_check_vID] {
+                            // pass const type value j to thread; [] can be empty
+                            this->PLL_dij_function(v_k, input_graph);
+                            return 1; // return to results; the return type must be the same with results
+                        }));
             }
             for (auto &&result: results)
                 result.get(); // all threads finish here
@@ -87,7 +89,7 @@ namespace experiment::nonhop {
 
     template<typename weight_type, typename hop_weight_type>
     void GeneratorNonHop<weight_type, hop_weight_type>::PLL_dij_function(
-        int v_k, graph<weight_type> &input_graph) const {
+            int v_k, graph<weight_type> &input_graph) const {
         L_lock[max_N_ID_for_mtx_595 - 1].lock();
         int used_id = Qid_595.front();
         Qid_595.pop();
@@ -95,7 +97,7 @@ namespace experiment::nonhop {
 
         std::vector<int> P_changed_vertices, T_changed_vertices;
         std::vector<hop_weight_type> &T_dij = T_dij_595<hop_weight_type>[used_id], &P_dij = P_dij_595<hop_weight_type>[
-            used_id];
+                used_id];
 
         std::vector<PLL_handle_t_for_sp<hop_weight_type> > &Q_handles = Q_handles_595<hop_weight_type>[used_id];
 
@@ -205,7 +207,7 @@ namespace experiment::nonhop {
 
     template<typename weight_type, typename hop_weight_type>
     std::vector<std::vector<two_hop_label<hop_weight_type> > > GeneratorNonHop<weight_type,
-        hop_weight_type>::sortL(int num_of_threads) const {
+            hop_weight_type>::sortL(int num_of_threads) const {
         /*time complexity: O(V*L*logL), where L is average number of labels per vertex*/
 
         int N = L_temp_595<hop_weight_type>.size();
@@ -216,16 +218,16 @@ namespace experiment::nonhop {
         std::vector<std::future<int> > results; // return typename: xxx
         for (int v_k = 0; v_k < N; v_k++) {
             results.emplace_back(
-                pool.enqueue([this, &output_L, v_k] {
-                    // pass const type value j to thread; [] can be empty
-                    std::sort(L_temp_595<hop_weight_type>[v_k].begin(), L_temp_595<hop_weight_type>[v_k].end(),
-                              experiment::nonhop::compare_two_hop_label_small_to_large<hop_weight_type>);
-                    output_L[v_k] = L_temp_595<hop_weight_type>[v_k];
-                    std::vector<two_hop_label<hop_weight_type> >().swap(L_temp_595<hop_weight_type>[v_k]);
-                    // clear new labels for RAM efficiency
+                    pool.enqueue([this, &output_L, v_k] {
+                        // pass const type value j to thread; [] can be empty
+                        std::sort(L_temp_595<hop_weight_type>[v_k].begin(), L_temp_595<hop_weight_type>[v_k].end(),
+                                  experiment::nonhop::compare_two_hop_label_small_to_large<hop_weight_type>);
+                        output_L[v_k] = L_temp_595<hop_weight_type>[v_k];
+                        std::vector<two_hop_label<hop_weight_type> >().swap(L_temp_595<hop_weight_type>[v_k]);
+                        // clear new labels for RAM efficiency
 
-                    return 1; // return to results; the return type must be the same with results
-                }));
+                        return 1; // return to results; the return type must be the same with results
+                    }));
         }
         for (auto &&result: results)
             result.get(); // all threads finish here
@@ -236,8 +238,8 @@ namespace experiment::nonhop {
 
     template<typename weight_type, typename hop_weight_type>
     void GeneratorNonHop<weight_type, hop_weight_type>::clean_L(
-        two_hop_case_info<hop_weight_type> &case_info, int thread_num) const {
-        auto &L = case_info.L;
+            two_hop_case_info<hop_weight_type> &case_info, int thread_num) const {
+        std::vector<std::vector<experiment::nonhop::two_hop_label<hop_weight_type>>> &L = case_info.L;
         const int N = L.size();
 
         ThreadPool pool(thread_num);
@@ -245,64 +247,75 @@ namespace experiment::nonhop {
 
         for (int v = 0; v < N; v++) {
             results.emplace_back(
-                pool.enqueue([v, &L] {
-                    // pass const type value j to thread; [] can be empty
-                    L_lock[max_N_ID_for_mtx_595 - 1].lock();
-                    int used_id = Qid_595.front();
-                    Qid_595.pop();
-                    L_lock[max_N_ID_for_mtx_595 - 1].unlock();
+                    pool.enqueue([v, &L] {
+                        // pass const type value j to thread; [] can be empty
+                        L_lock[max_N_ID_for_mtx_595 - 1].lock();
+                        int used_id = Qid_595.front();
+                        Qid_595.pop();
+                        L_lock[max_N_ID_for_mtx_595 - 1].unlock();
 
-                    std::vector<two_hop_label<hop_weight_type> > Lv_final_inner;
+                        // 结果label 写回L
+                        std::vector<two_hop_label<hop_weight_type> > Lv_final_inner;
+                        // 拷贝这份label
+                        std::vector<two_hop_label<hop_weight_type> > Lv = L[v];
 
-                    std::vector<two_hop_label<hop_weight_type> > &Lv = L[v];
-
-                    auto &T = T_dij_595<hop_weight_type>[used_id];
-
-                    for (const auto &Lvi: Lv) {
-                        int u = Lvi.vertex;
-                        if (v == u) {
-                            Lv_final_inner.push_back(two_hop_label(Lvi));
-                            T[v] = Lvi.distance;
-                            continue;
+                        std::vector<hop_weight_type> &T = T_dij_595<hop_weight_type>[used_id];
+                        for (const auto &Lvi: Lv) {
+                            T[Lvi.vertex] = Lvi.distance;
                         }
-                        L_lock[u].lock();
-                        const auto &Lu = L[u];
-
-                        int min_dis = std::numeric_limits<hop_weight_type>::max();
-                        for (const auto &label: Lu) {
-                            if (T[label.vertex] == std::numeric_limits<hop_weight_type>::max()) {
+                        for (const auto &Lvi: Lv) {
+                            int u = Lvi.vertex;
+                            int hub = -1;
+                            if (v == u) {
+                                Lv_final_inner.push_back(two_hop_label(Lvi));
                                 continue;
                             }
-                            hop_weight_type query_dis = label.distance + T[label.vertex];
-                            if (query_dis < 0) {
-                                std::cout << "overflow happen in clean with nonhop" << std::endl;
+                            L_lock[u].lock();
+                            const std::vector<two_hop_label<hop_weight_type>> &Lu = L[u];
+
+                            int min_dis = Lvi.distance;
+                            for (const two_hop_label<hop_weight_type> &label: Lu) {
+                                if(T[label.vertex] == std::numeric_limits<hop_weight_type>::max()){
+                                    continue;
+                                }
+                                hop_weight_type query_dis = label.distance + T[label.vertex];
+                                if (query_dis < 0) {
+                                    std::cout << "overflow happen in clean with nonhop" << std::endl;
+                                }
+                                if (query_dis <= min_dis) {
+                                    hub = label.vertex;
+                                    min_dis = query_dis;
+                                }
                             }
-                            if (query_dis < min_dis) {
-                                min_dis = query_dis;
+                            L_lock[u].unlock();
+                            if (min_dis == Lvi.distance) {
+                                Lv_final_inner.push_back(two_hop_label(Lvi));
+                            }
+                            if (hub != -1 && hub != v) {
+                                ppr_595[u].lock();
+                                PPR_TYPE::PPR_insert(&PPR_595, u, hub, v);
+                                ppr_595[u].unlock();
+                            }
+                            if (hub != -1 && hub != u) {
+                                ppr_595[v].lock();
+                                PPR_TYPE::PPR_insert(&PPR_595, v, hub, u);
+                                ppr_595[v].unlock();
                             }
                         }
-                        L_lock[u].unlock();
-                        if (min_dis > Lvi.distance) {
-                            Lv_final_inner.push_back(two_hop_label(Lvi));
-                            T[u] = Lvi.distance;
-                        }
-                    }
 
-                    for (const auto &label: Lv_final_inner) {
-                        T[label.vertex] = std::numeric_limits<hop_weight_type>::max();
-                    }
+                        std::fill(T.begin(), T.end(), std::numeric_limits<hop_weight_type>::max());
 
-                    L_lock[v].lock();
-                    Lv = std::move(Lv_final_inner);
-                    L_lock[v].unlock();
+                        L_lock[v].lock();
+                        L[v] = std::move(Lv_final_inner);
+                        L_lock[v].unlock();
 
-                    L_lock[max_N_ID_for_mtx_595 - 1].lock();
-                    Qid_595.push(used_id);
-                    std::cout << "print pll v: " << v << std::endl;
-                    L_lock[max_N_ID_for_mtx_595 - 1].unlock();
+                        L_lock[max_N_ID_for_mtx_595 - 1].lock();
+                        Qid_595.push(used_id);
+                        std::cout << "print pll v: " << v << std::endl;
+                        L_lock[max_N_ID_for_mtx_595 - 1].unlock();
 
-                    return 1; // return to results; the return type must be the same with results
-                }));
+                        return 1; // return to results; the return type must be the same with results
+                    }));
         }
 
         for (auto &&result: results)

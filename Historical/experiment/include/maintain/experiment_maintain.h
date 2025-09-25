@@ -695,6 +695,7 @@ namespace experiment {
         }
 
         void checkDisCorrectness(int v, int u, int t_s, int t_e) {
+            std::cout << "check from " << v << " to " << u << " between " << t_s << " and " << t_e << std::endl;
             auto res1 = this->hop_info.query(v, u, t_s, t_e);
             auto res2 = this->hop_info_2021.query(v, u, t_s, t_e);
             auto res3 = experiment::Baseline1ResultNoHop(this->instance_graph_list, v, u, t_s, t_e);
