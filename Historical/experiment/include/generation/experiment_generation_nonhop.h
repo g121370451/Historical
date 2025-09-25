@@ -257,15 +257,16 @@ namespace experiment::nonhop {
                         // 结果label 写回L
                         std::vector<two_hop_label<hop_weight_type> > Lv_final_inner;
                         // 拷贝这份label
+                        L_lock[v].lock();
                         std::vector<two_hop_label<hop_weight_type> > Lv = L[v];
-
+                        L_lock[v].unlock();
                         std::vector<hop_weight_type> &T = T_dij_595<hop_weight_type>[used_id];
                         for (const auto &Lvi: Lv) {
                             T[Lvi.vertex] = Lvi.distance;
                         }
                         for (const auto &Lvi: Lv) {
                             int u = Lvi.vertex;
-                            int hub = -1;
+                            int hub = Lvi.vertex;
                             if (v == u) {
                                 Lv_final_inner.push_back(two_hop_label(Lvi));
                                 continue;
@@ -288,18 +289,19 @@ namespace experiment::nonhop {
                                 }
                             }
                             L_lock[u].unlock();
-                            if (min_dis == Lvi.distance) {
+                            if (min_dis == Lvi.distance&&hub==Lvi.vertex) {
                                 Lv_final_inner.push_back(two_hop_label(Lvi));
-                            }
-                            if (hub != -1 && hub != v) {
-                                ppr_595[u].lock();
-                                PPR_TYPE::PPR_insert(&PPR_595, u, hub, v);
-                                ppr_595[u].unlock();
-                            }
-                            if (hub != -1 && hub != u) {
-                                ppr_595[v].lock();
-                                PPR_TYPE::PPR_insert(&PPR_595, v, hub, u);
-                                ppr_595[v].unlock();
+                            }else{
+                                if (hub != Lvi.vertex && hub != v) {
+                                    ppr_595[u].lock();
+                                    PPR_TYPE::PPR_insert(&PPR_595, u, hub, v);
+                                    ppr_595[u].unlock();
+                                }
+                                if (hub != Lvi.vertex && hub != u) {
+                                    ppr_595[v].lock();
+                                    PPR_TYPE::PPR_insert(&PPR_595, v, hub, u);
+                                    ppr_595[v].unlock();
+                                }
                             }
                         }
 
