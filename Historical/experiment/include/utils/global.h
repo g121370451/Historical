@@ -14,15 +14,23 @@ namespace experiment {
             int change_count;
             int hop_limit;
             std::string changeName;
+            double baseline1_time_slot1 = 0;
+            double baseline1_time_slot2 = 0;
+            double baseline2_time_slot1 = 0;
+            double baseline2_time_slot2 = 0;
             double ruc_time_slot1 = 0;
             double ruc_time_slot2 = 0;
             double a2021_time_slot1 = 0;
             double a2021_time_slot2 = 0;
             // 补充字段
-            size_t baseline1Size = 0;
-            size_t baseline2Size = 0;
-            long long A2021Size = 0;
-            size_t ARucSize = 0;
+            size_t baseline1_size_slot1 = 0;
+            size_t baseline1_size_slot2 = 0;
+            size_t baseline2_size_slot1 = 0;
+            size_t baseline2_size_slot2 = 0;
+            size_t ruc_size_slot1 = 0;
+            size_t ruc_size_slot2 = 0;
+            size_t a2021_size_slot1 = 0;
+            size_t a2021_size_slot2 = 0;
         };
 
         // 对齐缓存行的分片数据单元

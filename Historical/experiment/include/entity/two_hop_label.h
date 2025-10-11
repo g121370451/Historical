@@ -361,8 +361,8 @@ namespace experiment {
                             long long int dis = (long long int) vector1_begin->distance + vector2_begin->distance;
                             if (distance > dis) {
                                 distance = dis;
-                                // cout << "x (" << vector1_begin->hub_vertex << "," << vector1_begin->hop << "," << vector1_begin->distance <<  ") " << endl;
-                                // cout << "y (" << vector2_begin->hub_vertex << "," << vector2_begin->hop << "," << vector2_begin->distance <<  ") " << endl;
+//                                 std::cout << "x (" << vector1_begin->vertex << "," << vector1_begin->distance <<  ") " << std::endl;
+//                                 std::cout << "y (" << vector2_begin->vertex << "," << vector2_begin->distance <<  ") " << std::endl;
                             }
                         }
                     }

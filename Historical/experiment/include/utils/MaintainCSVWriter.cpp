@@ -23,6 +23,10 @@ void experiment::csv::CSVWriterMaintain::write_csv_header() {
                 "hop_limit",
                 "changeFileName",
                 // 计时信息
+                "baseline1_time_slot1",
+                "baseline1_time_slot2",
+                "baseline2_time_slot1",
+                "baseline2_time_slot2",
                 "ruc_time_slot1",
                 "ruc_time_slot2",
                 "a2021_time_slot1",
@@ -84,10 +88,14 @@ void experiment::csv::CSVWriterMaintain::write_csv_header() {
                 "diffuse_speedup",
                 // 补充字段
                 // 图+索引大小
-                "baseline1Size",
-                "baseline2Size",
-                "RucSize",
-                "A2021Size"
+                "baseline1_size_slot1",
+                "baseline1_size_slot2",
+                "baseline2_size_slot1",
+                "baseline2_size_slot2",
+                "ruc_size_slot1",
+                "ruc_size_slot2",
+                "a2021_size_slot1",
+                "a2021_size_slot2"
         };
         this->csvWriter->write_csv_row(heads);
     }
@@ -107,6 +115,10 @@ void experiment::csv::CSVWriterMaintain::write_csv_row(const experiment::result:
             std::to_string(data.hop_limit),
             data.changeName,
             // 计时信息
+            std::to_string(data.baseline1_time_slot1),
+            std::to_string(data.baseline1_time_slot2),
+            std::to_string(data.baseline2_time_slot1),
+            std::to_string(data.baseline2_time_slot2),
             std::to_string(data.ruc_time_slot1),
             std::to_string(data.ruc_time_slot2),
             std::to_string(data.a2021_time_slot1),
@@ -167,10 +179,14 @@ void experiment::csv::CSVWriterMaintain::write_csv_row(const experiment::result:
             std::to_string((double) old.total_ppr_insert_count() / ruc.total_ppr_insert_count()),
             std::to_string((double) old.total_diffuse_count() / ruc.total_diffuse_count()),
             // 补充字段
-            std::to_string(data.baseline1Size),
-            std::to_string(data.baseline2Size),
-            std::to_string(data.ARucSize),
-            std::to_string(data.A2021Size)
+            std::to_string(data.baseline1_size_slot1),
+            std::to_string(data.baseline1_size_slot2),
+            std::to_string(data.baseline2_size_slot1),
+            std::to_string(data.baseline2_size_slot2),
+            std::to_string(data.ruc_size_slot1),
+            std::to_string(data.ruc_size_slot2),
+            std::to_string(data.a2021_size_slot1),
+            std::to_string(data.a2021_size_slot2),
     };
     this->csvWriter->write_csv_row(heads);
 }

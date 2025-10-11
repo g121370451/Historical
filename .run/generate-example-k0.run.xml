@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="generate-example-k0" type="CMakeRunConfiguration" factoryName="Application" folderName="example" PROGRAM_PARAMS="generate-label -t 20 -f ../data/example/raw/graph.txt -p ../data/example/processed/ -k 0 -max 100 -min 1" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HistoricalHopHL" TARGET_NAME="experiment_program" CONFIG_NAME="debug" RUN_TARGET_PROJECT_NAME="HistoricalHopHL" RUN_TARGET_NAME="experiment_program">
+  <configuration default="false" name="generate-example-k0" type="CMakeRunConfiguration" factoryName="Application" folderName="example" PROGRAM_PARAMS="generate-label -t 1 -f ../data/example/raw/graph.txt -p ../data/example/processed/ -k 0 -max 100 -min 1" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" EMULATE_TERMINAL="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="HistoricalHopHL" TARGET_NAME="experiment_program" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="HistoricalHopHL" RUN_TARGET_NAME="experiment_program">
     <method v="2">
       <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
     </method>

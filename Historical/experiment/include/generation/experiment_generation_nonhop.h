@@ -284,7 +284,7 @@ namespace experiment::nonhop {
                                     std::cout << "overflow happen in clean with nonhop" << std::endl;
                                 }
                                 if (query_dis <= min_dis) {
-                                    hub = label.vertex;
+                                    hub = std::min(hub,label.vertex);
                                     min_dis = query_dis;
                                 }
                             }

@@ -351,6 +351,8 @@ namespace experiment {
                                             : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
+            this->baseline1_maintain_timer.startTask("Maintain baseline1");
+            this->baseline2_maintain_timer.startTask("Maintain baseline2");
         };
 
         // 持久化的方法
@@ -414,9 +416,25 @@ namespace experiment {
             for (int time = 1; time <= this->iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
+                    experiment::result::global_csv_config.basic_data.baseline1_time_slot1 = this->baseline1_maintain_timer.getTaskDuration();
+                    experiment::result::global_csv_config.basic_data.baseline2_time_slot1 = this->baseline2_maintain_timer.getTaskDuration();
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.
                             getDuringTime();
                     experiment::result::global_csv_config.basic_data.ruc_time_slot1 = this->ruc_process.getDuringTime();
+
+
+                    //size统计
+                    experiment::result::global_csv_config.basic_data.baseline1_size_slot1 = std::accumulate(
+                            instance_graph_list.begin(),
+                            instance_graph_list.end(),
+                            size_t(0), // 初始值（0）
+                            [](size_t total, const graph<GraphType> &graph) {
+                                return total + graph.computeSize();
+                            }
+                    );
+                    experiment::result::global_csv_config.basic_data.baseline2_size_slot1 = graph_time.computeSize();
+                    experiment::result::global_csv_config.basic_data.a2021_size_slot1 = hop_info_2021.compute_L_byte_size();
+                    experiment::result::global_csv_config.basic_data.ruc_size_slot1 = hop_info.compute_L_byte_size();
                 }
                 std::cout << "current slot is " << experiment::status::currentTimeMode << std::endl;
                 std::cout << "maintain time is " << time << std::endl;
@@ -464,19 +482,22 @@ namespace experiment {
                 }
                 if (!path_decrease.empty()) {
                     experiment::status::currentMaintainMode = experiment::status::MaintainMode::DECREASE;
+                    this->baseline1_maintain_timer.startSubtask("baseline1 maintain");
                     for (size_t index = 0; index < path_decrease.size(); index++) {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-                        //                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
-                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
-                        // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
-                        // base1TimeCostAll += timer_baseline1.endSubtask();
-                        // timer_baseline2.startSubtask("modify baseline2 edge weight");
-                        graph_time.add_edge(v1, v2, w, time);
-                        // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
+                    this->baseline1_maintain_timer.endSubtask();
+                    this->baseline2_maintain_timer.startSubtask("baseline2 maintain");
+                    for (size_t index = 0; index < path_decrease.size(); index++) {
+                        int v1 = path_decrease[index].first;
+                        int v2 = path_decrease[index].second;
+                        GraphType w = weight_decrease[index];
+                        graph_time.add_edge(v1, v2, w, time);
+                    }
+                    this->baseline2_maintain_timer.endSubtask();
                     this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.decrease(instance_graph_temp, hop_info, path_decrease, weight_decrease,
                                                this->pool_dynamic, time);
@@ -495,14 +516,23 @@ namespace experiment {
                         GraphType w = weight_increase[index];
                         GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         weight_old_increase.push_back(old_w);
-                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
-                        // timer_baseline1.startSubtask("modify baseline1 edge weight");
-                        instance_graph_temp.add_edge(v1, v2, w);
-                        // base1TimeCostAll += timer_baseline1.endSubtask();
-                        // timer_baseline2.startSubtask("modify baseline2 edge weight");
-                        graph_time.add_edge(v1, v2, w, time);
-                        // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
+                    this->baseline1_maintain_timer.startSubtask("baseline1 maintain");
+                    for (size_t index = 0; index < path_increase.size(); index++) {
+                        int v1 = path_increase[index].first;
+                        int v2 = path_increase[index].second;
+                        GraphType w = weight_increase[index];
+                        instance_graph_temp.add_edge(v1, v2, w);
+                    }
+                    this->baseline1_maintain_timer.endSubtask();
+                    this->baseline2_maintain_timer.startSubtask("baseline2 maintain");
+                    for (size_t index = 0; index < path_increase.size(); index++) {
+                        int v1 = path_increase[index].first;
+                        int v2 = path_increase[index].second;
+                        GraphType w = weight_increase[index];
+                        graph_time.add_edge(v1, v2, w, time);
+                    }
+                    this->baseline2_maintain_timer.endSubtask();
                     this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.increase(instance_graph_temp,
                                                hop_info, path_increase,
@@ -521,11 +551,13 @@ namespace experiment {
                 }
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
+            experiment::result::global_csv_config.basic_data.baseline1_time_slot2 = this->baseline1_maintain_timer.getTaskDuration();
+            experiment::result::global_csv_config.basic_data.baseline2_time_slot2 = this->baseline2_maintain_timer.getTaskDuration();
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
+            experiment::result::global_csv_config.basic_data.baseline1_size_slot2 = std::accumulate(
                     instance_graph_list.begin(),
                     instance_graph_list.end(),
                     size_t(0), // 初始值（0）
@@ -533,9 +565,9 @@ namespace experiment {
                         return total + graph.computeSize();
                     }
             );
-            experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
-            experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_L_byte_size();
-            experiment::result::global_csv_config.basic_data.ARucSize = hop_info.compute_L_byte_size();
+            experiment::result::global_csv_config.basic_data.baseline2_size_slot2 = graph_time.computeSize();
+            experiment::result::global_csv_config.basic_data.a2021_size_slot2 = hop_info_2021.compute_L_byte_size();
+            experiment::result::global_csv_config.basic_data.ruc_size_slot2 = hop_info.compute_L_byte_size();
         }
 
         // 保存csv的值
@@ -573,6 +605,8 @@ namespace experiment {
                                                 this->savePath + "increase_item_ruc.txt");
                 nonhop::sort_and_output_to_file(this->a2021_process.getIncreaseList(),
                                                 this->savePath + "increase_item_2021.txt");
+                checkDisCorrectness(736,9,0,0);
+                checkDisCorrectness(736,9,1,1);
                 if (!this->ruc_process.getIncreaseList().empty() || !this->a2021_process.getIncreaseList().empty()) {
                     auto iter1 = this->ruc_process.getIncreaseList().begin();
                     auto iter2 = this->a2021_process.getIncreaseList().begin();
@@ -580,10 +614,10 @@ namespace experiment {
                            iter2 != this->a2021_process.getIncreaseList().end()) {
                         if ((*iter1) != (*iter2)) {
                             if (iter2 == this->a2021_process.getIncreaseList().end() || *iter1 < *iter2) {
-                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1);
+                                checkDisCorrectness(iter1->vertex, iter1->hub, iter1->time, iter1->time);
                                 ++iter1;
                             } else if (iter1 == this->ruc_process.getIncreaseList().end() || *iter2 < *iter1) {
-                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1);
+                                checkDisCorrectness(iter2->vertex, iter2->hub, iter2->time, iter2->time);
                                 ++iter2;
                             }
                         } else {
@@ -599,10 +633,10 @@ namespace experiment {
                            iter2 != this->a2021_process.getDecreaseList().end()) {
                         if ((*iter1) != (*iter2)) {
                             if (iter2 == this->a2021_process.getDecreaseList().end() || *iter1 < *iter2) {
-                                checkDisCorrectness(iter1->vertex, iter1->hub, 1, 1);
+                                checkDisCorrectness(iter1->vertex, iter1->hub, iter1->time, iter1->time);
                                 ++iter1;
                             } else if (iter1 == this->ruc_process.getDecreaseList().end() || *iter2 < *iter1) {
-                                checkDisCorrectness(iter2->vertex, iter2->hub, 1, 1);
+                                checkDisCorrectness(iter2->vertex, iter2->hub, iter2->time, iter2->time);
                                 ++iter2;
                             }
                         } else {
@@ -669,6 +703,9 @@ namespace experiment {
 
         ruc ruc_process;
         a2021 a2021_process;
+        experiment::ExecutionTimer baseline1_maintain_timer;
+        experiment::ExecutionTimer baseline2_maintain_timer;
+
 
         int thread_num;
         int iteration_count;
@@ -772,6 +809,8 @@ namespace experiment {
                                             : config->changeStrategy.value(), config->datasetName, config->threads,
                                             config->iterations,
                                             config->change_count, config->hop_limit);
+            this->baseline1_maintain_timer.startTask("Maintain baseline1");
+            this->baseline2_maintain_timer.startTask("Maintain baseline2");
         };
 
         // 持久化的方法
@@ -840,9 +879,25 @@ namespace experiment {
             for (int time = 1; time <= iteration_count; time++) {
                 if (time == iteration_count / 2) {
                     experiment::status::currentTimeMode = experiment::status::SLOT2;
+                    experiment::result::global_csv_config.basic_data.baseline1_time_slot1 = this->baseline1_maintain_timer.getTaskDuration();
+                    experiment::result::global_csv_config.basic_data.baseline2_time_slot1 = this->baseline2_maintain_timer.getTaskDuration();
                     experiment::result::global_csv_config.basic_data.a2021_time_slot1 = this->a2021_process.
                             getDuringTime();
                     experiment::result::global_csv_config.basic_data.ruc_time_slot1 = this->ruc_process.getDuringTime();
+
+
+                    //size统计
+                    experiment::result::global_csv_config.basic_data.baseline1_size_slot1 = std::accumulate(
+                            instance_graph_list.begin(),
+                            instance_graph_list.end(),
+                            size_t(0), // 初始值（0）
+                            [](size_t total, const graph<GraphType> &graph) {
+                                return total + graph.computeSize();
+                            }
+                    );
+                    experiment::result::global_csv_config.basic_data.baseline2_size_slot1 = graph_time.computeSize();
+                    experiment::result::global_csv_config.basic_data.a2021_size_slot1 = hop_info_2021.compute_label_bit_size();
+                    experiment::result::global_csv_config.basic_data.ruc_size_slot1 = hop_info.compute_label_bit_size();
                 }
                 std::cout << "current slot is " << experiment::status::currentTimeMode << std::endl;
                 std::cout << "maintain time is " << time << std::endl;
@@ -890,19 +945,22 @@ namespace experiment {
                 }
                 if (!path_decrease.empty()) {
                     experiment::status::currentMaintainMode = experiment::status::MaintainMode::DECREASE;
+                    this->baseline1_maintain_timer.startSubtask("baseline1 maintain");
                     for (size_t index = 0; index < path_decrease.size(); index++) {
                         int v1 = path_decrease[index].first;
                         int v2 = path_decrease[index].second;
                         GraphType w = weight_decrease[index];
-                        //                        GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
-                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
-                        // timer_baseline1.startSubtask("modify baseline1 edge weight");
                         instance_graph_temp.add_edge(v1, v2, w);
-                        // base1TimeCostAll += timer_baseline1.endSubtask();
-                        // timer_baseline2.startSubtask("modify baseline2 edge weight");
-                        graph_time.add_edge(v1, v2, w, time);
-                        // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
+                    this->baseline1_maintain_timer.endSubtask();
+                    this->baseline2_maintain_timer.startSubtask("baseline2 maintain");
+                    for (size_t index = 0; index < path_decrease.size(); index++) {
+                        int v1 = path_decrease[index].first;
+                        int v2 = path_decrease[index].second;
+                        GraphType w = weight_decrease[index];
+                        graph_time.add_edge(v1, v2, w, time);
+                    }
+                    this->baseline2_maintain_timer.endSubtask();
                     this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.decrease(instance_graph_temp, hop_info, path_decrease, weight_decrease,
                                                this->pool_dynamic, time);
@@ -921,14 +979,23 @@ namespace experiment {
                         GraphType w = weight_increase[index];
                         GraphType old_w = sorted_vector_binary_operations_search_weight(instance_graph_temp[v1], v2);
                         weight_old_increase.push_back(old_w);
-                        // std::cout << "from " << v1 << " to " << v2 << " w " << w << " old_w is " << old_w << std::endl;
-                        // timer_baseline1.startSubtask("modify baseline1 edge weight");
-                        instance_graph_temp.add_edge(v1, v2, w);
-                        // base1TimeCostAll += timer_baseline1.endSubtask();
-                        // timer_baseline2.startSubtask("modify baseline2 edge weight");
-                        graph_time.add_edge(v1, v2, w, time);
-                        // base2TimeCostAll += timer_baseline2.endSubtask();
                     }
+                    this->baseline1_maintain_timer.startSubtask("baseline1 maintain");
+                    for (size_t index = 0; index < path_increase.size(); index++) {
+                        int v1 = path_increase[index].first;
+                        int v2 = path_increase[index].second;
+                        GraphType w = weight_increase[index];
+                        instance_graph_temp.add_edge(v1, v2, w);
+                    }
+                    this->baseline1_maintain_timer.endSubtask();
+                    this->baseline2_maintain_timer.startSubtask("baseline2 maintain");
+                    for (size_t index = 0; index < path_increase.size(); index++) {
+                        int v1 = path_increase[index].first;
+                        int v2 = path_increase[index].second;
+                        GraphType w = weight_increase[index];
+                        graph_time.add_edge(v1, v2, w, time);
+                    }
+                    this->baseline2_maintain_timer.endSubtask();
                     this->initialize_experiment_global_values_dynamic();
                     this->ruc_process.increase(instance_graph_temp,
                                                hop_info, path_increase,
@@ -947,11 +1014,13 @@ namespace experiment {
                 }
                 this->instance_graph_list.push_back(instance_graph_temp);
             }
+            experiment::result::global_csv_config.basic_data.baseline1_time_slot2 = this->baseline1_maintain_timer.getTaskDuration();
+            experiment::result::global_csv_config.basic_data.baseline2_time_slot2 = this->baseline2_maintain_timer.getTaskDuration();
             experiment::result::global_csv_config.basic_data.a2021_time_slot2 = this->a2021_process.getDuringTime() -
                                                                                 experiment::result::global_csv_config.basic_data.a2021_time_slot1;
             experiment::result::global_csv_config.basic_data.ruc_time_slot2 =
                     this->ruc_process.getDuringTime() - experiment::result::global_csv_config.basic_data.ruc_time_slot1;
-            experiment::result::global_csv_config.basic_data.baseline1Size = std::accumulate(
+            experiment::result::global_csv_config.basic_data.baseline1_size_slot2 = std::accumulate(
                     instance_graph_list.begin(),
                     instance_graph_list.end(),
                     size_t(0), // 初始值（0）
@@ -959,9 +1028,9 @@ namespace experiment {
                         return total + graph.computeSize();
                     }
             );
-            experiment::result::global_csv_config.basic_data.baseline2Size = graph_time.computeSize();
-            experiment::result::global_csv_config.basic_data.A2021Size = hop_info_2021.compute_label_bit_size();
-            experiment::result::global_csv_config.basic_data.ARucSize = hop_info.compute_label_bit_size();
+            experiment::result::global_csv_config.basic_data.baseline2_size_slot2 = graph_time.computeSize();
+            experiment::result::global_csv_config.basic_data.a2021_size_slot2 = hop_info_2021.compute_label_bit_size();
+            experiment::result::global_csv_config.basic_data.ruc_size_slot2 = hop_info.compute_label_bit_size();
             graph_time.print();
         }
 
@@ -1096,6 +1165,8 @@ namespace experiment {
 
         ruc ruc_process;
         a2021 a2021_process;
+        experiment::ExecutionTimer baseline1_maintain_timer;
+        experiment::ExecutionTimer baseline2_maintain_timer;
 
         int thread_num;
         int upper_k;

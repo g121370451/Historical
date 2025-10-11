@@ -116,11 +116,6 @@ namespace experiment::nonhop::ruc::increase {
                         if (search_weight == d_new && search_weight < std::numeric_limits<hop_weight_type>::max()) {
                             mtx_595_1.lock();
                             al1.emplace_back(v1, label.vertex, label.distance + w_old);
-#ifdef _DEBUG
-                            this->list_infinite.emplace_back(v1, label.vertex,
-                                                             std::numeric_limits<hop_weight_type>::max(),
-                                                             search_weight, time);
-#endif
                             mtx_595_1.unlock();
                         }
                     }
