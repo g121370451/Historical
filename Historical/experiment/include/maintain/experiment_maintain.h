@@ -1132,8 +1132,6 @@ namespace experiment {
                             std::cout << "error query result from " << index1 << " to " << index2
                                       << " between " << t1 << " and " << t2
                                       << " res: " << res1 << ":" << res2 << ":" << res3 << ":" << res4 << std::endl;
-                            auto res_test = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
-                                                                               t2, this->upper_k, shard);
                         }
 
                         return 0;
