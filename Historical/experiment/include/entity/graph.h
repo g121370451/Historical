@@ -513,11 +513,11 @@ namespace experiment {
             auto item_res = GetSpecialGraphSPD(const_cast<graph<weight_type> &>(graphs[index]), source, target, hop);
 
             if (item_res.weight < std::numeric_limits<weight_type>::max()) {
-                std::cout << "Found path with weight " << item_res.weight << ": ";
-                for (int vertex: item_res.path) {
-                    std::cout << vertex << " ";
-                }
-                std::cout << std::endl;
+                // std::cout << "Found path with weight " << item_res.weight << ": ";
+                // for (int vertex: item_res.path) {
+                //     std::cout << vertex << " ";
+                // }
+                // std::cout << std::endl;
                 res = std::min(res, item_res.weight);
             }
         }
