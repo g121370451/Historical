@@ -1031,7 +1031,6 @@ namespace experiment {
             experiment::result::global_csv_config.basic_data.baseline2_size_slot2 = graph_time.computeSize();
             experiment::result::global_csv_config.basic_data.a2021_size_slot2 = hop_info_2021.compute_label_bit_size();
             experiment::result::global_csv_config.basic_data.ruc_size_slot2 = hop_info.compute_label_bit_size();
-            graph_time.print();
         }
 
         void check_correctness() {
@@ -1102,7 +1101,7 @@ namespace experiment {
             std::cout << "query experiment" << std::endl;
             if (this->enableQueryExperiment) {
                 std::vector<std::future<int> > results_dynamic;
-                auto list = getRandomQueryPair(10, this->instance_graph_list[0].size(), 0, this->iteration_count);
+                auto list = getRandomQueryPair(1000, this->instance_graph.size(), 0, this->iteration_count);
                 for (const QueryTaskInfo &item: list) {
                     results_dynamic.emplace_back(pool_dynamic.enqueue([&item, this] {
                         hop::mtx_599_1.lock();
@@ -1124,12 +1123,17 @@ namespace experiment {
                                                                        t2, this->upper_k, shard);
                         auto res4 = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
                                                                        t2, this->upper_k, shard);
+                        hop::mtx_599_1.lock();
+                        hop::Qid_599.push(current_tid);
+                        hop::mtx_599_1.unlock();
                         bool isError = !(res1 == res2 && res3 == res4 && res1 == res3);
                         if (isError) {
                             // 结果错误
                             std::cout << "error query result from " << index1 << " to " << index2
                                       << " between " << t1 << " and " << t2
                                       << " res: " << res1 << ":" << res2 << ":" << res3 << ":" << res4 << std::endl;
+                            auto res_test = experiment::Baseline2ResultWithHop(this->graph_time, index1, index2, t1,
+                                                                               t2, this->upper_k, shard);
                         }
 
                         return 0;
